@@ -1,0 +1,14 @@
+// myschema.fbs
+// From https://rwinslow.com/posts/use-flatbuffers-in-golang/
+
+namespace users;
+
+table User {
+	name:string;
+	id:ulong;		// uint64
+}
+
+root_type User;
+
+// FlatBuffersTables info.
+file_extension "fbt";
