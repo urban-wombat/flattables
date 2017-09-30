@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"github.com/urban-wombat/fbtmain/users"
+	"github.com/urban-wombat/gotablesflatbuffers/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
