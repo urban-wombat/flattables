@@ -1,0 +1,4 @@
+package gotablesflatbuffers
+
+func whatever() {
+}

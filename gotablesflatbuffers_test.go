@@ -1,17 +1,11 @@
-package vanilla
+package gotablesflatbuffers
 
 import (
-    "bytes"
-    "fmt"
-    "io/ioutil"
+//	"fmt"
     "log"
-    "math"
-    "math/rand"
-    "sort"
-    "strconv"
-    "strings"
     "testing"
-//	"github.com/urban-wombat/gotablesflatbuffers/users"
+//	"github.com/urban-wombat/gotables"
+	"github.com/urban-wombat/gotablesflatbuffers/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -37,7 +31,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-func BenchmarkMakeUser(b *testing.B) {
+func BenchmarkFlatBuffersMakeUser(b *testing.B) {
     var err error
 
 	initialSize := 0
@@ -48,8 +42,7 @@ func BenchmarkMakeUser(b *testing.B) {
 	*/
 
     for i := 0; i < b.N; i++ {
-        _, err = NewTableSetFromString(tableSetString)
-		buf := MakeUser(buffer, []byte("Arthur Dent"), 42)
+		MakeUser(buffer, []byte("Arthur Dent"), 42)
         if err != nil {
             b.Error(err)
         }
@@ -68,7 +61,7 @@ func MakeUser(b *flatbuffers.Builder, name []byte, id uint64) []byte {
 
 	// create the name object and get its offset:
 	name_position := b.CreateByteString(name)
-where(fmt.Sprintf("name_position = %v\n", name_position))
+// where(fmt.Sprintf("name_position = %v\n", name_position))
 
 	// write the User object:
 	users.UserStart(b)
