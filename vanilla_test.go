@@ -1,4 +1,4 @@
-package gotablesflatbuffers
+package vanilla
 
 import (
     "bytes"
@@ -11,7 +11,7 @@ import (
     "strconv"
     "strings"
     "testing"
-	"github.com/urban-wombat/gotablesflatbuffers/users"
+//	"github.com/urban-wombat/gotablesflatbuffers/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
