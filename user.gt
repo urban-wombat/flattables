@@ -1,7 +1,0 @@
-[User]
-name	id
-string	uint64
-
-[User_IDs]
-name uint8 = 1
-id   uint8 = 2

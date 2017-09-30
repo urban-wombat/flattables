@@ -1,10 +1,10 @@
 package gotablesflatbuffers
 
 import (
-//	"fmt"
+	"fmt"
     "log"
     "testing"
-//	"github.com/urban-wombat/gotables"
+	"github.com/urban-wombat/gotables"
 	"github.com/urban-wombat/gotablesflatbuffers/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
@@ -32,8 +32,6 @@ SOFTWARE.
 */
 
 func BenchmarkFlatBuffersMakeUser(b *testing.B) {
-    var err error
-
 	initialSize := 0
 	buffer := flatbuffers.NewBuilder(initialSize)
 	/*
@@ -43,9 +41,64 @@ func BenchmarkFlatBuffersMakeUser(b *testing.B) {
 
     for i := 0; i < b.N; i++ {
 		MakeUser(buffer, []byte("Arthur Dent"), 42)
-        if err != nil {
-            b.Error(err)
-        }
+    }
+}
+
+func BenchmarkFlatBuffersReadUser(b *testing.B) {
+	initialSize := 0
+	buffer := flatbuffers.NewBuilder(initialSize)
+	buf := MakeUser(buffer, []byte("Arthur Dent"), 42)
+	/*
+	name, id := ReadUser(buf)
+	fmt.Printf("%s has id %d. The encoded data is %d bytes long.\n", name, id, len(buf))
+	*/
+
+    for i := 0; i < b.N; i++ {
+		ReadUser(buf)
+    }
+}
+
+func BenchmarkGotablesMakeUser(b *testing.B) {
+	s :=
+	`[User]
+	name string
+	id   uint64
+	`
+	table, err := gotables.NewTableFromString(s)
+	if err != nil {
+		b.Error(err)
+	}
+
+    for i := 0; i < b.N; i++ {
+		_, err = TypeStructSliceFromTable_User(table)
+		if err != nil {
+			b.Error(err)
+		}
+    }
+}
+
+func BenchmarkGotablesReadUser(b *testing.B) {
+	s :=
+	`[User]
+	name string
+	id   uint64
+	`
+	table, err := gotables.NewTableFromString(s)
+	if err != nil {
+		b.Error(err)
+	}
+
+	var user []User
+	user, err = TypeStructSliceFromTable_User(table)
+	if err != nil {
+		b.Error(err)
+	}
+
+    for i := 0; i < b.N; i++ {
+		_, err = TypeStructSliceToTable_User(user)
+		if err != nil {
+			b.Error(err)
+		}
     }
 }
 
@@ -89,4 +142,83 @@ func ReadUser(buf []byte) (name []byte, id uint64) {
 	id = user.Id()
 
 	return
+}
+
+/*
+	Automatically generated source code. DO NOT MODIFY. Generated 5:48 PM Saturday 30 Sep 2017.
+
+	type User struct generated from *gotables.Table [User] for including in your code.
+*/
+type User struct {
+	name string
+	id uint64
+}
+/*
+	Automatically generated source code. DO NOT MODIFY. Generated 5:48 PM Saturday 30 Sep 2017.
+	Generate a slice of type User struct from *gotables.Table [User] for including in your code.
+*/
+func TypeStructSliceFromTable_User(table *gotables.Table) ([]User, error) {
+	if table == nil {
+		return nil, fmt.Errorf("TypeStructSliceFromTable_User(slice []User) slice is <nil>")
+	}
+
+	var User []User = make([]User, table.RowCount())
+
+	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+		name, err := table.GetString("name", rowIndex)
+		if err != nil {
+			return nil, err
+		}
+		User[rowIndex].name = name
+
+		id, err := table.GetUint64("id", rowIndex)
+		if err != nil {
+			return nil, err
+		}
+		User[rowIndex].id = id
+	}
+
+	return User, nil
+}
+/*
+	Automatically generated source code. DO NOT MODIFY. Generated 5:48 PM Saturday 30 Sep 2017.
+
+	Generate a gotables Table [User] from a slice of type struct []User for including in your code.
+*/
+func TypeStructSliceToTable_User(slice []User) (*gotables.Table, error) {
+	if slice == nil {
+		return nil, fmt.Errorf("TypeStructSliceToTable_User(slice []User) slice is <nil>")
+	}
+
+	var err error
+
+	var seedTable string = `
+	[User]
+	name string
+	id uint64
+	`
+	var table *gotables.Table
+	table, err = gotables.NewTableFromString(seedTable)
+	if err != nil {
+		return nil, err
+	}
+
+	for rowIndex := 0; rowIndex < len(slice); rowIndex++ {
+		err = table.AppendRow()
+		if err != nil {
+			return nil, err
+		}
+
+		err = table.SetString("name", rowIndex, slice[rowIndex].name)
+		if err != nil {
+			return nil, err
+		}
+
+		err = table.SetUint64("id", rowIndex, slice[rowIndex].id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return table, nil
 }
