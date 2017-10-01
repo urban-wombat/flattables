@@ -1,0 +1,3 @@
+[User]
+    name string
+	    id   uint64

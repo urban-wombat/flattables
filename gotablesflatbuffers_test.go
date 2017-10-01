@@ -102,6 +102,31 @@ func BenchmarkGotablesReadUser(b *testing.B) {
     }
 }
 
+func BenchmarkGotablesReadUser_OLD_WAY(b *testing.B) {
+	s :=
+	`[User]
+	name string
+	id   uint64
+	`
+	table, err := gotables.NewTableFromString(s)
+	if err != nil {
+		b.Error(err)
+	}
+
+	var user []User
+	user, err = TypeStructSliceFromTable_User(table)
+	if err != nil {
+		b.Error(err)
+	}
+
+    for i := 0; i < b.N; i++ {
+		_, err = TypeStructSliceToTable_User_OLD_WAY(user)
+		if err != nil {
+			b.Error(err)
+		}
+    }
+}
+
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
 }
@@ -185,7 +210,7 @@ func TypeStructSliceFromTable_User(table *gotables.Table) ([]User, error) {
 
 	Generate a gotables Table [User] from a slice of type struct []User for including in your code.
 */
-func TypeStructSliceToTable_User(slice []User) (*gotables.Table, error) {
+func TypeStructSliceToTable_User_OLD_WAY(slice []User) (*gotables.Table, error) {
 	if slice == nil {
 		return nil, fmt.Errorf("TypeStructSliceToTable_User(slice []User) slice is <nil>")
 	}
@@ -222,3 +247,45 @@ func TypeStructSliceToTable_User(slice []User) (*gotables.Table, error) {
 
 	return table, nil
 }
+
+/*
+    Automatically generated source code. DO NOT MODIFY. Generated 9:12 PM Saturday 30 Sep 2017.
+
+    Generate a gotables Table [User] from a slice of type struct []User for including in your code.
+*/
+func TypeStructSliceToTable_User(slice []User) (*gotables.Table, error) {
+    if slice == nil {
+        return nil, fmt.Errorf("TypeStructSliceToTable_User(slice []User) slice is <nil>")
+    }
+
+    var err error
+
+    var table *gotables.Table
+    var tableName string = "User"
+    var colNames []string = []string{"name","id"}
+    var colTypes []string = []string{"string","uint64"}
+    table, err = gotables.NewTableFromMetadata(tableName, colNames, colTypes)
+    if err != nil {
+        return nil, err
+    }
+
+    for rowIndex := 0; rowIndex < len(slice); rowIndex++ {
+        err = table.AppendRow()
+        if err != nil {
+            return nil, err
+        }
+
+        err = table.SetString("name", rowIndex, slice[rowIndex].name)
+        if err != nil {
+            return nil, err
+        }
+
+        err = table.SetUint64("id", rowIndex, slice[rowIndex].id)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    return table, nil
+}
+
