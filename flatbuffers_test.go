@@ -1,11 +1,11 @@
-package gotablesflatbuffers
+package flatbuffers
 
 import (
 	"fmt"
     "log"
     "testing"
 	"github.com/urban-wombat/gotables"
-	"github.com/urban-wombat/gotablesflatbuffers/users"
+	"github.com/urban-wombat/flatbuffers/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -289,3 +289,49 @@ func TypeStructSliceToTable_User(slice []User) (*gotables.Table, error) {
     return table, nil
 }
 
+var forGob string =
+`[Table]
+name string = "Arthur Dent"
+id   uint64 = 42
+`
+
+func BenchmarkGobEncode(b *testing.B) {
+    // Set up for benchmark.
+    table, err := gotables.NewTableFromString(forGob)
+    if err != nil {
+        b.Error(err)
+    }
+// fmt.Printf("\nBenchmarkGobEncode\n%s\n", table)
+
+    for i := 0; i < b.N; i++ {
+        _, err := table.GobEncode()
+        if err != nil {
+            b.Error(err)
+        }
+    }
+}
+
+func BenchmarkGobDecode(b *testing.B) {
+    // Set up for benchmark.
+    var err error
+    var table *gotables.Table
+    table, err = gotables.NewTableFromString(forGob)
+    if err != nil {
+        b.Error(err)
+    }
+
+    // Set up for benchmark.
+    gobEncodedTable, err := table.GobEncode()
+    if err != nil {
+        b.Error(err)
+    }
+
+// var table2 *gotables.Table
+    for i := 0; i < b.N; i++ {
+        _, err = gotables.GobDecodeTable(gobEncodedTable)
+        if err != nil {
+            b.Error(err)
+        }
+    }
+// fmt.Printf("\nBenchmarkGobDecode\n%s\n", table2)
+}

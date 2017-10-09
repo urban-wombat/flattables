@@ -1,4 +1,4 @@
-package gotablesflatbuffers
+package flatbuffers
 
 func whatever() {
 }
