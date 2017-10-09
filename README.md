@@ -1,4 +1,4 @@
-# gotablesflatbuffers
+# flatbuffers
 For experiments with gotables and FlatBuffers
 
 A subset of Google FlatBuffers as a binary format for gotables Table objects.
