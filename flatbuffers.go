@@ -57,8 +57,8 @@ func MakeSchema(table *gotables.Table, gotableFileName string, schemaFileName st
 	buf.WriteString(fmt.Sprintf("// %s\n", schemaFileName))
 	buf.WriteString(fmt.Sprintf("// DO NOT MODIFY. FlatBuffers schema automatically generated %s from:\n",
 		time.Now().Format("3:04 PM Monday 2 Jan 2006")))
-	buf.WriteString(fmt.Sprintf("//   file:\n%s", indentText("//\t", gotableFileName)))
-	buf.WriteString(fmt.Sprintf("//   table:\n%s\n", indentText("//\t", table.String())))
+	buf.WriteString(fmt.Sprintf("//\tgotables file:\n%s", indentText("//\t\t", gotableFileName)))
+	buf.WriteString(fmt.Sprintf("//\tgotables.Table:\n%s\n", indentText("//\t\t", table.String())))
 
 	buf.WriteString(fmt.Sprintf("namespace %s;\n", tableName))
 	buf.WriteByte('\n')
@@ -82,7 +82,7 @@ func MakeSchema(table *gotables.Table, gotableFileName string, schemaFileName st
 			return "", err
 		}
 
-		buf.WriteString(fmt.Sprintf("\t%s : [%s] ; // Go type []%s\n", colName, schemaType, colType))
+		buf.WriteString(fmt.Sprintf("\t%s:[%s]; // Go type []%s\n", colName, schemaType, colType))
 
 	}
 
