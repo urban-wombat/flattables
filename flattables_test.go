@@ -1,11 +1,11 @@
-package flatbuffers
+package flattables
 
 import (
 	"fmt"
     "log"
     "testing"
 	"github.com/urban-wombat/gotables"
-	"github.com/urban-wombat/flatbuffers/users"
+	"github.com/urban-wombat/flattables/users"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
