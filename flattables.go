@@ -133,3 +133,51 @@ func indentText(indent string, text string) string {
 	}
 	return indentedText
 }
+
+func MakeSchema2(table *gotables.Table, gotableFileName string, schemaFileName string) (string, error) {
+	if table == nil {
+		return "", fmt.Errorf("%s(table): table is <nil>", funcName())
+	}
+
+	tableName := table.Name()
+
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("// %s\n", schemaFileName))
+	buf.WriteString(fmt.Sprintf("// DO NOT MODIFY. FlatBuffers schema automatically generated %s from:\n",
+		time.Now().Format("3:04 PM Monday 2 Jan 2006")))
+	buf.WriteString(fmt.Sprintf("//\tgotables file:\n%s", indentText("//\t\t", gotableFileName)))
+	buf.WriteString(fmt.Sprintf("//\tgotables.Table:\n%s\n", indentText("//\t\t", table.String())))
+
+	buf.WriteString(fmt.Sprintf("namespace %s;\n", tableName))
+	buf.WriteByte('\n')
+
+	buf.WriteString(fmt.Sprintf("table %s {\n", tableName))
+
+	for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+
+		colName, err := table.ColName(colIndex)
+		if err != nil {
+			return "", err
+		}
+
+		colType, err := table.ColType(colName)
+		if err != nil {
+			return "", err
+		}
+
+		schemaType, err := schemaType(colType)
+		if err != nil {
+			return "", err
+		}
+
+		buf.WriteString(fmt.Sprintf("\t%s:[%s]; // Go type []%s\n", colName, schemaType, colType))
+
+	}
+
+	buf.WriteString("}\n")
+
+	buf.WriteByte('\n')
+	buf.WriteString(fmt.Sprintf("root_type %s;\n", tableName))
+
+	return buf.String(), nil
+}
