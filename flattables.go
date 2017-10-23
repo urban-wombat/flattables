@@ -46,7 +46,7 @@ SOFTWARE.
 
 var GoFlatBuffersTypes = map[string]string {
 	"bool":    "bool",
-	"int8":    "byte",	// Signed
+	"int8":    "byte",	// Signed.
 	"int16":   "short",
 	"int32":   "int",	// (Go rune is an alias for Go int32. For future reference.)
 	"int64":   "long",
@@ -67,57 +67,6 @@ func funcName() string {
     nameEnd := filepath.Ext(nameFull)        // .foo
     name := strings.TrimPrefix(nameEnd, ".") // foo
     return name
-}
-
-func MakeSchema1(table *gotables.Table, gotablesFileName string, schemaFileName string) (string, error) {
-	if table == nil {
-		return "", fmt.Errorf("%s(table): table is <nil>", funcName())
-	}
-
-	tableName := table.Name()
-
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("/*\n"))
-	buf.WriteString(fmt.Sprintf("\t%s\n", schemaFileName))
-	buf.WriteString(fmt.Sprintf("\tDO NOT MODIFY\n"))
-	buf.WriteString(fmt.Sprintf("\tFlatBuffers schema automatically generated %s from:\n",
-		time.Now().Format("3:04 PM Monday 2 Jan 2006")))
-	buf.WriteString(fmt.Sprintf("\t\tgotables file:\n%s", indentText("\t\t\t", gotablesFileName)))
-	buf.WriteString(fmt.Sprintf("\t\tgotables.Table:\n%s", indentText("\t\t\t", table.String())))
-	buf.WriteString(fmt.Sprintf("*/\n\n"))
-
-	buf.WriteString(fmt.Sprintf("namespace %s;\n", tableName))
-	buf.WriteByte('\n')
-
-	buf.WriteString(fmt.Sprintf("table %s {\n", tableName))
-
-	for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
-
-		colName, err := table.ColName(colIndex)
-		if err != nil {
-			return "", err
-		}
-
-		colType, err := table.ColType(colName)
-		if err != nil {
-			return "", err
-		}
-
-		schemaType, err := schemaType(colType)
-		if err != nil {
-			return "", err
-		}
-
-		buf.WriteString(fmt.Sprintf("\t%s:[%s];\t// Go type []%s\n", colName, schemaType, colType))
-
-	}
-
-	buf.WriteString("}\n")
-
-	buf.WriteByte('\n')
-	buf.WriteString(fmt.Sprintf("root_type %s;\n", tableName))
-
-	return buf.String(), nil
 }
 
 func schemaType(colType string) (string, error) {
