@@ -5,6 +5,8 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/urban-wombat/gotables"
+	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -58,8 +60,11 @@ var GoFlatBuffersTypes = map[string]string {
 	"float32": "float",
 	"float64": "double",
 	"string":  "string",
+//	"int":     "long",	// Assume largest int size:  64 bit.
+//	"uint":    "ulong",	// Assume largest uint size: 64 bit.
 }
 
+var where = log.Print
 
 func funcName() string {
     pc, _, _, _ := runtime.Caller(1)
@@ -74,7 +79,14 @@ func schemaType(colType string) (string, error) {
 	if exists {
 		return schemaType, nil
 	} else {
-		return "", fmt.Errorf("No FlatBuffers type available for Go type: %s", colType)
+		var changeTypeTo string
+		switch colType {
+			case "int": changeTypeTo = "int64"
+			case "uint": changeTypeTo = "uint64"
+			default: return "", fmt.Errorf("No FlatBuffers-compatible Go type suggestion for Go type: %s", colType)
+		}
+		return "", fmt.Errorf("No FlatBuffers type available for Go type: %s (suggest change it to Go type: %s)",
+			colType, changeTypeTo)
 	}
 }
 
@@ -87,7 +99,225 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func flatBuffersTableFields(table *gotables.Table) ([]string, error) {
+//func MakeSchemaTable(table *gotables.Table, schemaFileName string) (string, error) {
+//	var err error
+//	if table == nil {
+//		return "", fmt.Errorf("%s(table): table is <nil>", funcName())
+//	}
+//
+//	tableName := table.Name()
+//
+//const templateString =
+//`
+///*
+//	DO NOT MODIFY
+//	{{.AutomaticallyFrom}}
+//{{.TableString -}}
+//*/
+//
+//namespace {{.NameSpace}};
+//
+//table {{.TableName}} {
+//	{{range .TableFields}}
+//	{{- .}}
+//	{{end}}
+//}
+//
+//root_type {{.RootType}};
+//`
+//
+//	type SchemaInfo struct {
+//		SchemaFileName string
+//		AutomaticallyFrom string
+//		TableString string
+//		NameSpace string
+//		TableName string
+//		TableFields []string
+//		RootType string
+//	}
+//
+//	// More-complex assignments
+//	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from gotables.Table:",
+//		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+//	fieldNames, err := fieldNames(table)
+//	if err != nil { return "", err }
+//
+//	// Populate schema struct.
+//	var schemaInfo = SchemaInfo{
+//		SchemaFileName: schemaFileName,
+//		AutomaticallyFrom: automatically,
+//		TableString: fmt.Sprintf("%s", indentText("\t\t", table.String())),
+//		NameSpace: tableName,
+//		TableName: tableName,
+//		TableFields: fieldNames,
+//		RootType: tableName,
+//	}
+//
+//
+//	var buf *bytes.Buffer = bytes.NewBufferString("")
+//
+//	t := template.New("fbs schema")
+//
+//	t, err = t.Parse(templateString)
+//	if err != nil { return "", err }
+//
+//	err = t.Execute(buf, schemaInfo)
+//	if err != nil { return "", err }
+//
+//	return buf.String(), nil
+//}
+
+func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
+	var err error
+	if tableSet == nil {
+		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
+	}
+
+	type SchemaInfo struct {
+		SchemaFileName string
+		AutomaticallyFrom string
+		TableString string
+		NameSpace string
+		RootType string
+	}
+
+	// More-complex assignments
+	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
+		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+
+	// Populate schema struct.
+	var schemaInfo = SchemaInfo {
+		SchemaFileName: schemaFileName,
+		AutomaticallyFrom: automatically,
+		NameSpace: tableSet.Name(),
+		RootType: tableSet.Name(),
+	}
+
+const beginTemplate =
+`
+/*
+	{{.SchemaFileName}}
+	DO NOT MODIFY
+	{{.AutomaticallyFrom}}
+{{.TableString -}}
+*/
+
+namespace {{.NameSpace}};
+`
+
+	type TableSetInfo struct {
+		TableSetName string
+		TableNames []string
+	}
+
+	tableNames, err := tableNames(tableSet)
+	if err != nil { return "", err }
+
+	var tableSetInfo = TableSetInfo {
+		TableSetName: tableSet.Name(),
+		TableNames: tableNames,
+	}
+
+	type TableInfo struct {
+		TableName string
+		TableFields []string
+	}
+	var tableInfo TableInfo
+
+const tableSetTemplate =
+`
+table {{.TableSetName}} {
+	{{range .TableNames}}
+	{{- .}}
+	{{end}}
+}
+`
+
+const tableTemplate =
+`
+table {{.TableName}} {
+	{{range .TableFields}}
+	{{- .}}
+	{{end}}
+}
+`
+
+const endTemplate =
+`
+root_type {{.RootType}};
+`
+
+	var buf *bytes.Buffer = bytes.NewBufferString("")
+
+	tplate := template.New("fbs schema")
+
+	// Generate beginning of schema.
+	tplate, err = tplate.Parse(beginTemplate)
+	if err != nil { return "", err }
+	err = tplate.Execute(buf, schemaInfo)
+	if err != nil { return "", err }
+
+	// Generate root table of gotables.Table instances.
+	tplate, err = tplate.Parse(tableSetTemplate)
+	if err != nil { return "", err }
+	err = tplate.Execute(buf, tableSetInfo)
+	if err != nil { return "", err }
+
+	// Generate gotables.Table instances.
+	tplate, err = tplate.Parse(tableTemplate)
+	if err != nil { return "", err }
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", err }
+
+		if table.ColCount() > 0 {
+			fmt.Fprintf(os.Stderr, "Add  table [%s] to FlatBuffers schema\n", table.Name())
+		} else {
+			fmt.Fprintf(os.Stderr, "Skip table [%s] with zero cols\n", table.Name())
+			continue
+		}
+
+		fieldNames, err := fieldNames(table)
+		if err != nil { return "", err }
+
+		tableInfo = TableInfo {
+			TableName: table.Name(),
+			TableFields: fieldNames,
+		}
+		err = tplate.Execute(buf, tableInfo)
+		if err != nil { return "", err }
+	}
+
+	// Generate end of schema.
+	tplate, err = tplate.Parse(endTemplate)
+	if err != nil { return "", err }
+	err = tplate.Execute(buf, schemaInfo)
+	if err != nil { return "", err }
+
+	return buf.String(), nil
+}
+
+func tableNames(tableSet *gotables.TableSet) ([]string, error) {
+	var tableNames []string
+
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return nil, err }
+
+		if table.ColCount() == 0 {
+			// Skip tables with zero cols.
+			continue
+		}
+
+		field := fmt.Sprintf("%s: [%s];", table.Name(), table.Name())
+
+		tableNames = append(tableNames, field)
+	}
+
+	return tableNames, nil
+}
+
+func fieldNames(table *gotables.Table) ([]string, error) {
 
 	var fields []string = make([]string, table.ColCount())
 
@@ -108,151 +338,10 @@ func flatBuffersTableFields(table *gotables.Table) ([]string, error) {
 			return nil, err
 		}
 
-		field := fmt.Sprintf("%s:[%s];\t// Go type []%s", colName, schemaType, colType)
+		field := fmt.Sprintf("%s: [%s];\t// Go type []%s", colName, schemaType, colType)
 
 		fields[colIndex] = field
 	}
 
 	return fields, nil
-}
-
-func MakeSchemaTable(table *gotables.Table, schemaFileName string) (string, error) {
-	var err error
-	if table == nil {
-		return "", fmt.Errorf("%s(table): table is <nil>", funcName())
-	}
-
-	tableName := table.Name()
-
-const templateString =
-`
-/*
-	{{.SchemaFileName}}
-	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
-{{.TableString -}}
-*/
-
-namespace {{.NameSpace}};
-
-table {{.TableName}} {
-	{{range .TableFields}}
-	{{- .}}
-	{{end}}
-}
-
-root_type {{.RootType}};
-`
-
-	type SchemaInfo struct {
-		SchemaFileName string
-		AutomaticallyFrom string
-		TableString string
-		NameSpace string
-		TableName string
-		TableFields []string
-		RootType string
-	}
-
-	// More-complex assignments
-	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from gotables.Table:",
-		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
-	tableFields, err := flatBuffersTableFields(table)
-	if err != nil { return "", err }
-
-	// Populate schema struct.
-	var schemaInfo = SchemaInfo{
-		SchemaFileName: schemaFileName,
-		AutomaticallyFrom: automatically,
-		TableString: fmt.Sprintf("%s", indentText("\t\t", table.String())),
-		NameSpace: tableName,
-		TableName: tableName,
-		TableFields: tableFields,
-		RootType: tableName,
-	}
-
-
-	var buf *bytes.Buffer = bytes.NewBufferString("")
-
-	t := template.New("fbs schema")
-
-	t, err = t.Parse(templateString)
-	if err != nil { return "", err }
-
-	err = t.Execute(buf, schemaInfo)
-	if err != nil { return "", err }
-
-	return buf.String(), nil
-}
-
-func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
-	var err error
-	if tableSet == nil {
-		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
-	}
-
-	table, err := tableSet.TableByTableIndex(1)
-	if err != nil { return "", err }
-
-	tableName := table.Name()
-
-const templateString =
-`
-/*
-	{{.SchemaFileName}}
-	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
-{{.TableString -}}
-*/
-
-namespace {{.NameSpace}};
-
-table {{.TableName}} {
-	{{range .TableFields}}
-	{{- .}}
-	{{end}}
-}
-
-root_type {{.RootType}};
-`
-
-	type SchemaInfo struct {
-		SchemaFileName string
-		AutomaticallyFrom string
-		TableString string
-		NameSpace string
-		TableName string
-		TableFields []string
-		RootType string
-	}
-
-	// More-complex assignments
-	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from gotables.Table:",
-		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
-	tableFields, err := flatBuffersTableFields(table)
-	if err != nil { return "", err }
-
-	// Populate schema struct.
-	var schemaInfo = SchemaInfo{
-		SchemaFileName: schemaFileName,
-		AutomaticallyFrom: automatically,
-		TableString: fmt.Sprintf("%s", indentText("\t\t", table.String())),
-		NameSpace: tableName,
-		TableName: tableName,
-		TableFields: tableFields,
-		RootType: tableName,
-	}
-
-
-	var buf *bytes.Buffer = bytes.NewBufferString("")
-
-	t := template.New("fbs schema")
-
-	t, err = t.Parse(templateString)
-	if err != nil { return "", err }
-
-	err = t.Execute(buf, schemaInfo)
-	if err != nil { return "", err }
-
-	return buf.String(), nil
 }
