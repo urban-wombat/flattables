@@ -309,7 +309,7 @@ func tableNames(tableSet *gotables.TableSet) ([]string, error) {
 			continue
 		}
 
-		field := fmt.Sprintf("%s: [%s];", table.Name(), table.Name())
+		field := fmt.Sprintf("%s: %s;", table.Name(), table.Name())
 
 		tableNames = append(tableNames, field)
 	}
