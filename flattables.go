@@ -338,7 +338,7 @@ func fieldNames(table *gotables.Table) ([]string, error) {
 			return nil, err
 		}
 
-		field := fmt.Sprintf("%s: [%s];\t// Go type []%s", colName, schemaType, colType)
+		field := fmt.Sprintf("%s: [%s]; // Go type []%s", colName, schemaType, colType)
 
 		fields[colIndex] = field
 	}
