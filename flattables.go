@@ -258,6 +258,7 @@ root_type {{.RootType}};
 	if err != nil { return "", err }
 
 	// Generate root table of gotables.Table instances.
+	fmt.Fprintf(os.Stderr, "Add  table [%s] to FlatBuffers schema (root table)\n", tableSet.Name())
 	tplate, err = tplate.Parse(tableSetTemplate)
 	if err != nil { return "", err }
 	err = tplate.Execute(buf, tableSetInfo)
