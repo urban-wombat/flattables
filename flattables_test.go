@@ -131,8 +131,6 @@ func init() {
 	log.SetFlags(log.Lshortfile) // For var where
 }
 
-var where = log.Print
-
 func MakeUser(b *flatbuffers.Builder, name []byte, id uint64) []byte {
 	// re-use the already-allocated Builder:
 	b.Reset()
