@@ -258,7 +258,7 @@ root_type {{.RootType}};
 	if err != nil { return "", err }
 
 	// Generate root table of gotables.Table instances.
-	fmt.Fprintf(os.Stderr, "Add  table [%s] to FlatBuffers schema (root table)\n", tableSet.Name())
+	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (root table)\n", tableSet.Name())
 	tplate, err = tplate.Parse(tableSetTemplate)
 	if err != nil { return "", err }
 	err = tplate.Execute(buf, tableSetInfo)
@@ -272,9 +272,9 @@ root_type {{.RootType}};
 		if err != nil { return "", err }
 
 		if table.ColCount() > 0 {
-			fmt.Fprintf(os.Stderr, "Add  table [%s] to FlatBuffers schema\n", table.Name())
+			fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema\n", table.Name())
 		} else {
-			fmt.Fprintf(os.Stderr, "Skip table [%s] with zero cols\n", table.Name())
+			fmt.Fprintf(os.Stderr, "Skip   table [%s] with zero cols\n", table.Name())
 			continue
 		}
 
