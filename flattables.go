@@ -226,6 +226,7 @@ namespace {{.NameSpace}};
 
 const tableSetTemplate =
 `
+// root table
 table {{.TableSetName}} {
 	{{range .TableNames}}
 	{{- .}}
@@ -235,6 +236,7 @@ table {{.TableSetName}} {
 
 const tableTemplate =
 `
+// data table
 table {{.TableName}} {
 	{{range .TableFields}}
 	{{- .}}
@@ -258,7 +260,7 @@ root_type {{.RootType}};
 	if err != nil { return "", err }
 
 	// Generate root table of gotables.Table instances.
-	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (root table)\n", tableSet.Name())
+	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (as the schema root table)\n", tableSet.Name())
 	tplate, err = tplate.Parse(tableSetTemplate)
 	if err != nil { return "", err }
 	err = tplate.Execute(buf, tableSetInfo)
