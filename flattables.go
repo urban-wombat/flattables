@@ -219,6 +219,7 @@ namespace {{.NameSpace}};
 	}
 
 	type TableInfo struct {
+		TableIndex int
 		TableName string
 		TableFields []string
 	}
@@ -236,7 +237,7 @@ table {{.TableSetName}} {
 
 const tableTemplate =
 `
-// data table
+// data table {{.TableIndex}}
 table {{.TableName}} {
 	{{range .TableFields}}
 	{{- .}}
@@ -284,6 +285,7 @@ root_type {{.RootType}};
 		if err != nil { return "", err }
 
 		tableInfo = TableInfo {
+			TableIndex: tableIndex,
 			TableName: table.Name(),
 			TableFields: fieldNames,
 		}
