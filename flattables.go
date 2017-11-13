@@ -268,8 +268,10 @@ root_type {{.RootType}};
 	if err != nil { return "", err }
 
 	// Generate gotables.Table instances.
+
 	tplate, err = tplate.Parse(tableTemplate)
 	if err != nil { return "", err }
+
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
@@ -289,6 +291,7 @@ root_type {{.RootType}};
 			TableName: table.Name(),
 			TableFields: fieldNames,
 		}
+
 		err = tplate.Execute(buf, tableInfo)
 		if err != nil { return "", err }
 	}
@@ -296,6 +299,7 @@ root_type {{.RootType}};
 	// Generate end of schema.
 	tplate, err = tplate.Parse(endTemplate)
 	if err != nil { return "", err }
+
 	err = tplate.Execute(buf, schemaInfo)
 	if err != nil { return "", err }
 
