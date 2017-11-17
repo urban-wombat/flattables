@@ -217,7 +217,7 @@ root_type {{.RootType}};
 		if err != nil { return "", err }
 
 		if table.ColCount() > 0 {
-			fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema\n", table.Name())
+			fmt.Fprintf(os.Stderr, "FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
 		} else {
 			fmt.Fprintf(os.Stderr, "Skip   table [%s] with zero cols\n", table.Name())
 			continue
