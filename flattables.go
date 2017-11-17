@@ -123,7 +123,7 @@ func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (str
 	if err != nil { return "", err }
 	firstTableName := firstTable.Name()
 	var schemaInfo = SchemaInfo {
-		SchemaFileName: schemaFileName,
+		SchemaFileName: filepath.Base(schemaFileName),
 		AutomaticallyFrom: automatically,
 		NameSpace: tableSet.Name(),
 		RootType: firstTableName,
@@ -330,7 +330,7 @@ func firstCharToLower(s string) string {
 	return string(unicode.ToLower(rune0)) + s[1:]
 }
 
-func MakeCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
+func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
 	var err error
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
@@ -340,30 +340,50 @@ func MakeCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (strin
 
 	tplate := template.New("FlatTables code")
 
-	type PackageStruct struct {
+	type HeaderInfo struct {
 		PackageName string
+		FlatTablesCodeFileName string
+		AutomaticallyFrom string
+		Imports []string
 	}
-	var packageStruct = PackageStruct {
-		PackageName: tableSet.Name(),
-	}
-
-const packageTemplate =
-`package {{.PackageName}}
-`
-	tplate, err = tplate.Parse(packageTemplate)
-	if err != nil { return "", err }
-
-	err = tplate.Execute(buf, packageStruct)
-	if err != nil { return "", err }
-
-/*
-	// Populate header struct.
-	var imports = []string {
+	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
+		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 		`"github.com/urban-wombat/my_namespace"`,
 		`"fmt"`,
 	}
+	var headerInfo = HeaderInfo {
+		PackageName: tableSet.Name(),
+		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
+		AutomaticallyFrom: automaticallyFrom,
+		Imports: imports,
+	}
+
+const headerTemplate =
+`package {{.PackageName}}
+
+/*
+	{{.FlatTablesCodeFileName}}
+	DO NOT MODIFY
+	{{.AutomaticallyFrom}}
+*/
+
+import (
+	{{range .Imports}}
+	{{- .}}
+	{{end}}
+)
+`
+	tplate, err = tplate.Parse(headerTemplate)
+	if err != nil { return "", err }
+
+	err = tplate.Execute(buf, headerInfo)
+	if err != nil { return "", err }
+
+/*
+	// Populate header struct.
 	var headerInfo = HeaderInfo {
 		PackageName: gotables.TableSet.Name(),
 		Imports: imports,
@@ -381,8 +401,6 @@ const packageTemplate =
 	err = tplate.Execute(buf, schemaInfo)
 	if err != nil { return "", err }
 
-buf.WriteString(fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
-	time.Now().Format("3:04 PM Monday 2 Jan 2006")))
 */
 
 //	type SchemaInfo struct {
