@@ -340,6 +340,9 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 
 	tplate := template.New("FlatTables code")
 
+
+	// Header
+
 	type HeaderInfo struct {
 		PackageName string
 		FlatTablesCodeFileName string
@@ -349,9 +352,8 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
 		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	imports := []string {
-		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`// flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-		`"github.com/urban-wombat/my_namespace"`,
 		`"fmt"`,
 	}
 	var headerInfo = HeaderInfo {
@@ -380,6 +382,21 @@ import (
 	if err != nil { return "", err }
 
 	err = tplate.Execute(buf, headerInfo)
+	if err != nil { return "", err }
+
+
+	// FinishedBytesFromTableSet
+
+const finishedBytesFromTableSetTemplate = `
+func FinishedBytesFromTableSet(tableSet *gotables.TableSet) ([]byte, error) {
+	fmt.Println("inside FinishedBytesFromTableSet()")
+	return nil, nil
+}
+`
+	tplate, err = tplate.Parse(finishedBytesFromTableSetTemplate)
+	if err != nil { return "", err }
+
+	err = tplate.Execute(buf, nil)
 	if err != nil { return "", err }
 
 /*
