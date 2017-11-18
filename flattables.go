@@ -388,7 +388,7 @@ import (
 	// FinishedBytesFromTableSet
 
 const finishedBytesFromTableSetTemplate = `
-func FinishedBytesFromTableSet(tableSet *gotables.TableSet) ([]byte, error) {
+func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 	fmt.Println("inside FinishedBytesFromTableSet()")
 	return nil, nil
 }
