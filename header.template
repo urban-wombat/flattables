@@ -1,0 +1,13 @@
+package {{.PackageName}}
+
+/*
+	{{.FlatTablesCodeFileName}}
+	DO NOT MODIFY
+	{{.AutomaticallyFrom}}
+*/
+
+import (
+	{{range .Imports}}
+	{{- .}}
+	{{end}}
+)

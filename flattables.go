@@ -331,14 +331,13 @@ func firstCharToLower(s string) string {
 }
 
 func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
-	var err error
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
 
+	var err error
 	var buf *bytes.Buffer = bytes.NewBufferString("")
-
-	tplate := template.New("FlatTables code")
+	var tplate *template.Template = template.New("FlatTables code")
 
 
 	// Header
@@ -366,67 +365,53 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		Imports: imports,
 	}
 
-const headerTemplate =
-`package {{.PackageName}}
-
-/*
-	{{.FlatTablesCodeFileName}}
-	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
-*/
-
-import (
-	{{range .Imports}}
-	{{- .}}
-	{{end}}
-)
-`
-	tplate, err = tplate.Parse(headerTemplate)
-	if err != nil { return "", err }
+//	tplate, err = tplate.ParseFiles("../flattables/header.template")
+	tplate, err = template.ParseFiles("../flattables/header.template")
+	if err != nil { log.Fatal(err) }
 
 	err = tplate.Execute(buf, headerInfo)
-	if err != nil { return "", err }
+	if err != nil { log.Fatal(err) }
 
 
 	// FinishedBytesFromTableSet
 
-const GetTableSetAsFlatBuffersTemplate = `
-func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
-	if tableSet == nil {
-		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
-	}
-
-	var flatBuffersBytes []byte
-
-//	fmt.Println("inside GetTableSetAsFlatBuffers()")
-//	fmt.Println(tableSet)
-
-	// Create FlatBuffers builder
-	const initialSize = 0
-	builder := flatbuffers.NewBuilder(initialSize)
-	if builder == nil {
-		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
-	}
-
-	builder.Reset()
-
-	// BEFORE RANGE
-	{{range .Tables}}
-		{{.}}
-	{{end}}
-	// AFTER RANGE
-
-	return flatBuffersBytes, nil
-}
-
-func funcName() string {
-	pc, _, _, _ := runtime.Caller(1)
-	nameFull := runtime.FuncForPC(pc).Name() // main.foo
-	nameEnd := filepath.Ext(nameFull)        // .foo
-	name := strings.TrimPrefix(nameEnd, ".") // foo
-	return name
-}
-`
+// const GetTableSetAsFlatBuffersTemplate = `
+//func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
+//	if tableSet == nil {
+//		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
+//	}
+//
+//	var flatBuffersBytes []byte
+//
+////	fmt.Println("inside GetTableSetAsFlatBuffers()")
+////	fmt.Println(tableSet)
+//
+//	// Create FlatBuffers builder
+//	const initialSize = 0
+//	builder := flatbuffers.NewBuilder(initialSize)
+//	if builder == nil {
+//		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
+//	}
+//
+//	builder.Reset()
+//
+//	// BEFORE RANGE
+//	{{range .Tables}}
+//		{{.}}
+//	{{end}}
+//	// AFTER RANGE
+//
+//	return flatBuffersBytes, nil
+//}
+//
+//func funcName() string {
+//	pc, _, _, _ := runtime.Caller(1)
+//	nameFull := runtime.FuncForPC(pc).Name() // main.foo
+//	nameEnd := filepath.Ext(nameFull)        // .foo
+//	name := strings.TrimPrefix(nameEnd, ".") // foo
+//	return name
+//}
+//`
 
 const TablesTemplate =
 `{{.TableName}}
@@ -456,11 +441,12 @@ fmt.Fprintf(os.Stderr, "XXX tableNames = %v\n", tableNames)
 	if err != nil { return "", err }
 
 
-	tplate, err = tplate.Parse(GetTableSetAsFlatBuffersTemplate)
-	if err != nil { return "", err }
+//	tplate, err = tplate.Parse(GetTableSetAsFlatBuffersTemplate)
+	tplate, err = template.ParseFiles("../flattables/GetTableSetAsFlatBuffers.template")
+	if err != nil { log.Fatal(err) }
 
 	err = tplate.Execute(buf, nil)
-	if err != nil { return "", err }
+	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
 }
