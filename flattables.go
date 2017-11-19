@@ -439,7 +439,7 @@ const TablesTemplate =
 	
 		tableNames = append(tableNames, table.Name())
 	}
-fmt.Printf("tableNames = %v\n", tableNames)
+fmt.Fprintf(os.Stderr, "XXX tableNames = %v\n", tableNames)
 	
 	type TablesInfo struct {
 		TableName []string
@@ -449,6 +449,7 @@ fmt.Printf("tableNames = %v\n", tableNames)
 	}
 
 	tplate, err = tplate.Parse(TablesTemplate)
+//	tplate, err = tplate.ParseFiles("tables.tpl")
 	if err != nil { return "", err }
 
 	err = tplate.Execute(buf, tablesInfo)
@@ -460,169 +461,6 @@ fmt.Printf("tableNames = %v\n", tableNames)
 
 	err = tplate.Execute(buf, nil)
 	if err != nil { return "", err }
-
-/*
-	// Populate header struct.
-	var headerInfo = HeaderInfo {
-		PackageName: gotables.TableSet.Name(),
-		Imports: imports,
-	}
-
-	const headerTemplate =
-	`
-	package {{.TableSetName}} {
-		{{range .TableNames}}
-		{{- .}}
-		{{end}}
-	}
-	`
-
-	err = tplate.Execute(buf, schemaInfo)
-	if err != nil { return "", err }
-
-*/
-
-//	type SchemaInfo struct {
-//		SchemaFileName string
-//		AutomaticallyFrom string
-//		TableString string
-//		NameSpace string
-//		RootType string
-//	}
-//
-//	// More-complex assignments
-//	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
-//		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
-//
-//	// Populate schema struct.
-//	firstTable, err := tableSet.TableByTableIndex(0)
-//	if err != nil { return "", err }
-//	firstTableName := firstTable.Name()
-//	var schemaInfo = SchemaInfo {
-//		SchemaFileName: schemaFileName,
-//		AutomaticallyFrom: automatically,
-//		NameSpace: tableSet.Name(),
-//		RootType: firstTableName,
-//	}
-//
-//const beginTemplate =
-//`
-///*
-//	{{.SchemaFileName}}
-//	DO NOT MODIFY
-//	{{.AutomaticallyFrom}}
-//{{.TableString -}}
-//*/
-//
-//namespace {{.NameSpace}};
-//`
-//
-//	type TableSetInfo struct {
-//		TableSetName string
-//		TableNames []string
-//	}
-//
-///*
-//	tableNames, err := tableNames(tableSet)
-//	if err != nil { return "", err }
-//
-//	var tableSetInfo = TableSetInfo {
-//		TableSetName: tableSet.Name(),
-//		TableNames: tableNames,
-//	}
-//*/
-//
-//	type TableInfo struct {
-//		TableIndex int
-//		TableName string
-//		TableFields []string
-//	}
-//	var tableInfo TableInfo
-//
-//const tableSetTemplate =
-//`
-//// root table
-//table {{.TableSetName}} {
-//	{{range .TableNames}}
-//	{{- .}}
-//	{{end}}
-//}
-//`
-//
-//const tableTemplate =
-//`
-//// data table {{.TableIndex}}
-//table {{.TableName}} {
-//	{{range .TableFields}}
-//	{{- .}}
-//	{{end}}
-//}
-//`
-//
-//const endTemplate =
-//`
-//root_type {{.RootType}};
-//`
-//
-//	tplate := template.New("fbs schema")
-//
-//	// Generate beginning of schema.
-//	tplate, err = tplate.Parse(beginTemplate)
-//	if err != nil { return "", err }
-//	err = tplate.Execute(buf, schemaInfo)
-//	if err != nil { return "", err }
-//
-///*
-//	// Generate root table of gotables.Table instances.
-//	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (as the schema root table)\n", tableSet.Name())
-//	tplate, err = tplate.Parse(tableSetTemplate)
-//	if err != nil { return "", err }
-//	err = tplate.Execute(buf, tableSetInfo)
-//	if err != nil { return "", err }
-//*/
-//
-//	// Generate gotables.Table instances.
-//
-//	tplate, err = tplate.Parse(tableTemplate)
-//	if err != nil { return "", err }
-//
-//	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-//		table, err := tableSet.TableByTableIndex(tableIndex)
-//		if err != nil { return "", err }
-//
-//		if table.ColCount() > 0 {
-//			fmt.Fprintf(os.Stderr, "FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
-//		} else {
-//			fmt.Fprintf(os.Stderr, "Skip   table [%s] with zero cols\n", table.Name())
-//			continue
-//		}
-//
-//		if startsWithLowerCase(table.Name()) {
-//			oldName := table.Name()
-//			newName := firstCharToUpper(oldName)
-//			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-//			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase for table names. Rename [%s] to [%s]", oldName, newName)
-//		}
-//
-//		fieldNames, err := fieldNames(table)
-//		if err != nil { return "", err }
-//
-//		tableInfo = TableInfo {
-//			TableIndex: tableIndex,
-//			TableName: table.Name(),
-//			TableFields: fieldNames,
-//		}
-//
-//		err = tplate.Execute(buf, tableInfo)
-//		if err != nil { return "", err }
-//	}
-//
-//	// Generate end of schema.
-//	tplate, err = tplate.Parse(endTemplate)
-//	if err != nil { return "", err }
-//
-//	err = tplate.Execute(buf, schemaInfo)
-//	if err != nil { return "", err }
 
 	return buf.String(), nil
 }
