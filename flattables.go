@@ -352,9 +352,12 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
 		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	imports := []string {
-		`// flatbuffers "github.com/google/flatbuffers/go"`,
+		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
+		`"path/filepath"`,
+		`"runtime"`,
+		`"strings"`,
 	}
 	var headerInfo = HeaderInfo {
 		PackageName: tableSet.Name(),
@@ -387,13 +390,72 @@ import (
 
 	// FinishedBytesFromTableSet
 
-const finishedBytesFromTableSetTemplate = `
+const GetTableSetAsFlatBuffersTemplate = `
 func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
-	fmt.Println("inside FinishedBytesFromTableSet()")
-	return nil, nil
+	if tableSet == nil {
+		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
+	}
+
+	var flatBuffersBytes []byte
+
+//	fmt.Println("inside GetTableSetAsFlatBuffers()")
+//	fmt.Println(tableSet)
+
+	// Create FlatBuffers builder
+	const initialSize = 0
+	builder := flatbuffers.NewBuilder(initialSize)
+	if builder == nil {
+		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
+	}
+
+	builder.Reset()
+
+	// BEFORE RANGE
+	{{range .Tables}}
+		{{.}}
+	{{end}}
+	// AFTER RANGE
+
+	return flatBuffersBytes, nil
+}
+
+func funcName() string {
+	pc, _, _, _ := runtime.Caller(1)
+	nameFull := runtime.FuncForPC(pc).Name() // main.foo
+	nameEnd := filepath.Ext(nameFull)        // .foo
+	name := strings.TrimPrefix(nameEnd, ".") // foo
+	return name
 }
 `
-	tplate, err = tplate.Parse(finishedBytesFromTableSetTemplate)
+
+const TablesTemplate =
+`{{.TableName}}
+`
+
+	var tableNames []string
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", err }
+	
+		tableNames = append(tableNames, table.Name())
+	}
+fmt.Printf("tableNames = %v\n", tableNames)
+	
+	type TablesInfo struct {
+		TableName []string
+	}
+	var tablesInfo = TablesInfo {
+		TableName: tableNames,
+	}
+
+	tplate, err = tplate.Parse(TablesTemplate)
+	if err != nil { return "", err }
+
+	err = tplate.Execute(buf, tablesInfo)
+	if err != nil { return "", err }
+
+
+	tplate, err = tplate.Parse(GetTableSetAsFlatBuffersTemplate)
 	if err != nil { return "", err }
 
 	err = tplate.Execute(buf, nil)
