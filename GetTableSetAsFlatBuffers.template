@@ -1,3 +1,17 @@
+package {{.PackageName}}
+
+/*
+	{{.FlatTablesCodeFileName}}
+	DO NOT MODIFY
+	{{.AutomaticallyFrom}}
+*/
+
+import (
+	{{range .Imports}}
+	{{- .}}
+	{{end}}
+)
+
 func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 	if tableSet == nil {
 		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())

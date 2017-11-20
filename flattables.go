@@ -369,8 +369,10 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 
 	tplate = tplate.Funcs(template.FuncMap{"tableName": TableName})
 
+	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
+
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile("../flattables/GetTableSetAsFlatBuffers.template")
+	data, err := ioutil. ReadFile(templateFile)
 	if err != nil { log.Fatal(err) }
 
 	tplate, err = tplate.Parse(string(data))
@@ -383,5 +385,5 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 }
 
 func TableName(table *gotables.Table) string {
-	return table.Name()
+	return "// " + table.Name()
 }
