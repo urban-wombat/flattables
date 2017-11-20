@@ -146,16 +146,6 @@ namespace {{.NameSpace}};
 		TableNames []string
 	}
 
-/*
-	tableNames, err := tableNames(tableSet)
-	if err != nil { return "", err }
-
-	var tableSetInfo = TableSetInfo {
-		TableSetName: tableSet.Name(),
-		TableNames: tableNames,
-	}
-*/
-
 	type TableInfo struct {
 		TableIndex int
 		TableName string
@@ -347,9 +337,12 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		FlatTablesCodeFileName string
 		AutomaticallyFrom string
 		Imports []string
+		Tables []string
 	}
+
 	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
 		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+
 	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
@@ -358,56 +351,32 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		`"runtime"`,
 		`"strings"`,
 	}
+
+	var tables []string
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", err }
+	
+		tables = append(tables, table.Name())
+	}
+
 	var headerInfo = HeaderInfo {
 		PackageName: tableSet.Name(),
 		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
 		AutomaticallyFrom: automaticallyFrom,
 		Imports: imports,
+		Tables: []string{"X", "Y", "Z"},
 	}
 
-	tplate, err = template.ParseFiles("../flattables/header.template")
+	tplate, err = template.ParseFiles("../flattables/GetTableSetAsFlatBuffers.template")
 	if err != nil { log.Fatal(err) }
 
 	err = tplate.Execute(buf, headerInfo)
 	if err != nil { log.Fatal(err) }
 
-
-	// FinishedBytesFromTableSet
-
-const TablesTemplate =
-`{{.TableName}}
-`
-
-	var tableNames []string
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", err }
-	
-		tableNames = append(tableNames, table.Name())
-	}
-fmt.Fprintf(os.Stderr, "XXX tableNames = %v\n", tableNames)
-	
-	type TablesInfo struct {
-		TableName []string
-	}
-	var tablesInfo = TablesInfo {
-		TableName: tableNames,
-	}
-
-	tplate, err = tplate.Parse(TablesTemplate)
-//	tplate, err = tplate.ParseFiles("tables.tpl")
-	if err != nil { return "", err }
-
-	err = tplate.Execute(buf, tablesInfo)
-	if err != nil { return "", err }
-
-
-//	tplate, err = tplate.Parse(GetTableSetAsFlatBuffersTemplate)
-	tplate, err = template.ParseFiles("../flattables/GetTableSetAsFlatBuffers.template")
-	if err != nil { log.Fatal(err) }
-
-	err = tplate.Execute(buf, nil)
-	if err != nil { log.Fatal(err) }
-
 	return buf.String(), nil
+}
+
+func TableName(table *gotables.Table) string {
+	return table.Name()
 }
