@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/urban-wombat/gotables"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -330,14 +331,12 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	var tplate *template.Template = template.New("FlatTables code")
 
 
-	// Header
-
-	type HeaderInfo struct {
+	type GoCodeInfo struct {
 		PackageName string
 		FlatTablesCodeFileName string
 		AutomaticallyFrom string
 		Imports []string
-		Tables []string
+		Tables []*gotables.Table
 	}
 
 	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
@@ -352,26 +351,32 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		`"strings"`,
 	}
 
-	var tables []string
+	var tables []*gotables.Table
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
 	
-		tables = append(tables, table.Name())
+		tables = append(tables, table)
 	}
 
-	var headerInfo = HeaderInfo {
+	var goCodeInfo = GoCodeInfo {
 		PackageName: tableSet.Name(),
 		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
 		AutomaticallyFrom: automaticallyFrom,
 		Imports: imports,
-		Tables: []string{"X", "Y", "Z"},
+		Tables: tables,
 	}
 
-	tplate, err = template.ParseFiles("../flattables/GetTableSetAsFlatBuffers.template")
+	tplate = tplate.Funcs(template.FuncMap{"tableName": TableName})
+
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	data, err := ioutil. ReadFile("../flattables/GetTableSetAsFlatBuffers.template")
 	if err != nil { log.Fatal(err) }
 
-	err = tplate.Execute(buf, headerInfo)
+	tplate, err = tplate.Parse(string(data))
+	if err != nil { log.Fatal(err) }
+
+	err = tplate.Execute(buf, goCodeInfo)
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil

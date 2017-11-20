@@ -17,11 +17,9 @@ func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 
 	builder.Reset()
 
-	// BEFORE RANGE
 	{{range .Tables}}
-		{{.}}
+		{{. | tableName}}
 	{{end}}
-	// AFTER RANGE
 
 	return flatBuffersBytes, nil
 }
