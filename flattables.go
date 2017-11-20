@@ -365,7 +365,6 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		Imports: imports,
 	}
 
-//	tplate, err = tplate.ParseFiles("../flattables/header.template")
 	tplate, err = template.ParseFiles("../flattables/header.template")
 	if err != nil { log.Fatal(err) }
 
@@ -374,44 +373,6 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 
 
 	// FinishedBytesFromTableSet
-
-// const GetTableSetAsFlatBuffersTemplate = `
-//func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
-//	if tableSet == nil {
-//		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
-//	}
-//
-//	var flatBuffersBytes []byte
-//
-////	fmt.Println("inside GetTableSetAsFlatBuffers()")
-////	fmt.Println(tableSet)
-//
-//	// Create FlatBuffers builder
-//	const initialSize = 0
-//	builder := flatbuffers.NewBuilder(initialSize)
-//	if builder == nil {
-//		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
-//	}
-//
-//	builder.Reset()
-//
-//	// BEFORE RANGE
-//	{{range .Tables}}
-//		{{.}}
-//	{{end}}
-//	// AFTER RANGE
-//
-//	return flatBuffersBytes, nil
-//}
-//
-//func funcName() string {
-//	pc, _, _, _ := runtime.Caller(1)
-//	nameFull := runtime.FuncForPC(pc).Name() // main.foo
-//	nameEnd := filepath.Ext(nameFull)        // .foo
-//	name := strings.TrimPrefix(nameEnd, ".") // foo
-//	return name
-//}
-//`
 
 const TablesTemplate =
 `{{.TableName}}
