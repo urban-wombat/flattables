@@ -367,6 +367,7 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		Tables: tables,
 	}
 
+	// Add a user-defined function to tplate.
 	tplate = tplate.Funcs(template.FuncMap{"tableName": TableName})
 
 	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
