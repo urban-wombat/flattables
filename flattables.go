@@ -328,15 +328,25 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 
 	var err error
 	var buf *bytes.Buffer = bytes.NewBufferString("")
-	var tplate *template.Template = template.New("FlatTables code")
+	var tplate *template.Template = template.New("FlatTables Go")
 
+
+	type ColInfo struct {
+		ColName string
+		ColType string
+	}
+
+	type TableInfo struct {
+		Table *gotables.Table
+		Cols []ColInfo
+	}
 
 	type GoCodeInfo struct {
 		PackageName string
 		FlatTablesCodeFileName string
 		AutomaticallyFrom string
 		Imports []string
-		Tables []*gotables.Table
+		Tables []TableInfo
 	}
 
 	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
@@ -351,12 +361,26 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		`"strings"`,
 	}
 
-	var tables []*gotables.Table
+	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
 	
-		tables = append(tables, table)
+		tables[tableIndex].Table = table
+
+		var cols []ColInfo = make([]ColInfo, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColName(colIndex)
+			if err != nil { return "", err }
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return "", err }
+
+			cols[colIndex].ColName = colName
+			cols[colIndex].ColType = colType
+		}
+
+		tables[tableIndex].Cols = cols
 	}
 
 	var goCodeInfo = GoCodeInfo {
@@ -368,7 +392,8 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	}
 
 	// Add a user-defined function to tplate.
-	tplate = tplate.Funcs(template.FuncMap{"tableName": TableName})
+	tplate = tplate.Funcs(template.FuncMap{"tableName": tableName})
+	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
 	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
 
@@ -385,6 +410,16 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	return buf.String(), nil
 }
 
-func TableName(table *gotables.Table) string {
+func tableName(table *gotables.Table) string {
 	return "// " + table.Name()
+}
+
+func isScalar(table *gotables.Table, colName string) bool {
+	colType, err := table.ColType(colName)
+	if err != nil { log.Fatal(err) }
+
+	isNumeric, err := gotables.IsNumericColType(colType)
+	if err != nil { log.Fatal(err) }
+
+	return isNumeric || colType == "bool"
 }

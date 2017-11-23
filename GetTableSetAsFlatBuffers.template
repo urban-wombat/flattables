@@ -30,10 +30,35 @@ func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 	}
 
 	builder.Reset()
-
+	{{$packageName := .PackageName}}
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 	{{range .Tables}}
-		{{. | tableName}}
+
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return nil, err }
+
+		{{.Table.Name}}Start(builder)
+		{{$tableName := .Table.Name}}
+
+	{{range .Cols}}
+		// Add child: {{.ColName | firstCharToUpper}}
+		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builder, table.RowCount())
+		for i := table.RowCount()-1; i >= 0; i-- {
+			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", i)
+			if err != nil { return nil, err }
+
+			builder.Prepend{{.ColType | firstCharToUpper}}({{.ColName}})
+		}
+		{{$tableName}}Add{{.ColName | firstCharToUpper}}(builder, leadVector)
 	{{end}}
+	position := {{$packageName}}.{{.Table.Name}}End(builder)
+
+	{{end}}
+
+	}	// End tableSet loop
+
+	// Is it the final value of position? Maybe.
+	builder.Finish(position)
 
 	return flatBuffersBytes, nil
 }
