@@ -356,6 +356,7 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
+		`"log"`,
 		`"path/filepath"`,
 		`"runtime"`,
 		`"strings"`,

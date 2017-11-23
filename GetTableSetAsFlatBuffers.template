@@ -12,6 +12,11 @@ import (
 	{{end}}
 )
 
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
+var where = log.Print
+
 func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 	if tableSet == nil {
 		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
@@ -29,29 +34,62 @@ func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
 	}
 
+where("builder.Reset()")
 	builder.Reset()
 	{{$packageName := .PackageName}}
+	var position flatbuffers.UOffsetT
+	var err error
+	var table *gotables.Table
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-	{{range .Tables}}
+where(fmt.Sprintf("tableIndex = %d\n", tableIndex))
+	{{range $tableIndex, $element := .Tables}}
 
-		table, err := tableSet.TableByTableIndex(tableIndex)
+	{	// Begin anonymous block per table. Provides separate scope for each set of colNames.
+
+where("{{.Table.Name}}")
+//		table, err = tableSet.TableByTableIndex(tableIndex)
+		table, err = tableSet.TableByTableIndex({{$tableIndex}})
 		if err != nil { return nil, err }
+where(fmt.Sprintf("tableSet.TableByTableIndex(%d)", {{$tableIndex}}))
+where(fmt.Sprintf("table.Name() = %s", table.Name()))
 
-		{{.Table.Name}}Start(builder)
+where()
+//		{{.Table.Name}}Start(builder)
 		{{$tableName := .Table.Name}}
 
+	// Create each child.
 	{{range .Cols}}
-		// Add child: {{.ColName | firstCharToUpper}}
+		// Create child: {{.ColName | firstCharToUpper}}
+where()
 		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builder, table.RowCount())
+where()
 		for i := table.RowCount()-1; i >= 0; i-- {
+where(fmt.Sprintf("table = %s", "{{$tableName}}"))
+where("table.Get{{.ColType | firstCharToUpper}}")
+where("{{.ColName}}")
+where(fmt.Sprintf("i = %d", i))
 			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", i)
 			if err != nil { return nil, err }
 
-			builder.Prepend{{.ColType | firstCharToUpper}}({{.ColName}})
+			builder.Prepend{{.ColType | firstCharToUpper}}(cell)
 		}
-		{{$tableName}}Add{{.ColName | firstCharToUpper}}(builder, leadVector)
+		{{.ColName}}Vector := builder.EndVector(table.RowCount())
 	{{end}}
-	position := {{$packageName}}.{{.Table.Name}}End(builder)
+//	position = {{.Table.Name}}End(builder)
+
+	// Start FlatBuffers table.
+	{{$tableName}}Start(builder)
+
+	// Add each child to the table.
+	{{range .Cols}}
+	// Add child: {{.ColName | firstCharToUpper}} 
+	{{$tableName}}Add{{.ColName | firstCharToUpper}}(builder, {{.ColName}}Vector)
+	{{end}}
+
+	// End FlatBuffers table.
+	position = {{$tableName}}End(builder)
+
+	}	// End anonymous block per table.
 
 	{{end}}
 
@@ -59,6 +97,8 @@ func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
 
 	// Is it the final value of position? Maybe.
 	builder.Finish(position)
+
+	flatBuffersBytes = builder.FinishedBytes()
 
 	return flatBuffersBytes, nil
 }
