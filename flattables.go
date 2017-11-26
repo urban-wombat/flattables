@@ -126,6 +126,7 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 
 	type SchemaInfo struct {
 		SchemaFileName string
+		TableSetFileName string
 		AutomaticallyFrom string
 		TableString string
 		TableSetName string
@@ -180,13 +181,19 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	}
 
 	// More-complex assignments
-	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
-		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+	var automaticallyFrom string
+	if tableSet.FileName() != "" {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers schema automatically generated %s from file: %s",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006" ), tableSet.FileName())
+	} else {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006" ))
+	}
 
 	// Populate schema struct.
 	var schemaInfo = SchemaInfo {
 		SchemaFileName: filepath.Base(schemaFileName),
-		AutomaticallyFrom: automatically,
+		AutomaticallyFrom: automaticallyFrom,
 		TableSetName: tableSet.Name(),
 		NameSpace: tableSet.Name(),
 		RootType: tableSet.Name(),
