@@ -323,7 +323,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	// Add a user-defined function to tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
-	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
+//	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
+	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	data, err := ioutil. ReadFile(templateFile)
