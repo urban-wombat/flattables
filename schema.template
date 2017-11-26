@@ -5,6 +5,8 @@
 {{.TableString -}}
 */
 
+namespace {{.NameSpace}};
+
 {{range .Tables}}
 // data table {{.TableIndex}}
 table {{.Table.Name}} {

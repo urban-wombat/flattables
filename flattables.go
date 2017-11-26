@@ -129,9 +129,9 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 		TableSetFileName string
 		AutomaticallyFrom string
 		TableString string
-		TableSetName string
-		NameSpace string
-		RootType string
+		TableSetName string	// These three have the same value.
+		NameSpace string	// These three have the same value.
+		RootType string		// These three have the same value.
 		Tables []TableInfo
 	}
 
