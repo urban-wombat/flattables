@@ -201,6 +201,9 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	}
 // fmt.Println(schemaInfo)
 
+	// Add a user-defined function to tplate.
+	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+
 	const templateFile = "../flattables/schema.template"
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
@@ -277,8 +280,14 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		Tables []TableInfo
 	}
 
-	automaticallyFrom := fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
-		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+	var automaticallyFrom string
+	if tableSet.FileName() != "" {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from file: %s",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006" ), tableSet.FileName())
+	} else {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006" ))
+	}
 
 	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
