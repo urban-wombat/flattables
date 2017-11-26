@@ -17,12 +17,10 @@ func init() {
 }
 var where = log.Print
 
-func GetTableSetAsFlatBuffers(tableSet *gotables.TableSet) ([]byte, error) {
+func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, error) {
 	if tableSet == nil {
 		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
 	}
-
-	var flatBuffersBytes []byte
 
 	// Create FlatBuffers builder
 	const initialSize = 0
@@ -119,9 +117,9 @@ where(fmt.Sprintf("builder.Finish()"))
 	builder.Finish(position)
 where(fmt.Sprintf("builder.FinishBytes()"))
 */}}
-	flatBuffersBytes = builder.FinishedBytes()
+	flatBuffers = builder.FinishedBytes()
 
-	return flatBuffersBytes, nil
+	return flatBuffers, nil
 }
 
 func funcName() string {

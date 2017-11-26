@@ -48,7 +48,7 @@ SOFTWARE.
 // 64 bit: long, ulong, double
 // From: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 
-var GoFlatBuffersTypes = map[string]string {
+var GoToFlatBuffersTypes = map[string]string {
 	"bool":    "bool",
 	"int8":    "byte",	// Signed.
 	"int16":   "short",
@@ -62,8 +62,8 @@ var GoFlatBuffersTypes = map[string]string {
 	"float32": "float",
 	"float64": "double",
 	"string":  "string",
-//	"int":     "long",	// Assume largest int size:  64 bit.
-//	"uint":    "ulong",	// Assume largest uint size: 64 bit.
+//	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+//	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
 var where = log.Print
@@ -77,18 +77,19 @@ func funcName() string {
 }
 
 func schemaType(colType string) (string, error) {
-	schemaType, exists := GoFlatBuffersTypes[colType]
+	schemaType, exists := GoToFlatBuffersTypes[colType]
 	if exists {
 		return schemaType, nil
 	} else {
-		var changeTypeTo string
+		// Build a useful error message.
+		var suggestChangeTypeTo string
 		switch colType {
-			case "int": changeTypeTo = "int64"
-			case "uint": changeTypeTo = "uint64"
+			case "int": suggestChangeTypeTo = "int32 or int64"
+			case "uint": suggestChangeTypeTo = "uint32 or uint64"
 			default: return "", fmt.Errorf("No FlatBuffers-compatible Go type suggestion for Go type: %s", colType)
 		}
 		return "", fmt.Errorf("No FlatBuffers type available for Go type: %s (suggest change it to Go type: %s)",
-			colType, changeTypeTo)
+			colType, suggestChangeTypeTo)
 	}
 }
 
@@ -101,18 +102,224 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
-	var err error
+//func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
+//	var err error
+//	if tableSet == nil {
+//		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
+//	}
+//
+//	type SchemaInfo struct {
+//		SchemaFileName string
+//		AutomaticallyFrom string
+//		TableString string
+//		NameSpace string
+//		RootType string
+//	}
+//
+//	// More-complex assignments
+//	automatically := fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
+//		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+//
+//	// Populate schema struct.
+//	firstTable, err := tableSet.TableByTableIndex(0)
+//	if err != nil { return "", err }
+//	firstTableName := firstTable.Name()
+//	var schemaInfo = SchemaInfo {
+//		SchemaFileName: filepath.Base(schemaFileName),
+//		AutomaticallyFrom: automatically,
+//		NameSpace: tableSet.Name(),
+//		RootType: firstTableName,
+//	}
+//
+//const beginTemplate =
+//`
+///*
+//	{{.SchemaFileName}}
+//	DO NOT MODIFY
+//	{{.AutomaticallyFrom}}
+//{{.TableString -}}
+//*/
+//
+//namespace {{.NameSpace}};
+//`
+//
+//	type TableSetInfo struct {
+//		TableSetName string
+//		TableNames []string
+//	}
+//
+//	type TableInfo struct {
+//		TableIndex int
+//		TableName string
+//		TableFields []string
+//	}
+//	var tableInfo TableInfo
+//
+//const tableSetTemplate =
+//`
+//// root table
+//table {{.TableSetName}} {
+//	{{range .TableNames}}
+//	{{- .}}
+//	{{end}}
+//}
+//`
+//
+//const tableTemplate =
+//`
+//// data table {{.TableIndex}}
+//table {{.TableName}} {
+//	{{range .TableFields}}
+//	{{- .}}
+//	{{end}}
+//}
+//`
+//
+//const endTemplate =
+//`
+//root_type {{.RootType}};
+//`
+//
+//	var buf *bytes.Buffer = bytes.NewBufferString("")
+//
+//	tplate := template.New("fbs schema")
+//
+//	// Generate beginning of schema.
+//	tplate, err = tplate.Parse(beginTemplate)
+//	if err != nil { return "", err }
+//	err = tplate.Execute(buf, schemaInfo)
+//	if err != nil { return "", err }
+//
+///*
+//	// Generate root table of gotables.Table instances.
+//	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (as the schema root table)\n", tableSet.Name())
+//	tplate, err = tplate.Parse(tableSetTemplate)
+//	if err != nil { return "", err }
+//	err = tplate.Execute(buf, tableSetInfo)
+//	if err != nil { return "", err }
+//*/
+//
+//	// Generate gotables.Table instances.
+//
+//	tplate, err = tplate.Parse(tableTemplate)
+//	if err != nil { return "", err }
+//
+//	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+//		table, err := tableSet.TableByTableIndex(tableIndex)
+//		if err != nil { return "", err }
+//
+//		if table.ColCount() > 0 {
+//			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
+//		} else {
+//			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
+//			continue
+//		}
+//
+//		if startsWithLowerCase(table.Name()) {
+//			oldName := table.Name()
+//			newName := firstCharToUpper(oldName)
+//			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+//			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase for table names. Rename [%s] to [%s]", oldName, newName)
+//		}
+//
+//		fieldNames, err := fieldNames(table)
+//		if err != nil { return "", err }
+//
+//		tableInfo = TableInfo {
+//			TableIndex: tableIndex,
+//			TableName: table.Name(),
+//			TableFields: fieldNames,
+//		}
+//
+//		err = tplate.Execute(buf, tableInfo)
+//		if err != nil { return "", err }
+//	}
+//
+//	// Generate end of schema.
+//	tplate, err = tplate.Parse(endTemplate)
+//	if err != nil { return "", err }
+//
+//	err = tplate.Execute(buf, schemaInfo)
+//	if err != nil { return "", err }
+//
+//	return buf.String(), nil
+//}
+
+func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
+	}
+
+	var err error
+	var buf *bytes.Buffer = bytes.NewBufferString("")
+	var tplate *template.Template = template.New("FlatTables Schema")
+
+	type ColInfo struct {
+		ColName string
+		ColType string
+		FbsType string
+	}
+
+	type TableInfo struct {
+		Table *gotables.Table
+		TableIndex int
+		TableName string
+		Cols []ColInfo
 	}
 
 	type SchemaInfo struct {
 		SchemaFileName string
 		AutomaticallyFrom string
 		TableString string
+		TableSetName string
 		NameSpace string
 		RootType string
+		Tables []TableInfo
+	}
+
+	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", err }
+
+		if table.ColCount() >= 0 {
+			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
+		} else {
+			// Skip tables with zero cols.
+			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
+			continue
+		}
+
+		if startsWithLowerCase(table.Name()) {
+			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
+				table.Name(), firstCharToUpper(table.Name()))
+		}
+	
+		tables[tableIndex].Table = table
+
+		var cols []ColInfo = make([]ColInfo, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColNameByColIndex(colIndex)
+			if err != nil { return "", err }
+
+			if startsWithUpperCase(colName) {
+				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+				return "", fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+					table.Name(), colName, firstCharToLower(colName))
+			}
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return "", err }
+
+			cols[colIndex].ColName = colName
+			cols[colIndex].ColType = colType
+			cols[colIndex].FbsType, err = schemaType(colType)
+			if err != nil { return "", err }
+		}
+
+		tables[tableIndex].Cols = cols
+		tables[tableIndex].TableIndex = tableIndex
 	}
 
 	// More-complex assignments
@@ -120,185 +327,29 @@ func MakeSchemaTableSet(tableSet *gotables.TableSet, schemaFileName string) (str
 		time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 
 	// Populate schema struct.
-	firstTable, err := tableSet.TableByTableIndex(0)
-	if err != nil { return "", err }
-	firstTableName := firstTable.Name()
 	var schemaInfo = SchemaInfo {
 		SchemaFileName: filepath.Base(schemaFileName),
 		AutomaticallyFrom: automatically,
+		TableSetName: tableSet.Name(),
 		NameSpace: tableSet.Name(),
-		RootType: firstTableName,
+		RootType: tableSet.Name(),
+		Tables: tables,
 	}
+// fmt.Println(schemaInfo)
 
-const beginTemplate =
-`
-/*
-	{{.SchemaFileName}}
-	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
-{{.TableString -}}
-*/
+	const templateFile = "../flattables/schema.template"
 
-namespace {{.NameSpace}};
-`
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	data, err := ioutil. ReadFile(templateFile)
+	if err != nil { log.Fatal(err) }
 
-	type TableSetInfo struct {
-		TableSetName string
-		TableNames []string
-	}
-
-	type TableInfo struct {
-		TableIndex int
-		TableName string
-		TableFields []string
-	}
-	var tableInfo TableInfo
-
-const tableSetTemplate =
-`
-// root table
-table {{.TableSetName}} {
-	{{range .TableNames}}
-	{{- .}}
-	{{end}}
-}
-`
-
-const tableTemplate =
-`
-// data table {{.TableIndex}}
-table {{.TableName}} {
-	{{range .TableFields}}
-	{{- .}}
-	{{end}}
-}
-`
-
-const endTemplate =
-`
-root_type {{.RootType}};
-`
-
-	var buf *bytes.Buffer = bytes.NewBufferString("")
-
-	tplate := template.New("fbs schema")
-
-	// Generate beginning of schema.
-	tplate, err = tplate.Parse(beginTemplate)
-	if err != nil { return "", err }
-	err = tplate.Execute(buf, schemaInfo)
-	if err != nil { return "", err }
-
-/*
-	// Generate root table of gotables.Table instances.
-	fmt.Fprintf(os.Stderr, "Adding table [%s] to FlatBuffers schema (as the schema root table)\n", tableSet.Name())
-	tplate, err = tplate.Parse(tableSetTemplate)
-	if err != nil { return "", err }
-	err = tplate.Execute(buf, tableSetInfo)
-	if err != nil { return "", err }
-*/
-
-	// Generate gotables.Table instances.
-
-	tplate, err = tplate.Parse(tableTemplate)
-	if err != nil { return "", err }
-
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", err }
-
-		if table.ColCount() > 0 {
-			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
-		} else {
-			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
-			continue
-		}
-
-		if startsWithLowerCase(table.Name()) {
-			oldName := table.Name()
-			newName := firstCharToUpper(oldName)
-			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase for table names. Rename [%s] to [%s]", oldName, newName)
-		}
-
-		fieldNames, err := fieldNames(table)
-		if err != nil { return "", err }
-
-		tableInfo = TableInfo {
-			TableIndex: tableIndex,
-			TableName: table.Name(),
-			TableFields: fieldNames,
-		}
-
-		err = tplate.Execute(buf, tableInfo)
-		if err != nil { return "", err }
-	}
-
-	// Generate end of schema.
-	tplate, err = tplate.Parse(endTemplate)
-	if err != nil { return "", err }
+	tplate, err = tplate.Parse(string(data))
+	if err != nil { log.Fatal(err) }
 
 	err = tplate.Execute(buf, schemaInfo)
-	if err != nil { return "", err }
+	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
-}
-
-func tableNames(tableSet *gotables.TableSet) ([]string, error) {
-	var tableNames []string
-
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return nil, err }
-
-		if table.ColCount() == 0 {
-			// Skip tables with zero cols.
-			continue
-		}
-
-		field := fmt.Sprintf("%s: %s;", table.Name(), table.Name())
-
-		tableNames = append(tableNames, field)
-	}
-
-	return tableNames, nil
-}
-
-func fieldNames(table *gotables.Table) ([]string, error) {
-
-	var fields []string = make([]string, table.ColCount())
-
-	for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
-
-		colName, err := table.ColName(colIndex)
-		if err != nil {
-			return nil, err
-		}
-
-		if startsWithUpperCase(colName) {
-			oldName := colName
-			newName := firstCharToLower(oldName)
-			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-			return nil, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase for field names. In table [%s] rename %s to %s",
-				table.Name(), oldName, newName)
-		}
-
-		colType, err := table.ColType(colName)
-		if err != nil {
-			return nil, err
-		}
-
-		schemaType, err := schemaType(colType)
-		if err != nil {
-			return nil, err
-		}
-
-		field := fmt.Sprintf("%s: [%s]; // Go type []%s", colName, schemaType, colType)
-
-		fields[colIndex] = field
-	}
-
-	return fields, nil
 }
 
 func startsWithLowerCase(s string) bool {
@@ -321,7 +372,21 @@ func firstCharToLower(s string) string {
 	return string(unicode.ToLower(rune0)) + s[1:]
 }
 
-func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
+func tableName(table *gotables.Table) string {
+	return "// " + table.Name()
+}
+
+func isScalar(table *gotables.Table, colName string) bool {
+	colType, err := table.ColType(colName)
+	if err != nil { log.Fatal(err) }
+
+	isNumeric, err := gotables.IsNumericColType(colType)
+	if err != nil { log.Fatal(err) }
+
+	return isNumeric || colType == "bool"
+}
+
+func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
@@ -329,7 +394,6 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	var err error
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 	var tplate *template.Template = template.New("FlatTables Go")
-
 
 	type ColInfo struct {
 		ColName string
@@ -393,7 +457,7 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	}
 
 	// Add a user-defined function to tplate.
-	tplate = tplate.Funcs(template.FuncMap{"tableName": tableName})
+//	tplate = tplate.Funcs(template.FuncMap{"tableName": tableName})
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
 	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
@@ -409,18 +473,4 @@ func MakeGoCode(tableSet *gotables.TableSet, flatTablesCodeFileName string) (str
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
-}
-
-func tableName(table *gotables.Table) string {
-	return "// " + table.Name()
-}
-
-func isScalar(table *gotables.Table, colName string) bool {
-	colType, err := table.ColType(colName)
-	if err != nil { log.Fatal(err) }
-
-	isNumeric, err := gotables.IsNumericColType(colType)
-	if err != nil { log.Fatal(err) }
-
-	return isNumeric || colType == "bool"
 }

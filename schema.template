@@ -1,0 +1,24 @@
+/*
+    {{.SchemaFileName}}
+    DO NOT MODIFY
+    {{.AutomaticallyFrom}}
+{{.TableString -}}
+*/
+
+{{range .Tables}}
+// data table {{.TableIndex}}
+table {{.Table.Name}} {
+	{{range .Cols}}
+		{{- .ColName}}: [{{.FbsType}}];	// Go type {{.ColType}}
+	{{end}}
+}
+{{end}}
+
+// root table
+table {{.TableSetName}} {
+    {{range .Tables}}
+		{{- .Table.Name}}:[ubyte] (nested_flatbuffer: "{{- .Table.Name}}");
+    {{end}}
+}
+
+root_type {{.RootType}};
