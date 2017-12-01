@@ -47,7 +47,7 @@ func funcName() string {
 	return name
 }
 
-func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, err error) {
+func FlatTablesSetFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, err error) {
 	if tableSet == nil {
 		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
 	}
@@ -78,7 +78,7 @@ func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, e
 
 	{{end}}
 
-	// Now populate FlatTablesRoot
+	// Now populate FlatTablesSet
 
 	var offsets []flatbuffers.UOffsetT = make([]flatbuffers.UOffsetT, tableSet.TableCount())
 
@@ -86,19 +86,19 @@ func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, e
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
 where()
-	// Populate FlatTablesRoot with table {{.Table.Name}}
+	// Populate FlatTablesSet with table {{.Table.Name}}
 	offsets[{{$tableIndex}}] = builder.CreateByteVector(buffers[{{$tableIndex}}])
 	{{end}}
 
-	FlatTablesRootStart(builder)
+	FlatTablesSetStart(builder)
 
 	{{range $tableIndex, $element := .Tables -}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
-	FlatTablesRootAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
+	FlatTablesSetAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
 	{{end}}
 
-	var offset flatbuffers.UOffsetT = FlatTablesRootEnd(builder)
+	var offset flatbuffers.UOffsetT = FlatTablesSetEnd(builder)
 	builder.Finish(offset)
 	flatBuffers = builder.FinishedBytes()
 where(fmt.Sprintf("len(flatBuffers) = %d", len(flatBuffers)))
