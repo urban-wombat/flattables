@@ -12,88 +12,32 @@ import (
 	{{end}}
 )
 
+/*
+Copyright (c) {{.Year}} Malcolm Gorman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 func init() {
 	log.SetFlags(log.Lshortfile)
 }
 var where = log.Print
-
-func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffersReturn []byte, err error) {
-	if tableSet == nil {
-		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
-	}
-
-	const initialSize = 0
-{{/*
-	// Create FlatBuffers builder
-	builder := flatbuffers.NewBuilder(initialSize)
-	if builder == nil {
-		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
-	}
-	builder.Reset()
-*/}}
-
-	{{$packageName := .PackageName}}
-	var position flatbuffers.UOffsetT
-	var table *gotables.Table
-	var flatBuffers []byte	// For each table.
-	var flatBuffersSlice [][]byte = make([][]byte, tableSet.TableCount()) // For all the tables.
-
-	{{range $tableIndex, $element := .Tables}}
-	{	// Begin anonymous block per table. Provides separate scope for each set of col names.
-
-		table, err = tableSet.Table("{{.Table.Name}}")
-		if err != nil { return nil, err }
-
-		{{$tableName := .Table.Name}}
-
-		builder := flatbuffers.NewBuilder(initialSize)
-		if builder == nil {
-			return nil, fmt.Errorf("Could not create FlatBuffers builder") 
-		}
-
-		// Create each child.
-
-		{{range .Cols}}
-		// Create child: {{.ColName | firstCharToUpper}}
-		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builder, table.RowCount())
-		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-			val, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-			if err != nil { return nil, err }
-
-			builder.Prepend{{.ColType | firstCharToUpper}}(val)
-		}
-		{{.ColName}}Vector := builder.EndVector(table.RowCount())
-		{{end}}
-
-		// Start FlatBuffers table.
-		{{$tableName}}Start(builder)
-
-		// Add each child to the table: {{$tableName}}
-		{{range .Cols}}
-		// Add child: {{.ColName | firstCharToUpper}} 
-		{{$tableName}}Add{{.ColName | firstCharToUpper}}(builder, {{.ColName}}Vector)
-		{{end}}
-
-		// End FlatBuffers table.
-		position = {{$tableName}}End(builder)
-
-		builder.Finish(position)
-		flatBuffers = builder.FinishedBytes()
-		flatBuffersSlice[{{$tableIndex}}] = flatBuffers
-
-	}	// End anonymous block per table.
-	{{end}}	// End tableSet loop
-
-{{/*
-	builder.Finish(position)
-	flatBuffers = builder.FinishedBytes()
-*/}}
-
-// See What happens ...
-flatBuffersReturn = flatBuffersSlice[0]
-
-	return flatBuffersReturn, nil
-}
 
 func funcName() string {
 	pc, _, _, _ := runtime.Caller(1)
@@ -102,3 +46,110 @@ func funcName() string {
 	name := strings.TrimPrefix(nameEnd, ".") // foo
 	return name
 }
+
+func FlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, err error) {
+	if tableSet == nil {
+		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
+	}
+
+	const initialSize = 0
+	builder := flatbuffers.NewBuilder(initialSize)
+	if builder == nil {
+		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
+	}
+
+	// Call each function to get its FlatBuffers buffer.
+
+	var buffers = make([][]byte, tableSet.TableCount()) // For all the tables.
+	var table *gotables.Table
+
+	{{range $tableIndex, $element := .Tables}}
+	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
+	table, err = tableSet.TableByTableIndex({{$tableIndex}})
+	if err != nil { return nil, err }
+
+	buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
+	if err != nil { return nil, err }
+
+// Testing buffer ...
+//	var table{{.Table.Name}} *{{.Table.Name}} = GetRootAs{{.Table.Name}}(buffers[{{$tableIndex}}], 0)
+//	table{{.Table.Name}}Length := table{{.Table.Name}}.XLength()
+//	fmt.Printf("table{{.Table.Name}}Length = %d\n", table{{.Table.Name}}Length)
+
+	{{end}}
+
+	// Now populate FlatTablesRoot
+
+	var offsets []flatbuffers.UOffsetT = make([]flatbuffers.UOffsetT, tableSet.TableCount())
+
+	{{range $tableIndex, $element := .Tables -}}
+	{{/* Save .Table.Name before it goes out of scope. */}}
+	{{$tableName := .Table.Name}}
+where()
+	// Populate FlatTablesRoot with table {{.Table.Name}}
+	offsets[{{$tableIndex}}] = builder.CreateByteVector(buffers[{{$tableIndex}}])
+	{{end}}
+
+	FlatTablesRootStart(builder)
+
+	{{range $tableIndex, $element := .Tables -}}
+	{{/* Save .Table.Name before it goes out of scope. */}}
+	{{$tableName := .Table.Name}}
+	FlatTablesRootAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
+	{{end}}
+
+	var offset flatbuffers.UOffsetT = FlatTablesRootEnd(builder)
+	builder.Finish(offset)
+	flatBuffers = builder.FinishedBytes()
+where(fmt.Sprintf("len(flatBuffers) = %d", len(flatBuffers)))
+
+	return
+}
+
+{{/* Write a separate function for each FlatBuffers table. */}}
+{{range $tableIndex, $element := .Tables}}
+{{/* Save .Table.Name before it goes out of scope. */}}
+{{$tableName := .Table.Name}}
+func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLocal []byte, err error) {
+	if table == nil {
+		return nil, fmt.Errorf("table.%s() table is <nil>", funcName())
+	}
+
+	const initialSize = 0
+	builderLocal := flatbuffers.NewBuilder(initialSize)
+	if builderLocal == nil {
+		return nil, fmt.Errorf("Could not create FlatBuffers builderLocal for table {{.Table.Name}}") 
+	}
+
+	// Create each child.
+
+	{{range .Cols}}
+	// Create child: {{.ColName | firstCharToUpper}}
+	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
+	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+		if err != nil { return nil, err }
+
+// where(fmt.Sprintf("{{.ColName}}: builderLocal.Prepend(cell) rowIndex = %d cell = %v\n", rowIndex, cell))
+		builderLocal.Prepend{{.ColType | firstCharToUpper}}(cell)
+	}
+	{{.ColName}}Vector := builderLocal.EndVector(table.RowCount())
+	{{end}}
+
+	// Start FlatBuffers table: {{.Table.Name}}
+	{{.Table.Name}}Start(builderLocal)
+
+	// Add each child to the table: {{.Table.Name}}
+	{{range .Cols}}
+	// Add child: {{.ColName | firstCharToUpper}} 
+	{{$tableName}}Add{{.ColName | firstCharToUpper}}(builderLocal, {{.ColName}}Vector)
+	{{end}}
+
+	// End FlatBuffers table: {{.Table.Name}}
+	var offset flatbuffers.UOffsetT = {{.Table.Name}}End(builderLocal)
+	builderLocal.Finish(offset)
+	flatBuffersLocal = builderLocal.FinishedBytes()
+
+	return
+}
+{{end}} {{/* end range Tables */}}

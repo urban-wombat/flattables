@@ -201,7 +201,7 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	}
 // fmt.Println(schemaInfo)
 
-	// Add a user-defined function to tplate.
+	// Add a user-defined function to schema tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
 	const templateFile = "../flattables/schema.template"
@@ -243,6 +243,10 @@ func tableName(table *gotables.Table) string {
 	return "// " + table.Name()
 }
 
+func rowCount(table *gotables.Table) int {
+	return table.RowCount()
+}
+
 func isScalar(table *gotables.Table, colName string) bool {
 	colType, err := table.ColType(colName)
 	if err != nil { log.Fatal(err) }
@@ -276,18 +280,22 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		PackageName string
 		FlatTablesCodeFileName string
 		AutomaticallyFrom string
+		Year string
 		Imports []string
 		Tables []TableInfo
+		TableNames []string
 	}
 
 	var automaticallyFrom string
 	if tableSet.FileName() != "" {
 		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from file: %s",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006" ), tableSet.FileName())
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
 	} else {
 		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006" ))
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	}
+
+	year := fmt.Sprintf("%s", time.Now().Format("2006"))
 
 	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
@@ -300,11 +308,13 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	}
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
+	var tableNames []string = make([]string, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
 	
 		tables[tableIndex].Table = table
+		tableNames[tableIndex] = table.Name()
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
@@ -325,12 +335,15 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		PackageName: tableSet.Name(),
 		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
 		AutomaticallyFrom: automaticallyFrom,
+		Year: year,
 		Imports: imports,
 		Tables: tables,
+		TableNames: tableNames,
 	}
 
-	// Add a user-defined function to tplate.
+	// Add a user-defined function to Go code tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 //	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
 	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
@@ -347,3 +360,9 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 	return buf.String(), nil
 }
+
+/*
+func tableSetTableName(tableIndex int) string {
+	return 
+}
+*/
