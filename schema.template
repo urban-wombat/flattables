@@ -17,10 +17,10 @@ table {{.Table.Name}} {
 {{end}}
 
 // root table. Contains all other (data) tables.
-table FlatTablesSet {
+table FlatTables {
 	{{range .Tables}}
 		{{- .Table.Name}}:[ubyte] (nested_flatbuffer: "{{- .Table.Name}}");
 	{{end}}
 }
 
-root_type FlatTablesSet;
+root_type FlatTables;

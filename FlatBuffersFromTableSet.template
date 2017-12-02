@@ -47,15 +47,24 @@ func funcName() string {
 	return name
 }
 
-func FlatTablesSetFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte, err error) {
+/*
+	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/goft.go
+
+	(1) You must first run goft (means: Go FlatTables) passing it a -f gotables file and specifying a -n namespace/package name.
+		A package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in this package dir.
+	    Utility goft creates a custom set of functions in a file named <namespace>_flattables.go and a <namespace>.fbs schema file.
+
+	(2) 
+*/
+func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
 	if tableSet == nil {
-		return nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
+		return nil, nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
 	}
 
 	const initialSize = 0
 	builder := flatbuffers.NewBuilder(initialSize)
 	if builder == nil {
-		return nil, fmt.Errorf("Could not create FlatBuffers builder") 
+		return nil, nil, fmt.Errorf("Could not create FlatBuffers builder") 
 	}
 
 	// Call each function to get its FlatBuffers buffer.
@@ -66,10 +75,10 @@ func FlatTablesSetFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte,
 	{{range $tableIndex, $element := .Tables}}
 	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
-	if err != nil { return nil, err }
+	if err != nil { return nil, nil, err }
 
 	buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
-	if err != nil { return nil, err }
+	if err != nil { return nil, nil, err }
 
 // Testing buffer ...
 //	var table{{.Table.Name}} *{{.Table.Name}} = GetRootAs{{.Table.Name}}(buffers[{{$tableIndex}}], 0)
@@ -78,7 +87,7 @@ func FlatTablesSetFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte,
 
 	{{end}}
 
-	// Now populate FlatTablesSet
+	// Now populate FlatTables
 
 	var offsets []flatbuffers.UOffsetT = make([]flatbuffers.UOffsetT, tableSet.TableCount())
 
@@ -86,22 +95,23 @@ func FlatTablesSetFromTableSet(tableSet *gotables.TableSet) (flatBuffers []byte,
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
 where()
-	// Populate FlatTablesSet with table {{.Table.Name}}
+	// Populate FlatTables with table {{.Table.Name}}
 	offsets[{{$tableIndex}}] = builder.CreateByteVector(buffers[{{$tableIndex}}])
 	{{end}}
 
-	FlatTablesSetStart(builder)
+	FlatTablesStart(builder)
 
 	{{range $tableIndex, $element := .Tables -}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
-	FlatTablesSetAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
+	FlatTablesAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
 	{{end}}
 
-	var offset flatbuffers.UOffsetT = FlatTablesSetEnd(builder)
+	var offset flatbuffers.UOffsetT = FlatTablesEnd(builder)
 	builder.Finish(offset)
 	flatBuffers = builder.FinishedBytes()
-where(fmt.Sprintf("len(flatBuffers) = %d", len(flatBuffers)))
+
+	flatTables = GetRootAsFlatTables(flatBuffers, 0)
 
 	return
 }
