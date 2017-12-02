@@ -137,24 +137,6 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLoca
 	var {{.ColName}}Vector flatbuffers.UOffsetT
 	{{- end}}
 
-{{/*
-	{{range .Cols}}
-	// Create child: {{.ColName | firstCharToUpper}}
-	if flattables.IsFlatBuffersScalar("{{.ColType}}") {
-		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
-		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-			if err != nil { return nil, err }
-	
-			// where(fmt.Sprintf("{{.ColName}}: builderLocal.Prepend(cell) rowIndex = %d cell = %v\n", rowIndex, cell))
-			builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}{{else}}UOffsetT{{end}}(cell)
-		}
-		{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
-	} else {
-		fmt.Printf("Don't know how to handle a {{.ColType}}\n")
-	}
-	{{end}}
-*/}}
 	{{range .Cols}}
 	// Create child: {{.ColName | firstCharToUpper}}
 	if flattables.IsFlatBuffersScalar("{{.ColType}}") {
