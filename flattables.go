@@ -48,7 +48,7 @@ SOFTWARE.
 // 64 bit: long, ulong, double
 // From: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 
-var GoToFlatBuffersTypes = map[string]string {
+var goToFlatBuffersTypes = map[string]string {
 	"bool":    "bool",
 	"int8":    "byte",	// Signed.
 	"int16":   "short",
@@ -66,6 +66,21 @@ var GoToFlatBuffersTypes = map[string]string {
 //	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
+var goScalarTypes = map[string]string {
+	"bool":    "bool",	// Scalar from FlatBuffers point of view.
+	"int8":    "byte",	// Signed.
+	"int16":   "short",
+	"int32":   "int",	// (Go rune is an alias for Go int32. For future reference.)
+	"int64":   "long",
+	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
+	"uint8":   "ubyte",
+	"uint16":  "ushort",
+	"uint32":  "uint",
+	"uint64":  "ulong",
+	"float32": "float",
+	"float64": "double",
+}
+
 var where = log.Print
 
 func funcName() string {
@@ -77,7 +92,7 @@ func funcName() string {
 }
 
 func schemaType(colType string) (string, error) {
-	schemaType, exists := GoToFlatBuffersTypes[colType]
+	schemaType, exists := goToFlatBuffersTypes[colType]
 	if exists {
 		return schemaType, nil
 	} else {
@@ -91,6 +106,32 @@ func schemaType(colType string) (string, error) {
 		return "", fmt.Errorf("No FlatBuffers type available for Go type: %s (suggest change it to Go type: %s)",
 			colType, suggestChangeTypeTo)
 	}
+}
+
+func IsFlatBuffersScalar(colType string) bool {
+	_, exists := goScalarTypes[colType]
+	return exists
+}
+
+/*
+// For template if statements. If false, returns empty string.
+func ifScalar(colType string) string {
+	if IsScalarType(colType) {
+		return "true"
+	} else {
+		return ""
+	}
+}
+*/
+
+func isScalar(table *gotables.Table, colName string) bool {
+	colType, err := table.ColType(colName)
+	if err != nil { log.Fatal(err) }
+
+	isNumeric, err := gotables.IsNumericColType(colType)
+	if err != nil { log.Fatal(err) }
+
+	return isNumeric || colType == "bool"
 }
 
 func indentText(indent string, text string) string {
@@ -247,16 +288,6 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-func isScalar(table *gotables.Table, colName string) bool {
-	colType, err := table.ColType(colName)
-	if err != nil { log.Fatal(err) }
-
-	isNumeric, err := gotables.IsNumericColType(colType)
-	if err != nil { log.Fatal(err) }
-
-	return isNumeric || colType == "bool"
-}
-
 func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFileName string) (string, error) {
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
@@ -269,6 +300,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	type ColInfo struct {
 		ColName string
 		ColType string
+		IsScalar bool
 	}
 
 	type TableInfo struct {
@@ -300,6 +332,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
+		`"github.com/urban-wombat/flattables"`,
 		`"fmt"`,
 		`"log"`,
 		`"path/filepath"`,
@@ -326,6 +359,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
 		}
 
 		tables[tableIndex].Cols = cols
@@ -346,7 +380,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 //	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
-	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
+//	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
+	const templateFile = "../flattables/FlatTablesFromTableSet.template"
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	data, err := ioutil. ReadFile(templateFile)

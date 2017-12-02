@@ -48,11 +48,11 @@ func funcName() string {
 }
 
 /*
-	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/goft.go
+	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/gotft.go
 
-	(1) You must first run goft (means: Go FlatTables) passing it a -f gotables file and specifying a -n namespace/package name.
-		A package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in this package dir.
-	    Utility goft creates a custom set of functions in a file named <namespace>_flattables.go and a <namespace>.fbs schema file.
+	(1) You must first run gotft (means: gotables FlatTables) pass it -f gotables file and specify -n namespace.
+		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
+	    Utility gotft creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
 
 	(2) 
 */
@@ -131,19 +131,45 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLoca
 		return nil, fmt.Errorf("Could not create FlatBuffers builderLocal for table {{.Table.Name}}") 
 	}
 
-	// Create each child.
+	// Create each flatbuffers table child (gotables.Table column).
 
 	{{range .Cols}}
-	// Create child: {{.ColName | firstCharToUpper}}
-	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
-	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-		if err != nil { return nil, err }
+	var {{.ColName}}Vector flatbuffers.UOffsetT
+	{{- end}}
 
-// where(fmt.Sprintf("{{.ColName}}: builderLocal.Prepend(cell) rowIndex = %d cell = %v\n", rowIndex, cell))
-		builderLocal.Prepend{{.ColType | firstCharToUpper}}(cell)
+{{/*
+	{{range .Cols}}
+	// Create child: {{.ColName | firstCharToUpper}}
+	if flattables.IsFlatBuffersScalar("{{.ColType}}") {
+		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
+		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+			if err != nil { return nil, err }
+	
+			// where(fmt.Sprintf("{{.ColName}}: builderLocal.Prepend(cell) rowIndex = %d cell = %v\n", rowIndex, cell))
+			builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}{{else}}UOffsetT{{end}}(cell)
+		}
+		{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+	} else {
+		fmt.Printf("Don't know how to handle a {{.ColType}}\n")
 	}
-	{{.ColName}}Vector := builderLocal.EndVector(table.RowCount())
+	{{end}}
+*/}}
+	{{range .Cols}}
+	// Create child: {{.ColName | firstCharToUpper}}
+	if flattables.IsFlatBuffersScalar("{{.ColType}}") {
+		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
+		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+			if err != nil { return nil, err }
+			cell = cell	// Avoid "cell declared and not used" error when col is non-scalar.
+	
+			builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
+		}
+		{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+	} else {
+		fmt.Printf("Don't know how to handle a {{.ColType}}\n")
+	}
 	{{end}}
 
 	// Start FlatBuffers table: {{.Table.Name}}
