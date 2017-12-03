@@ -55,7 +55,7 @@ var goToFlatBuffersTypes = map[string]string {
 	"int32":   "int",	// (Go rune is an alias for Go int32. For future reference.)
 	"int64":   "long",
 	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
-	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8.
+	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
 	"uint8":   "ubyte",
 	"uint16":  "ushort",
 	"uint32":  "uint",

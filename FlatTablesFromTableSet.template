@@ -169,19 +169,19 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	// Type {{.ColType}} is a vector.
 	// Create {{.ColType}} vector outside {{$tableName}}Start{{.ColName | firstCharToUpper}}Vector() to avoid nesting error.
 
-	offsets := make([]flatbuffers.UOffsetT, table.RowCount())
+	{{.ColName}}Offsets := make([]flatbuffers.UOffsetT, table.RowCount())
 	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
 		if err != nil { return nil, nil, err }
 
-		offsets[rowIndex] = builderLocal.CreateString(cell)
+		{{.ColName}}Offsets[rowIndex] = builderLocal.CreateString(cell)
 	}
 
 	// Now prepend the offsets (which are scalar).
 
 	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
 	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-		builderLocal.PrependUOffsetT(offsets[rowIndex])
+		builderLocal.PrependUOffsetT({{.ColName}}Offsets[rowIndex])
 	}
 	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
 
