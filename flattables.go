@@ -332,7 +332,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	imports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-		`"github.com/urban-wombat/flattables"`,
+//		`"github.com/urban-wombat/flattables"`,
 		`"fmt"`,
 		`"log"`,
 		`"path/filepath"`,

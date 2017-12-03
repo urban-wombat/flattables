@@ -85,19 +85,16 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 	var table *gotables.Table
 
 	{{range $tableIndex, $element := .Tables}}
+
 	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
 	if err != nil { return nil, nil, err }
 
+	// Convert it to flatbuffers.
 	_, buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
 	if err != nil { return nil, nil, err }
 
-// Testing buffer ...
-//	var table{{.Table.Name}} *{{.Table.Name}} = GetRootAs{{.Table.Name}}(buffers[{{$tableIndex}}], 0)
-//	table{{.Table.Name}}Length := table{{.Table.Name}}.XLength()
-//	fmt.Printf("table{{.Table.Name}}Length = %d\n", table{{.Table.Name}}Length)
-
-	{{end}}
+	{{end}}	{{/* end tables */}}
 
 	// Now populate FlatTables
 
@@ -115,11 +112,12 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 
 	{{range $tableIndex, $element := .Tables -}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
-	{{$tableName := .Table.Name}}
+	{{$tableName := .Table.Name -}}
 	FlatTablesAdd{{.Table.Name}}(builder, offsets[{{$tableIndex}}])
-	{{end}}
+	{{- end}}
 
 	var offset flatbuffers.UOffsetT = FlatTablesEnd(builder)
+
 	builder.Finish(offset)
 	flatBuffers = builder.FinishedBytes()
 
@@ -151,29 +149,53 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 
 	{{range .Cols}}
 	// Create child: {{.ColName | firstCharToUpper}}
-	if flattables.IsFlatBuffersScalar("{{.ColType}}") {
-		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
-		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-			if err != nil { return nil, nil, err }
-			cell = cell	// Avoid "cell declared and not used" error when col is non-scalar.
-	
-			builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
-		}
-		{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
-	} else {
-		fmt.Printf("Don't know how to handle a {{.ColType}}\n")
+
+
+	{{if .IsScalar}}
+
+	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
+	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+		if err != nil { return nil, nil, err }
+
+		// Prepend the scalar values.
+
+		builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
 	}
-	{{end}}
+	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+
+	{{else}}
+
+	// Type {{.ColType}} is a vector.
+	// Create {{.ColType}} vector outside {{$tableName}}Start{{.ColName | firstCharToUpper}}Vector() to avoid nesting error.
+
+	offsets := make([]flatbuffers.UOffsetT, table.RowCount())
+	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+		if err != nil { return nil, nil, err }
+
+		offsets[rowIndex] = builderLocal.CreateString(cell)
+	}
+
+	// Now prepend the offsets (which are scalar).
+
+	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
+	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+		builderLocal.PrependUOffsetT(offsets[rowIndex])
+	}
+	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+
+	{{end}}	{{/* end if scalar */}}
+
+	{{end}}	{{/* end range cols */}}
 
 	// Start FlatBuffers table: {{.Table.Name}}
 	{{.Table.Name}}Start(builderLocal)
 
 	// Add each child to the table: {{.Table.Name}}
-	{{range .Cols}}
-	// Add child: {{.ColName | firstCharToUpper}} 
+	{{- range .Cols}}
 	{{$tableName}}Add{{.ColName | firstCharToUpper}}(builderLocal, {{.ColName}}Vector)
-	{{end}}
+	{{- end}}
 
 	// End FlatBuffers table: {{.Table.Name}}
 	var offset flatbuffers.UOffsetT = {{.Table.Name}}End(builderLocal)
