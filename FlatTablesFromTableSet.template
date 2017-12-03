@@ -50,11 +50,23 @@ func funcName() string {
 /*
 	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/gotft.go
 
-	(1) You must first run gotft (means: gotables FlatTables) pass it -f gotables file and specify -n namespace.
+	(1) You must first run gotft (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
 	    Utility gotft creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
+		Utility goft generates everything you need. It relies on flatc being installed, which it calls.
 
-	(2) 
+	(2) The FlatTables custom generated functions have a signature pattern:
+	    func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
+		The flatBuffers bytes are ready for transmission.
+		The flatTables object is ready for you to invoke methods on it.
+		The name FlatTablesFromTableSet() is hard-coded, as is the root_type table FlatTables.
+
+		Subsidiary functions (called by FlatTablesFromTableSet(), and which you may call directly by passing in a *gotables.Table)
+		have the same signature pattern, with their name soft-coded to reflect the table names in gotables and the schema:
+		func <table-name>FlatBuffersFromTable(table *gotables.Table) (flatTables *<table-name>, flatBuffers []byte, err error)
+
+	(3) All of the types are in package <namespace>, which means a main function would import <namespace>, and the types would be
+	    <namespace>.FlatTables for the root_type, and <namespace>.<table-name> for each data table.
 */
 func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
 	if tableSet == nil {
@@ -77,7 +89,7 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
 	if err != nil { return nil, nil, err }
 
-	buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
+	_, buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
 	if err != nil { return nil, nil, err }
 
 // Testing buffer ...
@@ -94,7 +106,7 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 	{{range $tableIndex, $element := .Tables -}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
-where()
+
 	// Populate FlatTables with table {{.Table.Name}}
 	offsets[{{$tableIndex}}] = builder.CreateByteVector(buffers[{{$tableIndex}}])
 	{{end}}
@@ -120,15 +132,15 @@ where()
 {{range $tableIndex, $element := .Tables}}
 {{/* Save .Table.Name before it goes out of scope. */}}
 {{$tableName := .Table.Name}}
-func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLocal []byte, err error) {
+func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.Table.Name}}, flatBuffers []byte, err error) {
 	if table == nil {
-		return nil, fmt.Errorf("table.%s() table is <nil>", funcName())
+		return nil, nil, fmt.Errorf("table.%s() table is <nil>", funcName())
 	}
 
 	const initialSize = 0
 	builderLocal := flatbuffers.NewBuilder(initialSize)
 	if builderLocal == nil {
-		return nil, fmt.Errorf("Could not create FlatBuffers builderLocal for table {{.Table.Name}}") 
+		return nil, nil, fmt.Errorf("Could not create FlatBuffers builderLocal for table {{.Table.Name}}") 
 	}
 
 	// Create each flatbuffers table child (gotables.Table column).
@@ -143,7 +155,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLoca
 		{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
 		for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
 			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-			if err != nil { return nil, err }
+			if err != nil { return nil, nil, err }
 			cell = cell	// Avoid "cell declared and not used" error when col is non-scalar.
 	
 			builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
@@ -166,7 +178,10 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatBuffersLoca
 	// End FlatBuffers table: {{.Table.Name}}
 	var offset flatbuffers.UOffsetT = {{.Table.Name}}End(builderLocal)
 	builderLocal.Finish(offset)
-	flatBuffersLocal = builderLocal.FinishedBytes()
+
+	// Return values.
+	flatBuffers = builderLocal.FinishedBytes()
+	flatTables = GetRootAs{{.Table.Name}}(flatBuffers, 0)
 
 	return
 }
