@@ -114,17 +114,6 @@ func IsFlatBuffersScalar(colType string) bool {
 	return exists
 }
 
-/*
-// For template if statements. If false, returns empty string.
-func ifScalar(colType string) string {
-	if IsScalarType(colType) {
-		return "true"
-	} else {
-		return ""
-	}
-}
-*/
-
 func isScalar(table *gotables.Table, colName string) bool {
 	colType, err := table.ColType(colName)
 	if err != nil { log.Fatal(err) }
@@ -391,14 +380,118 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { log.Fatal(err) }
 
+// where(goCodeInfo)
 	err = tplate.Execute(buf, goCodeInfo)
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
 }
 
-/*
-func tableSetTableName(tableIndex int) string {
-	return 
+func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTestCodeFileName string) (string, error) {
+	if tableSet == nil {
+		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
+	}
+
+	var err error
+	var buf *bytes.Buffer = bytes.NewBufferString("")
+	var tplate *template.Template = template.New("FlatTables Test Go")
+
+	type ColInfo struct {
+		ColName string
+		ColType string
+		IsScalar bool
+	}
+
+	type TableInfo struct {
+		Table *gotables.Table
+		Cols []ColInfo
+	}
+
+	type GoTestCodeInfo struct {
+		PackageName string
+		FlatTablesTestCodeFileName string
+		AutomaticallyFrom string
+		Year string
+		Imports []string
+		Tables []TableInfo
+		TableNames []string
+	}
+
+	var automaticallyFrom string
+	if tableSet.FileName() != "" {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers Test Go code automatically generated %s from file: %s",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
+	} else {
+		automaticallyFrom = fmt.Sprintf("FlatBuffers Test Go code automatically generated %s from a gotables.TableSet",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+	}
+
+	year := fmt.Sprintf("%s", time.Now().Format("2006"))
+
+	imports := []string {
+		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+		`"fmt"`,
+		`"log"`,
+//		`"path/filepath"`,
+//		`"runtime"`,
+//		`"strings"`,
+		`"testing"`,
+	}
+
+	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
+	var tableNames []string = make([]string, tableSet.TableCount())
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", err }
+	
+		tables[tableIndex].Table = table
+		tableNames[tableIndex] = table.Name()
+
+		var cols []ColInfo = make([]ColInfo, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColName(colIndex)
+			if err != nil { return "", err }
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return "", err }
+
+			cols[colIndex].ColName = colName
+			cols[colIndex].ColType = colType
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
+		}
+
+		tables[tableIndex].Cols = cols
+	}
+
+	var goTestCodeInfo = GoTestCodeInfo {
+		PackageName: tableSet.Name(),
+		FlatTablesTestCodeFileName: filepath.Base(flatTablesTestCodeFileName),
+		AutomaticallyFrom: automaticallyFrom,
+		Year: year,
+		Imports: imports,
+		Tables: tables,
+		TableNames: tableNames,
+	}
+
+	// Add a user-defined function to Test Go code tplate.
+	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate = tplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
+	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
+
+	const templateFile = "../flattables/FlatTablesTest.template"
+
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	data, err := ioutil. ReadFile(templateFile)
+	if err != nil { log.Fatal(err) }
+
+	tplate, err = tplate.Parse(string(data))
+	if err != nil { log.Fatal(err) }
+
+// where(goTestCodeInfo)
+	err = tplate.Execute(buf, goTestCodeInfo)
+	if err != nil { log.Fatal(err) }
+
+	return buf.String(), nil
 }
-*/
