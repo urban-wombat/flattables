@@ -400,6 +400,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		ColName string
 		ColType string
 		IsScalar bool
+		IsString bool
 	}
 
 	type TableInfo struct {
@@ -429,11 +430,11 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	year := fmt.Sprintf("%s", time.Now().Format("2006"))
 
 	imports := []string {
-		`flatbuffers "github.com/google/flatbuffers/go"`,
+//		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 //		`"github.com/urban-wombat/flattables"`,
-		`"fmt"`,
-		`"log"`,
+//		`"fmt"`,
+//		`"log"`,
 //		`"path/filepath"`,
 //		`"runtime"`,
 //		`"strings"`,
@@ -460,6 +461,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
 			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
+			cols[colIndex].IsString = colType == "string"
 		}
 
 		tables[tableIndex].Cols = cols
