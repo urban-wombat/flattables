@@ -8,29 +8,32 @@ A simple and fast way to get started with Google FlatBuffers.
 
 * FlatTables generates the FlatBuffers schema is auto-generated.
   All you need to do is write a very simple self-describing gotables data file (sample below).
-  This means normalising your objects to one or more tables (tabular tables).
+  This means normalising your objects to one or more tables (tabular tables, not FlatBuffers tables).
+
+  FlatBuffers and FlatTables use 'table' in a slightly different sense, but if you see them as tabular
+  tables, it makes sense.
 
 * FlatBuffers utility `flatc` generates Go code to write (and read) data conforming to the FlatBuffers schema.
 
 * FlatTables generates Go code to write gotables formatted data to a FlatBuffers []byte array.
 
-* FlatTables genrates Go code to test that data has been written to FlatBuffers correctly.
+* FlatTables generates Go code to test that data has been written to FlatBuffers correctly.
 
 * The read step is VERY fast. There is no additional code between you and the auto-generated FlatBuffers code.
-  [The read step at this stage is read-only. This may improve.]
+  (Note: the read step at this stage is read-only. This may improve.)
 
 * You write only your own code to call these auto-generated methods, and denormalise the data from tabular to
   your prefered data structures.
 
-## FlatTables uses a subset of Google FlatBuffers as a binary format for gotables Table objects.
+* FlatTables uses a subset of Google FlatBuffers as a binary format for gotables Table objects.
 
 * FlatTables is general purpose because it consists of tables, and your own data is probably capable of being
   normalised (in Ted Codd, C J Date fashion) to one or more tables ready for transmission and re-assembly
   at the receiving end.
 
-* You don't HAVE to use gotables data to write to a FlatBuffers []byte array. Once you have followed the simple
-steps (described below) to generate the schema and code, you can take guidance from the generated code (pretty
-much copy and paste) to write directly from your data objects to FlatBuffers. Perhaps use gotables during initial
+* You don't HAVE to use gotables data format to write to a FlatBuffers []byte array. Once you have followed the simple
+steps (described below) to generate the schema and code, you can take guidance from the generated code
+to write directly from your data objects to FlatBuffers. Perhaps use gotables during initial
 development, and write directly to FlatBuffers later for the highest possible speeds.
 
 ## How the flattables_sample repository was auto-generated
@@ -61,7 +64,7 @@ We'll call it "tables.got" (.got is for gotables).
        11   22    33    3.3  false   222.2     2
       111  222   333    3.33 true    333.3     3
         2    4     8    8.0  false   444.4     4
-    
+ 
     [MyXyzTable]
         x     y     z
     int64 int32 int64
