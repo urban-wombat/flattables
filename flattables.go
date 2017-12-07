@@ -184,6 +184,10 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
 				table.Name(), firstCharToUpper(table.Name()))
 		}
+
+		if isGoKeyWord(table.Name()) {
+			return "", fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
+		}
 	
 		tables[tableIndex].Table = table
 
@@ -196,6 +200,10 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 				return "", fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 					table.Name(), colName, firstCharToLower(colName))
+			}
+
+			if isGoKeyWord(colName) {
+				return "", fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
@@ -502,4 +510,38 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
+}
+
+var goKeyWords = map[string]string {
+	"break":		"break",
+	"default":		"default",
+	"func":			"func",
+	"interface":	"interface",
+	"select":		"select",
+	"case":			"case",
+	"defer":		"defer",
+	"go":			"go",
+	"map":			"map",
+	"struct":		"struct",
+	"chan":			"chan",
+	"else":			"else",
+	"goto":			"goto",
+	"package":		"package",
+	"switch":		"switch",
+	"const":		"const",
+	"fallthrough":	"fallthrough",
+	"if":			"if",
+	"range":		"range",
+	"type":			"type",
+	"continue":		"continue",
+	"for":			"for",
+	"import":		"import",
+	"return":		"return",
+	"var":			"var",
+}
+
+func isGoKeyWord(name string) bool {
+	name = strings.ToLower(name)
+	_, exists := goKeyWords[name]
+	return exists
 }
