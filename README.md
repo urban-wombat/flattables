@@ -40,11 +40,12 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 1. Install FlatBuffers
 
-    See `[How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers)` by Robert Winslow.
+    See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
 
 2. Install gotables and gotablesutils
 
-    ```go get github.com/urban-wombat/gotables
+```
+    go get github.com/urban-wombat/gotables
 	go get github.com/urban-wombat/gotablesutils
 ```
 
@@ -56,7 +57,8 @@ development, and write directly to FlatBuffers later for the highest possible sp
 but let's include some data and use the same file for writing to FlatBuffers []byte and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
-    ```[MyAbcTable]
+```
+    [MyAbcTable]
         a    b     c       d e           f    u8
     int64 byte int16 float32 bool  float64 uint8
         1    2     3    3.0  true    111.1     1
@@ -105,7 +107,8 @@ The FlatTables utility `gotft` will also do a validity check, but you might as w
 
 3. Run the FlatTables utility `gotft` (gotables flattables).
 
-    ```$ gotft -f tables.got -n flattables_sample
+```
+    $ gotft -f tables.got -n flattables_sample
     (1) Reading: tables.got (gotables file)
     (1) Setting gotables.TableSet name to "flattables_sample" (from -n flattables_sample)
     (2) Dir <outdir> already exists: ../flattables_sample (good)
@@ -124,7 +127,8 @@ The FlatTables utility `gotft` will also do a validity check, but you might as w
 The following files are generated. Some by Google FlatBuffers flatc (which is called by gotft), and some by FlatTables,
 mainly code to link gotables to flattables (a constrained flatbuffers).
 
-    ```flattables_sample.fbs (by flattables)
+```
+    flattables_sample.fbs (by flattables)
     MyAbcTable.go (by flatc)
     MyXyzTable.go (by flatc)
     MyStrTable.go (by flatc)
