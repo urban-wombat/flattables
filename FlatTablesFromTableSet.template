@@ -164,7 +164,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	}
 	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
 
-	{{else}}
+	{{else if .IsString}}
 
 	// Type {{.ColType}} is a vector.
 	// Create {{.ColType}} vector outside {{$tableName}}Start{{.ColName | firstCharToUpper}}Vector() to avoid nesting error.
@@ -185,6 +185,8 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	}
 	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
 
+	{{- else}}
+	t.Errorf("Unimplemented col type: %s", {{.ColType}})
 	{{end}}	{{/* end if scalar */}}
 
 	{{end}}	{{/* end range cols */}}

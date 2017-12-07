@@ -67,7 +67,7 @@ var goToFlatBuffersTypes = map[string]string {
 //	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
-var goScalarTypes = map[string]string {
+var goFlatBuffersScalarTypes = map[string]string {
 	"bool":    "bool",	// Scalar from FlatBuffers point of view.
 	"int8":    "byte",	// Signed.
 	"int16":   "short",
@@ -110,7 +110,7 @@ func schemaType(colType string) (string, error) {
 }
 
 func IsFlatBuffersScalar(colType string) bool {
-	_, exists := goScalarTypes[colType]
+	_, exists := goFlatBuffersScalarTypes[colType]
 	return exists
 }
 
@@ -291,6 +291,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		ColName string
 		ColType string
 		IsScalar bool
+		IsString bool
 	}
 
 	type TableInfo struct {
@@ -350,6 +351,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
 			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
+			cols[colIndex].IsString = colType == "string"
 		}
 
 		tables[tableIndex].Cols = cols
@@ -401,6 +403,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		ColType string
 		IsScalar bool
 		IsString bool
+		IsBool bool
 	}
 
 	type TableInfo struct {
@@ -410,6 +413,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 
 	type GoTestCodeInfo struct {
 		PackageName string
+		GotablesFileName string
 		FlatTablesTestCodeFileName string
 		AutomaticallyFrom string
 		Year string
@@ -462,6 +466,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 			cols[colIndex].ColType = colType
 			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
 			cols[colIndex].IsString = colType == "string"
+			cols[colIndex].IsBool = colType == "bool"
 		}
 
 		tables[tableIndex].Cols = cols
@@ -469,6 +474,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 
 	var goTestCodeInfo = GoTestCodeInfo {
 		PackageName: tableSet.Name(),
+		GotablesFileName: tableSet.FileName(),
 		FlatTablesTestCodeFileName: filepath.Base(flatTablesTestCodeFileName),
 		AutomaticallyFrom: automaticallyFrom,
 		Year: year,

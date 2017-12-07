@@ -38,7 +38,7 @@ func TestFlatTablesFromTableSet(t *testing.T) {
 	var err error
 
 	var tableSet *gotables.TableSet
-	tableSet, err = gotables.NewTableSetFromFile("mytables.got")
+	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { t.Error(err) }
 
 	/*
@@ -55,6 +55,9 @@ func TestFlatTablesFromTableSet(t *testing.T) {
 	{{/* Save .PackageName before it goes out of scope. */}}
 	{{- $packageName := .PackageName -}}
 
+	{{/* Save .GotablesFileName before it goes out of scope. */}}
+	{{- $gotablesFileName := .GotablesFileName -}}
+
 	// "loop" through tables.
 
 	var table *gotables.Table
@@ -65,7 +68,7 @@ func TestFlatTablesFromTableSet(t *testing.T) {
 
 	// table #{{$tableIndex}}
 
-	// Get the *gotables.Table object of this table. From "github.com/urban-wombat/gotables"
+	// Get the *gotables.Table object of this table. From "{{$gotablesFileName}}"
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
 	if err != nil { t.Error(err) }
 
@@ -82,26 +85,31 @@ func TestFlatTablesFromTableSet(t *testing.T) {
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
 
-		{{range .Cols}}
-		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
-			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-			if err != nil { t.Error(err) }
+	{{range .Cols}}
+	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+		if err != nil { t.Error(err) }
 
-			{{- if .IsString}}
-			{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
-			if string({{.ColName}}) != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %q != gotables [%s].%s[%d] %q",
-				"{{$tableName}}", rowIndex, string({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
-			// println(cell)
-			{{else if .IsScalar}}
-			{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
-			// println(cell)
-			if {{.ColName}} != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
-				"{{$tableName}}", rowIndex, {{.ColName}}, "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
-			{{else}}
-			t.Errorf("Unimplemented col type: %s", {{.ColType}})
-			{{end}}
-		}
+		{{- if .IsString}}
+		{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
+		if string({{.ColName}}) != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %q != gotables [%s].%s[%d] %q",
+			"{{$tableName}}", rowIndex, string({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
+		// println(cell)
+		{{else if .IsScalar}}
+		{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
+		// println(cell)
+		{{- if .IsBool}}
+		if byteToBool({{.ColName}}) != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+			"{{$tableName}}", rowIndex, byteToBool({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
+		{{else}}
+		if {{.ColName}} != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+			"{{$tableName}}", rowIndex, {{.ColName}}, "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
 		{{end}}
+		{{else}}
+		t.Errorf("Unimplemented col type: %s", {{.ColType}})
+		{{end}}
+	}
+	{{end}}
 
 	{{end -}}	{{/* end tables */}}
 }
@@ -112,7 +120,7 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 	var err error
 
 	var tableSet *gotables.TableSet
-	tableSet, err = gotables.NewTableSetFromFile("mytables.got")
+	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { __b.Error(err) }
 
 	/*
@@ -142,7 +150,7 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 
 		// table #{{$tableIndex}}
 
-		// Get the *gotables.Table object of this table. From "github.com/urban-wombat/gotables"
+		// Get the *gotables.Table object of this table. From "{{$gotablesFileName}}"
 		table, err = tableSet.TableByTableIndex({{$tableIndex}})
 		if err != nil { __b.Error(err) }
 
@@ -159,26 +167,29 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 		{{/* Save .Table.Name before it goes out of scope. */}}
 		{{$tableName := .Table.Name}}
 
-			{{range .Cols}}
-			for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
-				cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-				if err != nil { __b.Error(err) }
+		{{range .Cols}}
+		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
+			if err != nil { __b.Error(err) }
 
-				{{- if .IsString}}
-				{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
-				if string({{.ColName}}) != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %q != gotables [%s].%s[%d] %q",
-					"{{$tableName}}", rowIndex, string({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
-				// println(cell)
-				{{else if .IsScalar}}
-				{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
-				// println(cell)
-				if {{.ColName}} != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
-					"{{$tableName}}", rowIndex, {{.ColName}}, "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
-				{{else}}
-				__b.Errorf("Unimplemented col type: %s", {{.ColType}})
-				{{end}}
-			}
+			{{- if .IsString}}
+			{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
+			if string({{.ColName}}) != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %q != gotables [%s].%s[%d] %q",
+				"{{$tableName}}", rowIndex, string({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
+			{{else if .IsScalar}}
+			{{.ColName}} := {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}(rowIndex)
+			{{- if .IsBool}}
+			if byteToBool({{.ColName}}) != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+				"{{$tableName}}", rowIndex, byteToBool({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
+			{{else}}
+			if {{.ColName}} != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+				"{{$tableName}}", rowIndex, {{.ColName}}, "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
 			{{end}}
+			{{else}}
+			__b.Errorf("Unimplemented col type: %s", {{.ColType}})
+			{{end}}
+		}
+		{{end}}
 
 		{{end -}}	{{/* end tables */}}
 	}
@@ -190,7 +201,7 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 	var err error
 
 	var tableSet *gotables.TableSet
-	tableSet, err = gotables.NewTableSetFromFile("mytables.got")
+	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { __b.Error(err) }
 
 	/*
@@ -245,4 +256,11 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 			{{end}}
 		{{end -}}	{{/* end tables */}}
 	}
+}
+
+/*
+	FlatBuffers stores bool as byte=1 for true and byte=0 for false.
+*/
+func byteToBool(b byte) bool {
+	return b == 1
 }
