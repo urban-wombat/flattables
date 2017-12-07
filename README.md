@@ -1,11 +1,5 @@
 # FlatTables
 
-To download the library and utilities:
-
-    go get github.com/urban-wombat/gotables
-    go get github.com/urban-wombat/gotablesutils
-
-
 A simple and fast way to get started with Google FlatBuffers.
 
 ## Advantages
@@ -51,6 +45,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
 2. Install gotables and gotablesutils
 
     go get github.com/urban-wombat/gotables
+
 	go get github.com/urban-wombat/gotablesutils
 
 3. Create directory `flattables_sample`
@@ -61,7 +56,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
 but let's include some data and use the same file for writing to FlatBuffers []byte and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
-    [MyAbcTable]
+    `[MyAbcTable]
         a    b     c       d e           f    u8
     int64 byte int16 float32 bool  float64 uint8
         1    2     3    3.0  true    111.1     1
@@ -98,7 +93,7 @@ We'll call it "tables.got" (.got is for gotables).
     [Structural]
     x uint8 = 1
     y uint16 = 2
-    z uint64 = 3
+    z uint64 = 3`
 
 Check its validity with gotsyntax:
 
