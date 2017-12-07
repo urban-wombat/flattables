@@ -141,11 +141,13 @@ You did not have to write the glue code to get data from `tables.got` to a flatb
 
 And if you wish to populate the flatbuffers []byte array yourself, and not go via gotables, just
 follow the setter calls in `flattables_sample_flattables.go` to get you going. In that case, you could use
-the gotables `tables.got` file purely for generating the schema and setter methods. That would be faster.
+the gotables `tables.got` file purely for generating the schema and setter methods. That would run faster.
 
 4. Run the tests
 
+```
     go test
     go test -bench=.
+```
 
 That's it!
