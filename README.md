@@ -44,8 +44,9 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 2. Install gotables and gotablesutils
 
-    `go get github.com/urban-wombat/gotables`
-	`go get github.com/urban-wombat/gotablesutils`
+    ```go get github.com/urban-wombat/gotables
+	go get github.com/urban-wombat/gotablesutils
+    ```
 
 3. Create directory `flattables_sample`
 
@@ -92,7 +93,8 @@ We'll call it "tables.got" (.got is for gotables).
     [Structural]
     x uint8 = 1
     y uint16 = 2
-    z uint64 = 3```
+    z uint64 = 3
+    ```
 
 Check its validity with gotsyntax:
 
@@ -116,7 +118,8 @@ The FlatTables utility `gotft` will also do a validity check, but you might as w
     (3) flatc:      Generating FlatBuffers Go code with cmd: flatc --go -o .. ../flattables_sample/flattables_sample.fbs
     (4) FlatTables: Generating FlatTables Go code: ../flattables_sample/flattables_sample_flattables.go
     (4) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
-    (*) DONE```
+    (*) DONE
+    ```
 
 The following files are generated. Some by Google FlatBuffers flatc (which is called by gotft), and some by FlatTables,
 mainly code to link gotables to flattables (a constrained flatbuffers).
