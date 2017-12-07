@@ -1,5 +1,11 @@
 # FlatTables
 
+To download the library and utilities:
+
+    go get github.com/urban-wombat/gotables
+    go get github.com/urban-wombat/gotablesutils
+
+
 A simple and fast way to get started with Google FlatBuffers.
 
 ## Advantages
