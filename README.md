@@ -119,20 +119,21 @@ The FlatTables utility `gotft` will also do a validity check, but you might as w
     (4) FlatTables: Generating FlatTables Go code: ../flattables_sample/flattables_sample_flattables.go
     (4) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
     (*) DONE
-    ```
+```
 
 The following files are generated. Some by Google FlatBuffers flatc (which is called by gotft), and some by FlatTables,
 mainly code to link gotables to flattables (a constrained flatbuffers).
 
-flattables_sample.fbs (by flattables)
-MyAbcTable.go (by flatc)
-MyXyzTable.go (by flatc)
-MyStrTable.go (by flatc)
-Tabular.go (by flatc)
-Structural.go (by flatc)
-FlatTables.go (by flatc)
-flattables_sample_flattables.go (by flattables)
-flattables_sample_test.go (by flattables)
+    ```flattables_sample.fbs (by flattables)
+    MyAbcTable.go (by flatc)
+    MyXyzTable.go (by flatc)
+    MyStrTable.go (by flatc)
+    Tabular.go (by flatc)
+    Structural.go (by flatc)
+    FlatTables.go (by flatc)
+    flattables_sample_flattables.go (by flattables)
+    flattables_sample_test.go (by flattables)
+```
 
 You did not have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It was done for you.
 
