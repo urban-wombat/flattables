@@ -55,8 +55,6 @@ development, and write directly to FlatBuffers later for the highest possible sp
 but let's include some data and use the same file for writing to FlatBuffers []byte and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
-    # tables.got
-
     [MyAbcTable]
         a    b     c       d e           f    u8
     int64 byte int16 float32 bool  float64 uint8
