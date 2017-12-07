@@ -46,6 +46,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 ```
     go get github.com/urban-wombat/gotables
+
 	go get github.com/urban-wombat/gotablesutils
 ```
 
