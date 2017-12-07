@@ -46,7 +46,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
     ```go get github.com/urban-wombat/gotables
 	go get github.com/urban-wombat/gotablesutils
-    ```
+```
 
 3. Create directory `flattables_sample`
 
@@ -94,7 +94,7 @@ We'll call it "tables.got" (.got is for gotables).
     x uint8 = 1
     y uint16 = 2
     z uint64 = 3
-    ```
+```
 
 Check its validity with gotsyntax:
 
