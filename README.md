@@ -40,7 +40,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 1. Install FlatBuffers
 
-    See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
+    See `[How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers)` by Robert Winslow.
 
 2. Install gotables and gotablesutils
 
@@ -50,9 +50,9 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 3. Create directory `flattables_sample`
 
-    $ mkdir flattables_sample
+    `$ mkdir flattables_sample`
 
-4. In dir flattables_sample reate a file containing one or more gotables tables. The tables don't need to contain data,
+4. In dir flattables_sample create a file containing one or more gotables tables. The tables don't need to contain data,
 but let's include some data and use the same file for writing to FlatBuffers []byte and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
