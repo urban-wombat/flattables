@@ -48,9 +48,9 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 2. Install gotables and gotablesutils
 
-    go get github.com/urban-wombat/gotables
+    `go get github.com/urban-wombat/gotables`
 
-	go get github.com/urban-wombat/gotablesutils
+	`go get github.com/urban-wombat/gotablesutils`
 
 3. Create directory `flattables_sample`
 
