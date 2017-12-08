@@ -141,8 +141,8 @@ variable names in generated Go code, and the compiler can get annoyed seeing key
     (*) DONE
 ```
 
-The following files are generated. Some by Google FlatBuffers flatc (which is called by gotft), and some by FlatTables,
-mainly code to link gotables to flattables (a constrained flatbuffers).
+The following files are generated. Some by Google FlatBuffers `flatc` (which is called by `gotft`), and some by FlatTables,
+mainly code to link gotables to flattables (a subset of flatbuffers).
 
 ```
     flattables_sample.fbs (by flattables)
