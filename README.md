@@ -1,26 +1,30 @@
-# FlatTables
+# FlatTables - A Simple Subset of FlatBuffers
 
 A simple and fast way to get started with Google FlatBuffers.
+
+Have a look at the [FlatBuffers official documentation](https://google.github.io/flatbuffers) to see
+why you should seriously consider FlatBuffers (and by implication FlatTables) for VERY fast binary
+data transfer.
 
 ## Advantages
 
 ### Auto-Generation of schema and Go code:
 
-* FlatTables generates the FlatBuffers schema is auto-generated.
+* FlatTables auto-generates the FlatBuffers schema from your data.
   All you need to do is write a very simple self-describing gotables data file (sample below).
-  This means normalising your objects to one or more tables (tabular tables, not FlatBuffers tables).
+  This means normalising your objects to one or more tables (tabular tables, like database tables).
 
   FlatBuffers and FlatTables use 'table' in a slightly different sense, but if you see them as tabular
   tables, it makes sense.
 
 * FlatBuffers utility `flatc` generates Go code to write (and read) data conforming to the FlatBuffers schema.
 
-* FlatTables generates Go code to write gotables formatted data to a FlatBuffers []byte array.
+* FlatTables generates Go code to write gotables-formatted data to a FlatBuffers []byte array.
 
 * FlatTables generates Go code to test that data has been written to FlatBuffers correctly.
 
 * The read step is VERY fast. There is no additional code between you and the auto-generated FlatBuffers code.
-  (Note: the read step at this stage is read-only. This may improve.)
+  (Note: the read step at this stage is read-only. This may get better.)
 
 * You write only your own code to call these auto-generated methods, and denormalise the data from tabular to
   your prefered data structures.
@@ -36,7 +40,7 @@ steps (described below) to generate the schema and code, you can take guidance f
 to write directly from your data objects to FlatBuffers. Perhaps use gotables during initial
 development, and write directly to FlatBuffers later for the highest possible speeds.
 
-## How the flattables_sample repository was auto-generated
+## How the flattables_sample repository was auto-generated - you can do it too
 
 1. Install FlatBuffers
 
@@ -44,11 +48,9 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 2. Install gotables and gotablesutils
 
-```
     go get github.com/urban-wombat/gotables
 
 	go get github.com/urban-wombat/gotablesutils
-```
 
 3. Create directory `flattables_sample`
 
@@ -104,7 +106,7 @@ Check its validity with gotsyntax:
     $ gotsyntax tables.got
     tables.got (syntax okay)
 
-The FlatTables utility `gotft` will also do a validity check, but you might as well get earlier feedback.
+The FlatTables utility `gotft` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
 3. Run the FlatTables utility `gotft` (gotables flattables).
 
