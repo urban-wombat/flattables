@@ -64,7 +64,7 @@ FlatTables uses [gotables](https://github.com/urban-wombat/gotables) as its unde
 
     `$ mkdir flattables_sample`
 
-4. In dir flattables_sample create a file containing one or more gotables tables. The tables don't need to contain data,
+4. In dir `flattables_sample` create a file containing one or more gotables tables. The tables don't need to contain data,
 but let's include some data and use the same file for writing to a FlatBuffers []byte array and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
