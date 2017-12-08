@@ -50,11 +50,13 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
     * `go get github.com/google/flatbuffers/go`
 
-2. Install gotables and gotablesutils
+2. Install flattables and gotablesutils
 
     `go get github.com/urban-wombat/flattables`
 
 	`go get github.com/urban-wombat/gotablesutils`
+
+FlatTables uses gotables as its underlying data format and library.
 
 3. Create directory `flattables_sample`
 
