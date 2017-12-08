@@ -2,7 +2,7 @@
 
 A simple and fast way to get started with Google FlatBuffers.
 
-Have a look at the [FlatBuffers official documentation](https://google.github.io/flatbuffers) to see
+Have a look at the [Google FlatBuffers official documentation](https://google.github.io/flatbuffers) to see
 why you should seriously consider FlatBuffers (and by implication FlatTables) for VERY fast binary
 data transfer.
 
@@ -57,7 +57,7 @@ development, and write directly to FlatBuffers later for the highest possible sp
     `$ mkdir flattables_sample`
 
 4. In dir flattables_sample create a file containing one or more gotables tables. The tables don't need to contain data,
-but let's include some data and use the same file for writing to FlatBuffers []byte and running our tests.
+but let's include some data and use the same file for writing to a FlatBuffers []byte array and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
 ```
@@ -107,6 +107,12 @@ Check its validity with gotsyntax:
     tables.got (syntax okay)
 
 The FlatTables utility `gotft` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
+
+Note: FlatTables is a little more strict than gotables syntax:
+* Table names must start with an uppercase character.
+* Column names must start with a lowercase character.
+* Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
+variable names in generated Go code, and the compiler can get annoyed seeing key words used as variables.
 
 3. Run the FlatTables utility `gotft` (gotables flattables).
 
