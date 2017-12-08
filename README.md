@@ -122,7 +122,7 @@ Note: FlatTables is a little more strict than gotables syntax:
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler can get annoyed seeing key words used as variables.
 
-3. Run the FlatTables utility `gotft` (gotables flattables).
+3. From within dir `flattables_sample` run the FlatTables utility `gotft`
 
 ```
     $ gotft -f tables.got -n flattables_sample
