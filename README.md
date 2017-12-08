@@ -44,11 +44,15 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 1. Install FlatBuffers
 
-    See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
+    * See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
+
+    * And the [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
+
+    * `go get github.com/google/flatbuffers/go`
 
 2. Install gotables and gotablesutils
 
-    `go get github.com/urban-wombat/gotables`
+    `go get github.com/urban-wombat/flattables`
 
 	`go get github.com/urban-wombat/gotablesutils`
 
