@@ -3,8 +3,16 @@
 A simple and fast way to get started with Google FlatBuffers.
 
 Have a look at the [Google FlatBuffers official documentation](https://google.github.io/flatbuffers) to see
-why you should seriously consider FlatBuffers (and by implication FlatTables) for VERY fast binary
+why you should seriously consider FlatBuffers (and by implication FlatTables) for VERY FAST binary
 data transfer.
+
+Have a quick look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
+is a sample of FlatBuffers code output generated entirely by `flatc` (FlatBuffers utility) and `gotft` (gotables FlatTables utility).
+
+ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotft`.
+
+When you download and run gotft (perhaps referencing a simple gotables file you write yourself) you can run the tests
+and benchtest and be amazed at the SPEED of FlatBuffers.
 
 ## Advantages
 
@@ -25,7 +33,7 @@ data transfer.
 
 * FlatTables generates Go code to test that data has been written to FlatBuffers correctly.
 
-* The read step is VERY fast. There is no additional code between you and the auto-generated FlatBuffers code.
+* The read step is VERY FAST. There is no additional code between you and the auto-generated FlatBuffers code.
   (Note: the read step at this stage is read-only. This may get better.)
 
 * You write only your own code to call these auto-generated methods, and denormalise the data from tabular to
