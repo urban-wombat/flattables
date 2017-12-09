@@ -17,6 +17,8 @@ data transfer.
   FlatBuffers and FlatTables use 'table' in a slightly different sense, but if you see them as tabular
   tables, it makes sense.
 
+  gotables is the supporting library and file format used by FlatTables.
+
 * FlatBuffers utility `flatc` generates Go code to write (and read) data conforming to the FlatBuffers schema.
 
 * FlatTables generates Go code to write gotables-formatted data to a FlatBuffers []byte array.
@@ -52,9 +54,9 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 2. Install flattables and gotablesutils
 
-    `go get github.com/urban-wombat/flattables`
-
 	`go get github.com/urban-wombat/gotables`
+
+    `go get github.com/urban-wombat/flattables`
 
 	`go get github.com/urban-wombat/gotablesutils`
 
