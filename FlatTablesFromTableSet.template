@@ -85,7 +85,6 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 	var table *gotables.Table
 
 	{{range $tableIndex, $element := .Tables}}
-
 	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
 	if err != nil { return nil, nil, err }
@@ -93,7 +92,6 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 	// Convert it to flatbuffers.
 	_, buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
 	if err != nil { return nil, nil, err }
-
 	{{end}}	{{/* end tables */}}
 
 	// Now populate FlatTables
