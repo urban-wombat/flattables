@@ -1,5 +1,0 @@
-30/09/2017
-BenchmarkFlatBuffersMakeUser-4          10000000               202   ns/op
-BenchmarkFlatBuffersReadUser-4          30000000                44.0 ns/op
-BenchmarkGotablesMakeUser-4            100000000                11.1 ns/op
-BenchmarkGotablesReadUser-4               200000              7309   ns/op

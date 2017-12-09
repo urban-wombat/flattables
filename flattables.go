@@ -188,6 +188,10 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 		if isGoKeyWord(table.Name()) {
 			return "", fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 		}
+
+		if isFlatTablesKeyWord(table.Name()) {
+			return "", fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
+		}
 	
 		tables[tableIndex].Table = table
 
@@ -512,6 +516,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	return buf.String(), nil
 }
 
+// Compilation will fail if a user inadvertently uses a Go key word as a name.
 var goKeyWords = map[string]string {
 	"break":		"break",
 	"default":		"default",
@@ -541,6 +546,17 @@ var goKeyWords = map[string]string {
 }
 
 func isGoKeyWord(name string) bool {
+	name = strings.ToLower(name)
+	_, exists := goKeyWords[name]
+	return exists
+}
+
+// Could be tricky if a user inadvertently uses FlatTables as a table name.
+var flatTablesKeyWords = map[string]string {
+	"flattables":	"flattables",
+}
+
+func isFlatTablesKeyWord(name string) bool {
 	name = strings.ToLower(name)
 	_, exists := goKeyWords[name]
 	return exists
