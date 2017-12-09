@@ -7,7 +7,7 @@ why you should seriously consider FlatBuffers (and by implication FlatTables) fo
 data transfer.
 
 Have a quick look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
-is a sample of FlatBuffers code output generated entirely by `flatc` (FlatBuffers utility) and `gotft` (gotables FlatTables utility).
+is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotft` (gotables FlatTables utility).
 
 ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotft`.
 
@@ -36,13 +36,13 @@ and benchtest and be amazed at the SPEED of FlatBuffers.
 * The read step is VERY FAST. There is no additional code between you and the auto-generated FlatBuffers code.
   (Note: the read step at this stage is read-only. This may get better.)
 
-* You write only your own code to call these auto-generated methods, and denormalise the data from tabular to
+* You write only your own code to call these auto-generated methods, and denormalise the data from tables to
   your prefered data structures.
 
 * FlatTables uses a subset of Google FlatBuffers as a binary format for gotables Table objects.
 
 * FlatTables is general purpose because it consists of tables, and your own data is probably capable of being
-  normalised (in Ted Codd, C J Date fashion) to one or more tables ready for transmission and re-assembly
+  normalised (in Ted Codd, C J Date fashion) to one or more relational tables ready for transmission and re-assembly
   at the receiving end.
 
 * You don't HAVE to use gotables data format to write to a FlatBuffers []byte array. Once you have followed the simple
