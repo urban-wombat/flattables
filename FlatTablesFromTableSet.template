@@ -79,10 +79,10 @@ func FlatTablesFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables
 		return nil, nil, fmt.Errorf("Could not create FlatBuffers builder") 
 	}
 
-	// Call each function to get its FlatBuffers buffer.
-
 	var buffers = make([][]byte, tableSet.TableCount()) // For all the tables.
 	var table *gotables.Table
+
+	// Call each function to get its FlatBuffers buffer.
 
 	{{range $tableIndex, $element := .Tables}}
 	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
@@ -146,7 +146,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	{{- end}}
 
 	{{range .Cols}}
-	// Create child: {{.ColName | firstCharToUpper}}
+	// Create child: {{.ColName}}
 
 
 	{{if .IsScalar}}
