@@ -48,11 +48,11 @@ func funcName() string {
 }
 
 /*
-	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/gotft.go
+	This function FlatTablesFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/gotflat.go
 
-	(1) You must first run gotft (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
+	(1) You must first run gotflat (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
-	    Utility gotft creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
+	    Utility gotflat creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
 		Utility goft generates everything you need. It relies on flatc being installed, which it calls.
 
 	(2) The FlatTables custom generated functions have a signature pattern:

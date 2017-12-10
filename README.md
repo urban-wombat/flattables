@@ -7,11 +7,11 @@ why you should seriously consider FlatBuffers (and by implication FlatTables) fo
 data transfer.
 
 Have a quick look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
-is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotft` (gotables FlatTables utility).
+is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotflat` (gotables FlatTables utility).
 
-ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotft`.
+ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotflat`.
 
-When you download and run gotft (perhaps referencing a simple gotables file you write yourself) you can run the tests
+When you download and run gotflat (perhaps referencing a simple gotables file you write yourself) you can run the tests
 and benchtest and be amazed at the SPEED of FlatBuffers.
 
 ## Advantages
@@ -124,7 +124,7 @@ Check its validity with gotsyntax:
     $ gotsyntax tables.got
     tables.got (syntax okay)
 
-The FlatTables utility `gotft` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
+The FlatTables utility `gotflat` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
 Note: FlatTables is a little more strict than gotables syntax:
 * Table names must start with an uppercase character.
@@ -132,10 +132,10 @@ Note: FlatTables is a little more strict than gotables syntax:
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler can get annoyed seeing key words used as variables.
 
-3. From within dir `flattables_sample` run the FlatTables utility `gotft`
+3. From within dir `flattables_sample` run the FlatTables utility `gotflat`
 
 ```
-    $ gotft -f tables.got -n flattables_sample
+    $ gotflat -f tables.got -n flattables_sample
     (1) Reading: tables.got (gotables file)
     (1) Setting gotables.TableSet name to "flattables_sample" (from -n flattables_sample)
     (2) Dir <outdir> already exists: ../flattables_sample (good)
@@ -151,7 +151,7 @@ variable names in generated Go code, and the compiler can get annoyed seeing key
     (*) DONE
 ```
 
-The following files are generated. Some by Google FlatBuffers `flatc` (which is called by `gotft`), and some by FlatTables,
+The following files are generated. Some by Google FlatBuffers `flatc` (which is called by `gotflat`), and some by FlatTables,
 mainly code to link gotables to flattables (a subset of flatbuffers).
 
 ```
