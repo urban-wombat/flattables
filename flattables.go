@@ -344,13 +344,13 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	}
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
-	var tableNames []string = make([]string, tableSet.TableCount())
+//	var tableNames []string = make([]string, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
 	
 		tables[tableIndex].Table = table
-		tableNames[tableIndex] = table.Name()
+//		tableNames[tableIndex] = table.Name()
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
@@ -376,7 +376,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		Year: year,
 		Imports: imports,
 		Tables: tables,
-		TableNames: tableNames,
+//		TableNames: tableNames,
 	}
 
 	// Add a user-defined function to Go code tplate.
@@ -458,13 +458,13 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	}
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
-	var tableNames []string = make([]string, tableSet.TableCount())
+//	var tableNames []string = make([]string, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return "", err }
 	
 		tables[tableIndex].Table = table
-		tableNames[tableIndex] = table.Name()
+//		tableNames[tableIndex] = table.Name()
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
@@ -492,7 +492,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		Year: year,
 		Imports: imports,
 		Tables: tables,
-		TableNames: tableNames,
+//		TableNames: tableNames,
 	}
 
 	// Add a user-defined function to Test Go code tplate.
