@@ -208,3 +208,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	return
 }
 {{end}} {{/* end range Tables */}}
+
+func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
+	return
+}
