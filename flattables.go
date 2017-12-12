@@ -385,7 +385,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 //	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
 //	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
-	const templateFile = "../flattables/FlatTablesFromTableSet.template"
+//	const templateFile = "../flattables/FlatTablesFromTableSet.template"
+	const templateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	data, err := ioutil. ReadFile(templateFile)
