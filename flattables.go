@@ -312,7 +312,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		FlatTablesCodeFileName string
 		AutomaticallyFrom string
 		Year string
-		Imports []string
+		ToFbImports []string
+		FromFbImports []string
 		Tables []TableInfo
 		TableNames []string
 	}
@@ -328,7 +329,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 	year := fmt.Sprintf("%s", time.Now().Format("2006"))
 
-	imports := []string {
+	tofbImports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 //		`"github.com/urban-wombat/flattables"`,
@@ -337,6 +338,17 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		`"path/filepath"`,
 		`"runtime"`,
 		`"strings"`,
+	}
+
+	fromfbImports := []string {
+//		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+		`"fmt"`,
+		`"log"`,
+//		`"path/filepath"`,
+//		`"runtime"`,
+//		`"strings"`,
 	}
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
@@ -370,7 +382,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
 		AutomaticallyFrom: automaticallyFrom,
 		Year: year,
-		Imports: imports,
+		ToFbImports: tofbImports,
+		FromFbImports: fromfbImports,
 		Tables: tables,
 //		TableNames: tableNames,
 	}
@@ -388,7 +401,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 //	const templateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
 	const toFlatBuffersTemplateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
 	var toFlatBuf *bytes.Buffer = bytes.NewBufferString("")
-	var tofbTplate *template.Template = template.New("To FlatTables Go")
+	var tofbTplate *template.Template = template.New("To FlatBuffers Go Code")
 	tofbTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tofbTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
@@ -409,7 +422,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	// (2) Generate NewTableSetFromFlatBuffers()
 	var fromFlatBuf *bytes.Buffer = bytes.NewBufferString("")
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-	var fromTplate *template.Template = template.New("From FlatTables Go")
+	var fromTplate *template.Template = template.New("From FlatBuffers Go Code")
 	fromTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	fromTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 

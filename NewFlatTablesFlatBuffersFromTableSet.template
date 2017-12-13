@@ -7,7 +7,7 @@ package {{.PackageName}}
 */
 
 import (
-	{{range .Imports}}
+	{{range .ToFbImports}}
 	{{- .}}
 	{{end}}
 )

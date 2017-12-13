@@ -7,7 +7,7 @@ package {{.PackageName}}
 */
 
 import (
-	{{range .Imports}}
+	{{range .FromFbImports}}
 	{{- .}}
 	{{end}}
 )
@@ -37,15 +37,6 @@ SOFTWARE.
 func init() {
 	log.SetFlags(log.Lshortfile)
 }
-var where = log.Print
-
-func funcName() string {
-	pc, _, _, _ := runtime.Caller(1)
-	nameFull := runtime.FuncForPC(pc).Name() // main.foo
-	nameEnd := filepath.Ext(nameFull)        // .foo
-	name := strings.TrimPrefix(nameEnd, ".") // foo
-	return name
-}
 
 /*
 	This function NewTableSetFromFlatBuffers() is generated automatically by github.com/urban-wombat/flattablesmain/gotflat.go
@@ -57,10 +48,10 @@ func funcName() string {
 */
 func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
 	if flatBuffers == nil {
-		return nil, nil, fmt.Errorf("table.%s() flatBuffers []byte is <nil>", funcName())
+		return nil, fmt.Errorf("table.%s() flatBuffers []byte is <nil>", funcName())
 	}
 
-	return nil, nil, nil
+	return nil, nil
 
 //		const initialSize = 0
 //		builder := flatbuffers.NewBuilder(initialSize)
