@@ -56,13 +56,15 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 
 	tableSet, err = gotables.NewTableSetFromString(tableSetMetadata)
 	if err != nil { return nil, err }
-where(tableSet)
+// where(tableSet)
 
 	flatTables := GetRootAsFlatTables(flatBuffers, 0)
-where(flatTables)
+// where(flatTables)
 
 	var table *gotables.Table
+	const uninitialisedInt = -1
 	var childLength int
+	var prevChildLength int
 	{{range $tableIndex, $element := .Tables}}
 	{{$tableName := .Table.Name}}
 	// Table #{{$tableIndex}} {{.Table.Name}}
@@ -70,20 +72,34 @@ where(flatTables)
 	table, err = tableSet.TableByTableIndex({{$tableIndex}})
 	if err != nil { return nil, err }
 
-where(table)
+// where("\n" + table.String() + "\n")
 
 	{{.Table.Name}}Bytes := flatTables.{{.Table.Name}}Bytes()
 	if {{.Table.Name}}Bytes == nil { return nil, fmt.Errorf("{{.Table.Name}}Bytes is nil") }
 
 	{{.Table.Name | firstCharToLower}} := GetRootAs{{.Table.Name}}({{.Table.Name}}Bytes, 0)
-	if {{.Table.Name | firstCharToLower}} == nil { return nil, fmt.Errorf("{{.Table.Name}} is nil") }
+	if {{.Table.Name | firstCharToLower}} == nil {
+		return nil, fmt.Errorf("{{.Table.Name}} is nil")
+	}
+
+	childLength = uninitialisedInt
+	prevChildLength = uninitialisedInt
 
 	{{range .Cols}}
 	childLength = {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}Length()
+	if prevChildLength == uninitialisedInt {
+		err = table.AppendRows(childLength)
+		if err != nil { return nil, err }
+	} else if childLength != prevChildLength {
+		return nil, fmt.Errorf("{{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}Length() %d != prev %d",
+			childLength, prevChildLength)
+	}
+	prevChildLength = childLength
 	{{end}}
 	{{end}}
 
-	return nil, nil
+	// NOTE: return this tableSet for now so testing doesn't crash with a nil point error.
+	return tableSet, nil
 
 //		const initialSize = 0
 //		builder := flatbuffers.NewBuilder(initialSize)

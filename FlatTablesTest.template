@@ -50,7 +50,7 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 	*/
 	var flatTables *FlatTables
 	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
-	if err != nil { t.Error(err) }
+	if err != nil { t.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}
 	{{- $packageName := .PackageName -}}
@@ -123,6 +123,40 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 	{{end -}}	{{/* end tables */}}
 }
 
+func TestNewTableSetFromFlatBuffers(t *testing.T) {
+	var err error
+
+	var tableSet1 *gotables.TableSet
+	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	if err != nil { t.Error(err) }
+// where("\n" + tableSet1.String())
+
+	var flatBuffers []byte
+	_, flatBuffers, err = NewFlatTablesFlatBuffersFromTableSet(tableSet1)
+	if err != nil { t.Fatal(err) }
+
+	var tableSet2 *gotables.TableSet
+	tableSet2, err = NewTableSetFromFlatBuffers(flatBuffers)
+	if err != nil { t.Error(err) }
+
+where(tableSet2.TableCount())
+	// This is essentially the body of a future TableSet.Equals() method.
+	if tableSet2.TableCount() != tableSet1.TableCount() {
+		t.Errorf("[%s].TableCount() %d != [%s].TableCount() %d", tableSet2.TableCount(), tableSet1.TableCount())
+	}
+
+	for tableIndex := 0; tableIndex < tableSet1.TableCount(); tableIndex++ {
+		table1, err := tableSet1.TableByTableIndex(tableIndex)
+		if err != nil { t.Error(err) }
+
+		table2, err := tableSet2.TableByTableIndex(tableIndex)
+		if err != nil { t.Error(err) }
+
+		_, err = table2.Equals(table1)
+		if err != nil { t.Error(err) }
+	}
+}
+
 func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 	// __b underscores to avoid name conflict with gererated code.
 
@@ -141,7 +175,7 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 	*/
 	var flatTables *FlatTables
 	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
-	if err != nil { __b.Error(err) }
+	if err != nil { __b.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}
 	{{- $packageName := .PackageName -}}
@@ -222,7 +256,7 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 	*/
 	var flatTables *FlatTables
 	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
-	if err != nil { __b.Error(err) }
+	if err != nil { __b.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}
 	{{- $packageName := .PackageName -}}
