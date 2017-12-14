@@ -3,7 +3,7 @@ package {{.PackageName}}
 /*
 	{{.FlatTablesTestCodeFileName}}
 	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
+	{{.GeneratedFrom}}
 */
 
 import (

@@ -1,9 +1,9 @@
 package {{.PackageName}}
 
 /*
-	{{.FlatTablesCodeFileName}}
+	{{.ToFbCodeFileName}}
 	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
+	{{.GeneratedFrom}}
 */
 
 import (

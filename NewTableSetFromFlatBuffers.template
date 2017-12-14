@@ -1,9 +1,9 @@
 package {{.PackageName}}
 
 /*
-	{{.FlatTablesCodeFileName}}
+	{{.FromFbCodeFileName}}
 	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
+	{{.GeneratedFrom}}
 */
 
 import (
@@ -50,6 +50,13 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 	if flatBuffers == nil {
 		return nil, fmt.Errorf("table.%s() flatBuffers []byte is <nil>", funcName())
 	}
+
+	var tableSetMetadata = `
+{{.TableSetMetadata -}}`
+
+	tableSet, err = gotables.NewTableSetFromString(tableSetMetadata)
+	if err != nil { return nil, err }
+where(tableSet)
 
 	return nil, nil
 

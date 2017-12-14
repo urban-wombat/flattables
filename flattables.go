@@ -158,7 +158,7 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	type SchemaInfo struct {
 		SchemaFileName string
 		TableSetFileName string
-		AutomaticallyFrom string
+		GeneratedFrom string
 		TableString string
 		TableSetName string	// These three have the same value.
 		NameSpace string	// These three have the same value.
@@ -224,19 +224,19 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	}
 
 	// More-complex assignments
-	var automaticallyFrom string
+	var generatedFrom string
 	if tableSet.FileName() != "" {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers schema automatically generated %s from file: %s",
+		generatedFrom = fmt.Sprintf("FlatBuffers schema generated %s from file: %s",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006" ), tableSet.FileName())
 	} else {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers schema automatically generated %s from a gotables.TableSet",
+		generatedFrom = fmt.Sprintf("FlatBuffers schema generated %s from a gotables.TableSet",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006" ))
 	}
 
 	// Populate schema struct.
 	var schemaInfo = SchemaInfo {
 		SchemaFileName: filepath.Base(schemaFileName),
-		AutomaticallyFrom: automaticallyFrom,
+		GeneratedFrom: generatedFrom,
 		TableSetName: tableSet.Name(),
 		NameSpace: tableSet.Name(),
 		RootType: tableSet.Name(),
@@ -290,7 +290,7 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFileName string) (tofbString, fromfbString string, err error) {
+func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []string) (tofbString, fromfbString string, err error) {
 	if tableSet == nil {
 		return "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
@@ -309,25 +309,43 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 	type GoCodeInfo struct {
 		PackageName string
-		FlatTablesCodeFileName string
-		AutomaticallyFrom string
-		Year string
 		ToFbImports []string
 		FromFbImports []string
+//		FlatTablesCodeFileName string
+		ToFbCodeFileName string
+		FromFbCodeFileName string
+		GeneratedFrom string
+		Year string
 		Tables []TableInfo
-		TableNames []string
+//		TableNames []string
+		TableSetMetadata string
 	}
 
-	var automaticallyFrom string
+	var generatedFrom string
 	if tableSet.FileName() != "" {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from file: %s",
+		generatedFrom = fmt.Sprintf("FlatBuffers Go code generated %s from file: %s",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
 	} else {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers Go code automatically generated %s from a gotables.TableSet",
+		generatedFrom = fmt.Sprintf("FlatBuffers Go code generated %s from a gotables.TableSet",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	}
 
 	year := fmt.Sprintf("%s", time.Now().Format("2006"))
+
+	// Remove data (which we don't use anyway) from tables so we are left with metadata.
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return "", "", err }
+
+		err = table.DeleteRowsAll()
+		if err != nil { return "", "", err }
+
+		err = table.SetStructShape(true)
+		if err != nil { return "", "", err }
+	}
+	tableSetMetadata := tableSet.String()
+	tableSetMetadata = indentText("\t\t", tableSetMetadata)
+	// fmt.Println(tableSetMetadata)
 
 	tofbImports := []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
@@ -379,13 +397,16 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 
 	var goCodeInfo = GoCodeInfo {
 		PackageName: tableSet.Name(),
-		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
-		AutomaticallyFrom: automaticallyFrom,
-		Year: year,
 		ToFbImports: tofbImports,
 		FromFbImports: fromfbImports,
+//		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
+		ToFbCodeFileName: filepath.Base(fileNames[0]),
+		FromFbCodeFileName: filepath.Base(fileNames[1]),
+		GeneratedFrom: generatedFrom,
+		Year: year,
 		Tables: tables,
 //		TableNames: tableNames,
+		TableSetMetadata: tableSetMetadata,
 	}
 
 	// Add a user-defined function to Go code tplate.
@@ -401,7 +422,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 //	const templateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
 	const toFlatBuffersTemplateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
 	var toFlatBuf *bytes.Buffer = bytes.NewBufferString("")
-	var tofbTplate *template.Template = template.New("To FlatBuffers Go Code")
+	var tofbTplate *template.Template = template.New("TO FlatBuffers Go Code")
 	tofbTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tofbTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
@@ -422,7 +443,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesCodeFi
 	// (2) Generate NewTableSetFromFlatBuffers()
 	var fromFlatBuf *bytes.Buffer = bytes.NewBufferString("")
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-	var fromTplate *template.Template = template.New("From FlatBuffers Go Code")
+	var fromTplate *template.Template = template.New("FROM FlatBuffers Go Code")
 	fromTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	fromTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
@@ -468,19 +489,19 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		PackageName string
 		GotablesFileName string
 		FlatTablesTestCodeFileName string
-		AutomaticallyFrom string
+		GeneratedFrom string
 		Year string
 		Imports []string
 		Tables []TableInfo
 		TableNames []string
 	}
 
-	var automaticallyFrom string
+	var generatedFrom string
 	if tableSet.FileName() != "" {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers Test Go code automatically generated %s from file: %s",
+		generatedFrom = fmt.Sprintf("FlatBuffers Test Go code generated %s from file: %s",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
 	} else {
-		automaticallyFrom = fmt.Sprintf("FlatBuffers Test Go code automatically generated %s from a gotables.TableSet",
+		generatedFrom = fmt.Sprintf("FlatBuffers Test Go code generated %s from a gotables.TableSet",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	}
 
@@ -529,7 +550,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		PackageName: tableSet.Name(),
 		GotablesFileName: tableSet.FileName(),
 		FlatTablesTestCodeFileName: filepath.Base(flatTablesTestCodeFileName),
-		AutomaticallyFrom: automaticallyFrom,
+		GeneratedFrom: generatedFrom,
 		Year: year,
 		Imports: imports,
 		Tables: tables,

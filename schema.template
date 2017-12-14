@@ -1,7 +1,7 @@
 /*
 	{{.SchemaFileName}}
 	DO NOT MODIFY
-	{{.AutomaticallyFrom}}
+	{{.GeneratedFrom}}
 {{.TableString -}}
 */
 
