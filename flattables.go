@@ -445,6 +445,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
 	var fromTplate *template.Template = template.New("FROM FlatBuffers Go Code")
 	fromTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	fromTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
 	fromTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 	// Open and read file explicitly to avoid calling fromTplate.ParseFile() which has problems.
