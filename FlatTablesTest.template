@@ -61,6 +61,8 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 	// "loop" through tables.
 
 	var table *gotables.Table
+	var rowCount int
+	var childLength int
 
 	{{- range $tableIndex, $element := .Tables}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
@@ -85,7 +87,14 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 	{{/* Save .Table.Name before it goes out of scope. */}}
 	{{$tableName := .Table.Name}}
 
+	rowCount = table.RowCount()
 	{{range .Cols}}
+	childLength = {{$tableName | firstCharToLower}}.{{.ColName | firstCharToUpper}}Length()
+	if childLength != rowCount {
+		t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName | firstCharToUpper}}Length() %d != {{$tableName}}.RowCount() %d",
+			"{{$tableName}}", childLength, rowCount)
+	}
+
 	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
 		if err != nil { t.Error(err) }

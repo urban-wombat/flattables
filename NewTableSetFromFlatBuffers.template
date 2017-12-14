@@ -58,6 +58,24 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 	if err != nil { return nil, err }
 where(tableSet)
 
+	flatTables := GetRootAsFlatTables(flatBuffers, 0)
+where(flatTables)
+
+	var table *gotables.Table
+	{{range $tableIndex, $element := .Tables}}
+	// Table #{{$tableIndex}} {{.Table.Name}}
+
+	table, err = tableSet.TableByTableIndex({{$tableIndex}})
+	if err != nil { return nil, err }
+where(table)
+
+	{{.Table.Name}}Bytes := flatTables.{{.Table.Name}}Bytes()
+	if {{.Table.Name}}Bytes == nil { fmt.Errorf("{{.Table.Name}}Bytes is nil") }
+
+	{{.Table.Name}} := GetRootAs{{.Table.Name}}({{.Table.Name}}Bytes, 0)
+	if {{.Table.Name}} == nil { fmt.Errorf("{{.Table.Name}} is nil") }
+	{{end}}
+
 	return nil, nil
 
 //		const initialSize = 0
