@@ -126,34 +126,38 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 func TestNewTableSetFromFlatBuffers(t *testing.T) {
 	var err error
 
-	var tableSet1 *gotables.TableSet
-	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	// Get the data from a gotables file into a TableSet.
+	var tableSetGotables *gotables.TableSet
+	tableSetGotables, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { t.Error(err) }
-// where("\n" + tableSet1.String())
+// where("\n" + tableSetGotables.String())
 
+	// Convert the data to FlatBuffers.
 	var flatBuffers []byte
-	_, flatBuffers, err = NewFlatTablesFlatBuffersFromTableSet(tableSet1)
+	_, flatBuffers, err = NewFlatTablesFlatBuffersFromTableSet(tableSetGotables)
 	if err != nil { t.Fatal(err) }
 
-	var tableSet2 *gotables.TableSet
-	tableSet2, err = NewTableSetFromFlatBuffers(flatBuffers)
+	// Convert the FlatBuffers data back to a gotables TableSet.
+	var tableSetFlatBuffers *gotables.TableSet
+	tableSetFlatBuffers, err = NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { t.Error(err) }
 
-where(tableSet2.TableCount())
+where(tableSetFlatBuffers.TableCount())
 	// This is essentially the body of a future TableSet.Equals() method.
-	if tableSet2.TableCount() != tableSet1.TableCount() {
-		t.Errorf("[%s].TableCount() %d != [%s].TableCount() %d", tableSet2.TableCount(), tableSet1.TableCount())
+	if tableSetFlatBuffers.TableCount() != tableSetGotables.TableCount() {
+		t.Errorf("[%s].TableCount() %d != [%s].TableCount() %d", tableSetFlatBuffers.TableCount(), tableSetGotables.TableCount())
 	}
 
-	for tableIndex := 0; tableIndex < tableSet1.TableCount(); tableIndex++ {
-		table1, err := tableSet1.TableByTableIndex(tableIndex)
+	for tableIndex := 0; tableIndex < tableSetGotables.TableCount(); tableIndex++ {
+		tableGotables, err := tableSetGotables.TableByTableIndex(tableIndex)
 		if err != nil { t.Error(err) }
 
-		table2, err := tableSet2.TableByTableIndex(tableIndex)
+		tableFlatBuffers, err := tableSetFlatBuffers.TableByTableIndex(tableIndex)
 		if err != nil { t.Error(err) }
 
-		_, err = table2.Equals(table1)
-		if err != nil { t.Error(err) }
+		equals, err := tableGotables.Equals(tableFlatBuffers)
+where(equals)
+		if err != nil { t.Fatal("gotables != FlatBuffers: " + err.Error()) }
 	}
 }
 
