@@ -126,26 +126,30 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 func TestNewTableSetFromFlatBuffers(t *testing.T) {
 	var err error
 
-	// Get the data from a gotables file into a TableSet.
+	// Get the data from the source gotables file and parse it into a TableSet.
 	var tableSetGotables *gotables.TableSet
 	tableSetGotables, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { t.Error(err) }
-// where("\n" + tableSetGotables.String())
 
 	// Convert the data to FlatBuffers.
 	var flatBuffers []byte
 	_, flatBuffers, err = NewFlatTablesFlatBuffersFromTableSet(tableSetGotables)
 	if err != nil { t.Fatal(err) }
 
+	/*
+		Here is the gap where flatBuffers, which is the FlatBuffers []byte array,
+		might have been transmitted as a message or to a file.
+	*/
+
 	// Convert the FlatBuffers data back to a gotables TableSet.
 	var tableSetFlatBuffers *gotables.TableSet
 	tableSetFlatBuffers, err = NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { t.Error(err) }
 
-where(tableSetFlatBuffers.TableCount())
 	// This is essentially the body of a future TableSet.Equals() method.
 	if tableSetFlatBuffers.TableCount() != tableSetGotables.TableCount() {
-		t.Errorf("[%s].TableCount() %d != [%s].TableCount() %d", tableSetFlatBuffers.TableCount(), tableSetGotables.TableCount())
+		t.Errorf("FlatBuffers TableCount() %d != gotables TableCount() %d",
+		tableSetFlatBuffers.TableCount(), tableSetGotables.TableCount())
 	}
 
 	for tableIndex := 0; tableIndex < tableSetGotables.TableCount(); tableIndex++ {
@@ -156,7 +160,10 @@ where(tableSetFlatBuffers.TableCount())
 		if err != nil { t.Error(err) }
 
 		equals, err := tableGotables.Equals(tableFlatBuffers)
-where(equals)
+		if !equals {
+			// This is a diagnostic output so we can immediately see what might have gone wrong.
+			where(tableSetFlatBuffers)
+		}
 		if err != nil { t.Fatal("gotables != FlatBuffers: " + err.Error()) }
 	}
 }
@@ -215,6 +222,7 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 		{{$tableName := .Table.Name}}
 
 		{{range .Cols}}
+		// Retrieve each corresponding value from gotables table and FlatBuffers table and compare them.
 		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 			cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
 			if err != nil { __b.Error(err) }
@@ -306,8 +314,8 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 }
 
 /*
-	FlatBuffers stores bool as byte=1 for true and byte=0 for false.
-*/
+// FlatBuffers stores bool as byte=1 for true and byte=0 for false.
 func byteToBool(b byte) bool {
 	return b == 1
 }
+*/

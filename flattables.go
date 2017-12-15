@@ -300,6 +300,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		ColType string
 		IsScalar bool
 		IsString bool
+		IsBool bool
 	}
 
 	type TableInfo struct {
@@ -390,6 +391,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 			cols[colIndex].ColType = colType
 			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
 			cols[colIndex].IsString = colType == "string"
+			cols[colIndex].IsBool = colType == "bool"
 		}
 
 		tables[tableIndex].Cols = cols
