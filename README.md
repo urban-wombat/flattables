@@ -180,9 +180,13 @@ the gotables `tables.got` file purely for generating the schema and setter metho
 4. Run the tests
 
 ```
-    $ go test
+    $ go test -v
+    === RUN   TestNewFlatTablesFlatBuffersFromTableSet
+    --- PASS: TestNewFlatTablesFlatBuffersFromTableSet (0.00s)
+    === RUN   TestNewTableSetFromFlatBuffers
+    --- PASS: TestNewTableSetFromFlatBuffers (0.00s)
     PASS
-    ok      github.com/urban-wombat/flattables_sample       0.114s
+    ok      github.com/urban-wombat/flattables_sample       0.123s
 ```
 
 ```
