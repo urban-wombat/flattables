@@ -183,7 +183,9 @@ the gotables `tables.got` file purely for generating the schema and setter metho
     $ go test
     PASS
     ok      github.com/urban-wombat/flattables_sample       0.114s
+```
 
+```
     $ go test -bench=.
     goos: windows
     goarch: amd64
