@@ -312,9 +312,12 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		PackageName string
 		ToFbImports []string
 		FromFbImports []string
+		MainImports []string
 //		FlatTablesCodeFileName string
+		GotablesFileName string
 		ToFbCodeFileName string
 		FromFbCodeFileName string
+		MainCodeFileName string
 		GeneratedFrom string
 		Year string
 		Tables []TableInfo
@@ -370,6 +373,17 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //		`"strings"`,
 	}
 
+	mainImports := []string {
+//		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+//		`"fmt"`,
+		`"log"`,
+//		`"path/filepath"`,
+//		`"runtime"`,
+//		`"strings"`,
+	}
+
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 //	var tableNames []string = make([]string, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
@@ -401,9 +415,12 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		PackageName: tableSet.Name(),
 		ToFbImports: tofbImports,
 		FromFbImports: fromfbImports,
+		MainImports: mainImports,
 //		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
+		GotablesFileName: tableSet.FileName(),
 		ToFbCodeFileName: filepath.Base(fileNames[0]),
 		FromFbCodeFileName: filepath.Base(fileNames[1]),
+		MainCodeFileName: filepath.Base(fileNames[2]),
 		GeneratedFrom: generatedFrom,
 		Year: year,
 		Tables: tables,
