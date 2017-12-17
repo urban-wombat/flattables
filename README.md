@@ -8,7 +8,8 @@ data transfer.
 
 If your data is tabular (or can easily be normalised to tabular) then FlatTables may be just right for your project.
 
-The `FlatTables` utility `gotflat` will generate all the code needed to convert from gotables tabular format to
+The `FlatTables` utility `gotflat` will generate all the code needed to convert from
+[gotables](https://github.com/urban-wombat/gotables) tabular format to
 FlatBuffers and back again. You can use FlatBuffers this way, or you can plunder the generated code and use it
 to convert to and from FlatBuffers directly from your own data structures.
 
@@ -17,13 +18,15 @@ test code, and a main program.
 
 Have a look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
 is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotflat` (gotables FlatTables utility).
+See [gotablesutils](https://github.com/urban-wombat/gotablesutils).
 
 The main function in [urban-wombat/flattables_sample_main](https://github.com/urban-wombat/flattables_sample_main)
 is the simplest possible conversion code, if you don't want to get into the weeds of moving data into and out of `FlatBuffers`.
 
 ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotflat`.
 
-When you download and run gotflat (referencing a simple gotables file you write yourself) you can run the tests
+When you download and run gotflat (referencing a simple
+[gotables](https://github.com/urban-wombat/gotables) file you write yourself) you can run the tests
 and benchtest and be amazed at the SPEED of FlatBuffers.
 
 ## Advantages
