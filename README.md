@@ -18,6 +18,9 @@ test code, and a main program.
 Have a look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
 is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotflat` (gotables FlatTables utility).
 
+The main function in [urban-wombat/flattables_sample_main](https://github.com/urban-wombat/flattables_sample_main)
+is the simplest possible conversion code, if you don't want to get into the weeds of moving data into and out of `FlatBuffers`.
+
 ALL of the code, including the FlatBuffers schema and all Go code, was generated automatically from `flatc` and `gotflat`.
 
 When you download and run gotflat (referencing a simple gotables file you write yourself) you can run the tests
@@ -77,6 +80,8 @@ development, and write directly to FlatBuffers later for the highest possible sp
 
 	`go get github.com/urban-wombat/gotablesutils`
 
+    `go install gotflat.go`
+
 FlatTables uses [gotables](https://github.com/urban-wombat/gotables) as its underlying data format and library.
 
 3. Create directory `flattables_sample`
@@ -88,52 +93,40 @@ but let's include some data and use the same file for writing to a FlatBuffers [
 We'll call it "tables.got" (.got is for gotables).
 
 ```
-    [MyAbcTable]
-        a    b     c       d e           f    u8
-    int64 byte int16 float32 bool  float64 uint8
-        1    2     3    3.0  true    111.1     1
-       11   22    33    3.3  false   222.2     2
-      111  222   333    3.33 true    333.3     3
-        2    4     8    8.0  false   444.4     4
- 
     [MyXyzTable]
-        x     y     z
-    int64 int32 int64
-        4     5     6
-       44    55    66
-      444   555   666
-     4444  5555  6666
-       16    32    64
+        x       y       z
+    int16 float32 float64
+        4       5       6
+       44      55      66
+      444     555     666
+     4444    5555    6666
+       16      32      64
     
-    [MyStrTable]
-    s1                i s2
-    string         int8 string
-    "Fred"            0 "The rain ..."
-    "Wilma"           1 "in Spain ..."
-    "Barney"          2 "falls mainly ..."
-    "Betty"           3 "on the ..."
-    "Bam Bam"         4 "plain."
-    "Pebbles"         5 "Why?"
-    "Grand Poobah"    6 "Why not!"
-    "Dino"            7 "Dinosaur"
+    [StringsAndThings]
+    flintstones nums spain          female unsigned
+    string      int8 string         bool     uint32
+    "Fred"         0 "The rain"     false         0
+    "Wilma"        1 "in Spain"     true         11
+    "Barney"       2 "stays mainly" false        22
+    "Betty"        3 "in"           true         33
+    "Bam Bam"      4 "the"          false        44
+    "Pebbles"      5 "plain."       true         55
     
-    [Tabular]
-        a     b    c
-    int16 int32 int8
-        1     2    3
-    
-    [Structural]
-    x uint8 = 1
-    y uint16 = 2
-    z uint64 = 3
+    [Wombats]
+    housingPolicy string = "burrow"
+    topSpeedKmH int8 = 40
+    species string = "Vombatus"
+    class string = "Mammalia"
+    wild bool = true
 ```
+
+The FlatTables utility `gotflat` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
 Check its validity with gotsyntax:
 
     $ gotsyntax tables.got
     tables.got (syntax okay)
 
-The FlatTables utility `gotflat` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
 Note: FlatTables is a little more strict than gotables syntax:
 * Table names must start with an uppercase character.
@@ -144,19 +137,20 @@ variable names in generated Go code, and the compiler can get annoyed seeing key
 3. From within dir `flattables_sample` run the FlatTables utility `gotflat`
 
 ```
-    $ gotflat -f tables.got -n flattables_sample
-    (1) Reading: tables.got (gotables file)
-    (1) Setting gotables.TableSet name to "flattables_sample" (from -n flattables_sample)
-    (2) Dir <outdir> already exists: ../flattables_sample (good)
-    (2) FlatTables: Generating FlatBuffers schema file: ../flattables_sample/flattables_sample.fbs (from tables.got)
-    *** FlatTables: Adding table [MyAbcTable] to FlatBuffers schema
+    $ gotflat -f ../flattables_sample/tables.got -n flattables_sample
+    (1) Reading: ../flattables_sample/tables.got (gotables file)
+    (2) Setting gotables.TableSet name to "flattables_sample" (from -n flattables_sample)
+    (3) Dir <outdir> already exists: ../flattables_sample (good)
+    (4) Dir <outdirmain> already exists: ../flattables_sample_main (good)
+    (5) FlatTables: Generating FlatBuffers schema file: ../flattables_sample/flattables_sample.fbs (from ../flattables_sample/tables.got)
     *** FlatTables: Adding table [MyXyzTable] to FlatBuffers schema
-    *** FlatTables: Adding table [MyStrTable] to FlatBuffers schema
-    *** FlatTables: Adding table [Tabular] to FlatBuffers schema
-    *** FlatTables: Adding table [Structural] to FlatBuffers schema
-    (3) flatc:      Generating FlatBuffers Go code with cmd: flatc --go -o .. ../flattables_sample/flattables_sample.fbs
-    (4) FlatTables: Generating FlatTables Go code: ../flattables_sample/flattables_sample_flattables.go
-    (4) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
+    *** FlatTables: Adding table [StringsAndThings] to FlatBuffers schema
+    *** FlatTables: Adding table [Wombats] to FlatBuffers schema
+    (6) flatc:      Generating FlatBuffers Go code from schema. CMD: flatc --go -o .. ../flattables_sample/flattables_sample.fbs
+    (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewFlatTablesFlatBuffersFromTableSet.go
+    (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewTableSetFromFlatBuffers.go
+    (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample_main/flattables_sample_main.go
+    (8) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
     (*) DONE
 ```
 
@@ -165,14 +159,14 @@ mainly code to link gotables to flattables (a subset of flatbuffers).
 
 ```
     flattables_sample.fbs (by flattables)
-    MyAbcTable.go (by flatc)
-    MyXyzTable.go (by flatc)
-    MyStrTable.go (by flatc)
-    Tabular.go (by flatc)
-    Structural.go (by flatc)
-    FlatTables.go (by flatc)
-    flattables_sample_flattables.go (by flattables)
+    MyXyzTable.go (by FlatBuffers flatc)
+    StringsAndThings.go (by FlatBuffers flatc)
+    Wombats.go (by FlatBuffers flatc)
+    FlatTables.go (by FlatBuffers flatc)
+    flattables_sample_NewFlatTablesFlatBuffersFromTableSet.go (by flattables)
+    flattables_sample_NewTableSetFromFlatBuffers.go (by flattables)
     flattables_sample_test.go (by flattables)
+    flattables_sample/flattables_sample_main.go (by flattables)
 ```
 
 You did not have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It was done for you.
@@ -180,14 +174,24 @@ You did not have to write the .fbs flatbuffers schema `flattables_sample.fbs`. I
 You did not have to write the glue code to get data from `tables.got` to a flatbuffers []byte array.
 
 And if you wish to populate the flatbuffers []byte array yourself, and not go via gotables, just
-follow the setter calls in `flattables_sample_flattables.go` to get you going. In that case, you could use
+follow the setter calls in the various Go source files to get you going. In that case, you could use
 the gotables `tables.got` file purely for generating the schema and setter methods. That would run faster.
 
 4. Run the tests
 
 ```
-    go test
-    go test -bench=.
+    $ go test
+    PASS
+    ok      github.com/urban-wombat/flattables_sample       0.114s
+
+    $ go test -bench=.
+    goos: windows
+    goarch: amd64
+    pkg: github.com/urban-wombat/flattables_sample
+    BenchmarkGetFlatBuffersAndCompareWithGotables-4           300000              5367 ns/op
+    BenchmarkGetFlatBuffersOnly-4                           10000000               121 ns/op
+    PASS
+    ok      github.com/urban-wombat/flattables_sample       3.194s
 ```
 
 That's it!
