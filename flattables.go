@@ -290,9 +290,9 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []string) (tofbString, fromfbString string, err error) {
+func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []string) (tofbStr, fromfbStr, mainStr string, err error) {
 	if tableSet == nil {
-		return "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
+		return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
 
 	type ColInfo struct {
@@ -336,13 +336,13 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	// Remove data (which we don't use anyway) from tables so we are left with metadata.
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", "", err }
+		if err != nil { return "", "", "", err }
 
 		err = table.DeleteRowsAll()
-		if err != nil { return "", "", err }
+		if err != nil { return "", "", "", err }
 
 		err = table.SetStructShape(true)
-		if err != nil { return "", "", err }
+		if err != nil { return "", "", "", err }
 	}
 	tableSetMetadata := tableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
@@ -374,7 +374,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //	var tableNames []string = make([]string, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", "", err }
+		if err != nil { return "", "", "", err }
 	
 		tables[tableIndex].Table = table
 //		tableNames[tableIndex] = table.Name()
@@ -382,10 +382,10 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 			colName, err := table.ColName(colIndex)
-			if err != nil { return "", "", err }
+			if err != nil { return "", "", "", err }
 
 			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return "", "", err }
+			if err != nil { return "", "", "", err }
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
@@ -439,7 +439,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	err = tofbTplate.Execute(toFlatBuf, goCodeInfo)
 	if err != nil { log.Fatal(err) }
 
-	tofbString = toFlatBuf.String()
+	tofbStr = toFlatBuf.String()
 
 
 	// (2) Generate NewTableSetFromFlatBuffers()
@@ -461,7 +461,30 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	err = fromTplate.Execute(fromFlatBuf, goCodeInfo)
 	if err != nil { log.Fatal(err) }
 
-	fromfbString = fromFlatBuf.String()
+	fromfbStr = fromFlatBuf.String()
+
+
+	// (3) Generate main()
+	var mainBuf *bytes.Buffer = bytes.NewBufferString("")
+	const mainBuffersTemplateFile = "../flattables/main.template"
+	var mainTplate *template.Template = template.New("MAIN FlatBuffers Go Code")
+/*
+	mainTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	mainTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
+	mainTplate.Funcs(template.FuncMap{"rowCount": rowCount})
+*/
+
+	// Open and read file explicitly to avoid calling mainTplate.ParseFile() which has problems.
+	mainData, err := ioutil. ReadFile(mainBuffersTemplateFile)
+	if err != nil { log.Fatal(err) }
+
+	mainTplate, err = mainTplate.Parse(string(mainData))
+	if err != nil { log.Fatal(err) }
+
+	err = mainTplate.Execute(mainBuf, goCodeInfo)
+	if err != nil { log.Fatal(err) }
+
+	mainStr = mainBuf.String()
 
 	return
 }
