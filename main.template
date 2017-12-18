@@ -9,11 +9,10 @@ package main
 import (
     {{range .MainImports}}
     {{- .}}
-    {{end}}
+    {{end -}}
 	"github.com/urban-wombat/{{.PackageName}}"
 )
 
-{{/* Need to import this here because it's dynamic. */}}
 
 /*
 Copyright (c) {{.Year}} Malcolm Gorman
