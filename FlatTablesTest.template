@@ -34,7 +34,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
+func TestNewFlatBuffersFromTableSet(t *testing.T) {
 	var err error
 
 	var tableSet *gotables.TableSet
@@ -49,7 +49,7 @@ func TestNewFlatTablesFlatBuffersFromTableSet(t *testing.T) {
 		for individual tables inside the complete flatbuffers []byte slice.
 	*/
 	var flatTables *FlatTables
-	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
+	flatTables, _, err = NewFlatBuffersFromTableSet(tableSet)
 	if err != nil { t.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}
@@ -133,7 +133,7 @@ func TestNewTableSetFromFlatBuffers(t *testing.T) {
 
 	// Convert the data to FlatBuffers.
 	var flatBuffers []byte
-	_, flatBuffers, err = NewFlatTablesFlatBuffersFromTableSet(tableSetGotables)
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSetGotables)
 	if err != nil { t.Fatal(err) }
 
 	/*
@@ -185,7 +185,7 @@ func BenchmarkGetFlatBuffersAndCompareWithGotables(__b *testing.B) {
 		for individual tables inside the complete flatbuffers []byte slice.
 	*/
 	var flatTables *FlatTables
-	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
+	flatTables, _, err = NewFlatBuffersFromTableSet(tableSet)
 	if err != nil { __b.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}
@@ -267,7 +267,7 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 		for individual tables inside the complete flatbuffers []byte slice.
 	*/
 	var flatTables *FlatTables
-	flatTables, _, err = NewFlatTablesFlatBuffersFromTableSet(tableSet)
+	flatTables, _, err = NewFlatBuffersFromTableSet(tableSet)
 	if err != nil { __b.Fatal(err) }
 
 	{{/* Save .PackageName before it goes out of scope. */}}

@@ -10,10 +10,10 @@ import (
     {{range .MainImports}}
     {{- .}}
     {{end}}
+	"github.com/urban-wombat/{{.PackageName}}"
 )
 
 {{/* Need to import this here because it's dynamic. */}}
-import "github.com/urban-wombat/{{.PackageName}}"
 
 /*
 Copyright (c) {{.Year}} Malcolm Gorman
@@ -52,7 +52,7 @@ func main() {
 
 	println(tableSet1.String())
 
-	_, flatBuffers, err = {{.PackageName}}.NewFlatTablesFlatBuffersFromTableSet(tableSet1)
+	_, flatBuffers, err = {{.PackageName}}.NewFlatBuffersFromTableSet(tableSet1)
     if err != nil { log.Fatal(err) }
 
 	// You now have a FlatBuffers []byte array you can transmit or save to file, etc.

@@ -150,7 +150,7 @@ variable names in generated Go code, and the compiler can get annoyed seeing key
     *** FlatTables: Adding table [StringsAndThings] to FlatBuffers schema
     *** FlatTables: Adding table [Wombats] to FlatBuffers schema
     (6) flatc:      Generating FlatBuffers Go code from schema. CMD: flatc --go -o .. ../flattables_sample/flattables_sample.fbs
-    (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewFlatTablesFlatBuffersFromTableSet.go
+    (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewFlatBuffersFromTableSet.go
     (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewTableSetFromFlatBuffers.go
     (7) FlatTables: Generating FlatTables user Go code: ../flattables_sample_main/flattables_sample_main.go
     (8) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
@@ -166,7 +166,7 @@ mainly code to link gotables to flattables (a subset of flatbuffers).
     StringsAndThings.go (by FlatBuffers flatc)
     Wombats.go (by FlatBuffers flatc)
     FlatTables.go (by FlatBuffers flatc)
-    flattables_sample_NewFlatTablesFlatBuffersFromTableSet.go (by flattables)
+    flattables_sample_NewFlatBuffersFromTableSet.go (by flattables)
     flattables_sample_NewTableSetFromFlatBuffers.go (by flattables)
     flattables_sample_test.go (by flattables)
     flattables_sample/flattables_sample_main.go (by flattables)
@@ -184,8 +184,8 @@ the gotables `tables.got` file purely for generating the schema and setter metho
 
 ```
     $ go test -v
-    === RUN   TestNewFlatTablesFlatBuffersFromTableSet
-    --- PASS: TestNewFlatTablesFlatBuffersFromTableSet (0.00s)
+    === RUN   TestNewFlatBuffersFromTableSet
+    --- PASS: TestNewFlatBuffersFromTableSet (0.00s)
     === RUN   TestNewTableSetFromFlatBuffers
     --- PASS: TestNewTableSetFromFlatBuffers (0.00s)
     PASS

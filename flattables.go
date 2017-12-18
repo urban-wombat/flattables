@@ -433,13 +433,9 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 
-	// (1) Generate NewFlatTablesFlatBuffersFromTableSet()
+	// (1) Generate NewFlatBuffersFromTableSet()
 
-//	const templateFile = "../flattables/GetTableSetAsFlatBuffers.template"
-//	const templateFile = "../flattables/FlatBuffersFromTableSet.template"
-//	const templateFile = "../flattables/FlatTablesFromTableSet.template"
-//	const templateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
-	const toFlatBuffersTemplateFile = "../flattables/NewFlatTablesFlatBuffersFromTableSet.template"
+	const toFlatBuffersTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
 	var toFlatBuf *bytes.Buffer = bytes.NewBufferString("")
 	var tofbTplate *template.Template = template.New("TO FlatBuffers Go Code")
 	tofbTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
