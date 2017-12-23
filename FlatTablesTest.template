@@ -312,10 +312,3 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 		{{end -}}	{{/* end tables */}}
 	}
 }
-
-/*
-// FlatBuffers stores bool as byte=1 for true and byte=0 for false.
-func byteToBool(b byte) bool {
-	return b == 1
-}
-*/
