@@ -92,6 +92,8 @@ func funcName() string {
     return name
 }
 
+const deprecation = "_DEPRECATED_"
+
 func schemaType(colType string) (string, error) {
 	schemaType, exists := goToFlatBuffersTypes[colType]
 	if exists {
@@ -107,6 +109,10 @@ func schemaType(colType string) (string, error) {
 		return "", fmt.Errorf("No FlatBuffers type available for Go type: %s (suggest change it to Go type: %s)",
 			colType, suggestChangeTypeTo)
 	}
+}
+
+func isDeprecated(colName string) bool {
+	return strings.Contains(colName, deprecation)
 }
 
 func IsFlatBuffersScalar(colType string) bool {
@@ -146,6 +152,7 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 		ColName string
 		ColType string
 		FbsType string
+		IsDeprecated bool
 	}
 
 	type TableInfo struct {
@@ -212,6 +219,16 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 
 			colType, err := table.ColTypeByColIndex(colIndex)
 			if err != nil { return "", err }
+
+			cols[colIndex].IsDeprecated = isDeprecated(colName)
+			if cols[colIndex].IsDeprecated {
+				oldName := colName
+				// Restore the col name by removing _DEPRECATED_ indicator.
+				colName = strings.Replace(colName, deprecation, "", 1)
+				err = table.RenameCol(oldName, colName)
+				if err != nil { return "", err }
+				fmt.Fprintf(os.Stderr, "*** FlatTables:        table [%s] column %q is deprecated\n", table.Name(), colName)
+			}
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType

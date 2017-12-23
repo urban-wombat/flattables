@@ -11,7 +11,11 @@ namespace {{.NameSpace}};
 // data table {{.TableIndex}}
 table {{.Table.Name}} {
 	{{range .Cols}}
+	{{- if .IsDeprecated}}
+		{{- .ColName}}: [{{.FbsType}}] (deprecated);	// Go type {{.ColType}}
+	{{- else}}
 		{{- .ColName}}: [{{.FbsType}}];	// Go type {{.ColType}}
+	{{- end}}
 	{{end}}
 }
 {{end}}
