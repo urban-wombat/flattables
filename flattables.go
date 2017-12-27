@@ -145,6 +145,9 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	}
 
 	var err error
+
+	templateInfo, err := initTemplateInfo(tableSet)
+
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 	var tplate *template.Template = template.New("FlatTables Schema")
 
@@ -271,6 +274,7 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	if err != nil { log.Fatal(err) }
 
 	err = tplate.Execute(buf, schemaInfo)
+//	err = tplate.Execute(buf, rootInfo)
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
@@ -524,7 +528,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	return
 }
 
-func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTestCodeFileName string) (string, error) {
+func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, TestCodeFileName string) (string, error) {
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
@@ -550,7 +554,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	type GoTestCodeInfo struct {
 		PackageName string
 		GotablesFileName string
-		FlatTablesTestCodeFileName string
+		TestCodeFileName string
 		GeneratedFrom string
 		Year string
 		Imports []string
@@ -618,7 +622,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 	var goTestCodeInfo = GoTestCodeInfo {
 		PackageName: tableSet.Name(),
 		GotablesFileName: tableSet.FileName(),
-		FlatTablesTestCodeFileName: filepath.Base(flatTablesTestCodeFileName),
+		TestCodeFileName: filepath.Base(TestCodeFileName),
 		GeneratedFrom: generatedFrom,
 		Year: year,
 		Imports: imports,
@@ -693,60 +697,119 @@ func isFlatTablesKeyWord(name string) bool {
 	return exists
 }
 
-func initTemplateInfo() {
+type ColInfo struct {
+	ColName string
+	ColType string
+	IsScalar bool
+	IsString bool
+	IsBool bool
+	IsDeprecated bool
+}
 
-	type ColInfo struct {
-		ColName string
-		ColType string
-		IsScalar bool
-		IsString bool
-		IsBool bool
-		IsDeprecated bool
+type TableInfo struct {
+	Table *gotables.Table
+	TableIndex int
+	TableName string
+	Cols []ColInfo
+}
+
+type TemplateInfo struct {
+	GeneratedFrom string
+	NameSpace string	// These have the same value.
+	PackageName string	// These have the same value.
+	Year string
+	SchemaFileName string
+	ToFbImports []string
+	ToFbCodeFileName string
+	FromFbImports []string
+	FromFbCodeFileName string
+	MainImports []string
+	MainCodeFileName string
+	TestCodeFileName string
+	TestCodeImports []string
+	GotablesFileName string	// We want to replace this with the following TWO file names.
+	TablesSchemaFileName string	// For generating flatbuffers schema and functions.
+	TablesDataFileName string	// For main() to populate flatbuffers.
+	TableSetMetadata string
+	Tables []TableInfo
+}
+
+func initTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
+
+	var emptyTemplateInfo TemplateInfo
+
+	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return emptyTemplateInfo, err }
+
+		if table.ColCount() >= 0 {
+			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
+		} else {
+			// Skip tables with zero cols.
+			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
+			continue
+		}
+
+		if startsWithLowerCase(table.Name()) {
+			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+			return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
+				table.Name(), firstCharToUpper(table.Name()))
+		}
+
+		if isGoKeyWord(table.Name()) {
+			return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
+		}
+
+		if isFlatTablesKeyWord(table.Name()) {
+			return emptyTemplateInfo, fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
+		}
+	
+		tables[tableIndex].Table = table
+
+		var cols []ColInfo = make([]ColInfo, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColNameByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+
+			if startsWithUpperCase(colName) {
+				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+				return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+					table.Name(), colName, firstCharToLower(colName))
+			}
+
+			if isGoKeyWord(colName) {
+				return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
+			}
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+
+			cols[colIndex].IsDeprecated = isDeprecated(colName)
+			if cols[colIndex].IsDeprecated {
+				// Restore the col name by removing _DEPRECATED_ indicator.
+				colName = strings.Replace(colName, deprecated, "", 1)
+				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
+			}
+
+			cols[colIndex].ColName = colName
+			cols[colIndex].ColType = colType
+			cols[colIndex].FbsType, err = schemaType(colType)
+			if err != nil { return emptyTemplateInfo, err }
+		}
+
+		tables[tableIndex].Cols = cols
+		tables[tableIndex].TableIndex = tableIndex
 	}
 
-	type TableInfo struct {
-		Table *gotables.Table
-		TableIndex int
-		TableName string
-		Cols []ColInfo
+	var templateInfo = TemplateInfo {
+		SchemaFileName: filepath.Base(schemaFileName),
+		GeneratedFrom: generatedFrom,
+		TableSetName: tableSet.Name(),
+		NameSpace: tableSet.Name(),
+		RootType: tableSet.Name(),
+		Tables: tables,
 	}
 
-	type SchemaInfo struct {
-		SchemaFileName string
-		TableSetFileName string
-		GeneratedFrom string
-		TableString string
-		TableSetName string	// These three have the same value.
-		NameSpace string	// These three have the same value.
-		RootType string		// These three have the same value.
-		Tables []TableInfo
-	}
-
-	type GoCodeInfo struct {
-		PackageName string
-		ToFbImports []string
-		FromFbImports []string
-		MainImports []string
-//		FlatTablesCodeFileName string
-		GotablesFileName string
-		ToFbCodeFileName string
-		FromFbCodeFileName string
-		MainCodeFileName string
-		GeneratedFrom string
-		Year string
-		Tables []TableInfo
-//		TableNames []string
-		TableSetMetadata string
-	}
-
-	type GoTestCodeInfo struct {
-		PackageName string
-		GotablesFileName string
-		FlatTablesTestCodeFileName string
-		GeneratedFrom string
-		Year string
-		Imports []string
-		Tables []TableInfo
-		TableNames []string
-	}
+	return templateInfo, nil
 }

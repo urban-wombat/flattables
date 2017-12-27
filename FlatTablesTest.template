@@ -1,7 +1,7 @@
 package {{.PackageName}}
 
 /*
-	{{.FlatTablesTestCodeFileName}}
+	{{.TestCodeFileName}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
 */
