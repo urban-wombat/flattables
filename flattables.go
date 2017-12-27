@@ -92,7 +92,7 @@ func funcName() string {
     return name
 }
 
-const deprecation = "_DEPRECATED_"
+const deprecated = "_deprecated_"
 
 func schemaType(colType string) (string, error) {
 	schemaType, exists := goToFlatBuffersTypes[colType]
@@ -112,7 +112,7 @@ func schemaType(colType string) (string, error) {
 }
 
 func isDeprecated(colName string) bool {
-	return strings.Contains(colName, deprecation)
+	return strings.Contains(colName, deprecated)
 }
 
 func IsFlatBuffersScalar(colType string) bool {
@@ -222,12 +222,9 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 
 			cols[colIndex].IsDeprecated = isDeprecated(colName)
 			if cols[colIndex].IsDeprecated {
-				oldName := colName
 				// Restore the col name by removing _DEPRECATED_ indicator.
-				colName = strings.Replace(colName, deprecation, "", 1)
-				err = table.RenameCol(oldName, colName)
-				if err != nil { return "", err }
-				fmt.Fprintf(os.Stderr, "*** FlatTables:        table [%s] column %q is deprecated\n", table.Name(), colName)
+				colName = strings.Replace(colName, deprecated, "", 1)
+				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
 			}
 
 			cols[colIndex].ColName = colName
@@ -318,6 +315,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		IsScalar bool
 		IsString bool
 		IsBool bool
+		IsDeprecated bool
 	}
 
 	type TableInfo struct {
@@ -417,6 +415,13 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 
 			colType, err := table.ColTypeByColIndex(colIndex)
 			if err != nil { return "", "", "", err }
+
+			cols[colIndex].IsDeprecated = isDeprecated(colName)
+			if cols[colIndex].IsDeprecated {
+				// Restore the col name by removing _DEPRECATED_ indicator.
+				colName = strings.Replace(colName, deprecated, "", 1)
+//				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
+			}
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
@@ -534,6 +539,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 		IsScalar bool
 		IsString bool
 		IsBool bool
+		IsDeprecated bool
 	}
 
 	type TableInfo struct {
@@ -591,6 +597,13 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, flatTablesTe
 
 			colType, err := table.ColTypeByColIndex(colIndex)
 			if err != nil { return "", err }
+
+			cols[colIndex].IsDeprecated = isDeprecated(colName)
+			if cols[colIndex].IsDeprecated {
+				// Restore the col name by removing _DEPRECATED_ indicator.
+				colName = strings.Replace(colName, deprecated, "", 1)
+//				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
+			}
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
@@ -678,4 +691,62 @@ func isFlatTablesKeyWord(name string) bool {
 	name = strings.ToLower(name)
 	_, exists := goKeyWords[name]
 	return exists
+}
+
+func initTemplateInfo() {
+
+	type ColInfo struct {
+		ColName string
+		ColType string
+		IsScalar bool
+		IsString bool
+		IsBool bool
+		IsDeprecated bool
+	}
+
+	type TableInfo struct {
+		Table *gotables.Table
+		TableIndex int
+		TableName string
+		Cols []ColInfo
+	}
+
+	type SchemaInfo struct {
+		SchemaFileName string
+		TableSetFileName string
+		GeneratedFrom string
+		TableString string
+		TableSetName string	// These three have the same value.
+		NameSpace string	// These three have the same value.
+		RootType string		// These three have the same value.
+		Tables []TableInfo
+	}
+
+	type GoCodeInfo struct {
+		PackageName string
+		ToFbImports []string
+		FromFbImports []string
+		MainImports []string
+//		FlatTablesCodeFileName string
+		GotablesFileName string
+		ToFbCodeFileName string
+		FromFbCodeFileName string
+		MainCodeFileName string
+		GeneratedFrom string
+		Year string
+		Tables []TableInfo
+//		TableNames []string
+		TableSetMetadata string
+	}
+
+	type GoTestCodeInfo struct {
+		PackageName string
+		GotablesFileName string
+		FlatTablesTestCodeFileName string
+		GeneratedFrom string
+		Year string
+		Imports []string
+		Tables []TableInfo
+		TableNames []string
+	}
 }
