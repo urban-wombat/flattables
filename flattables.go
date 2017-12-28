@@ -139,10 +139,7 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo, schemaFileName string) (string, error) {
-	if tableSet == nil {
-		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
-	}
+func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 
 	var err error
 
@@ -693,7 +690,6 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 	}
 
 	var templateInfo = TemplateInfo {
-//		SchemaFileName: filepath.Base(schemaFileName),
 		GeneratedFrom: generatedFrom(tableSet),
 		NameSpace: tableSet.Name(),
 		Tables: tables,
