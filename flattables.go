@@ -139,127 +139,15 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName string) (string, error) {
+func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo, schemaFileName string) (string, error) {
 	if tableSet == nil {
 		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
 
 	var err error
 
-	templateInfo, err := initTemplateInfo(tableSet)
-
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 	var tplate *template.Template = template.New("FlatTables Schema")
-
-	type ColInfo struct {
-		ColName string
-		ColType string
-		FbsType string
-		IsDeprecated bool
-	}
-
-	type TableInfo struct {
-		Table *gotables.Table
-		TableIndex int
-		TableName string
-		Cols []ColInfo
-	}
-
-	type SchemaInfo struct {
-		SchemaFileName string
-		TableSetFileName string
-		GeneratedFrom string
-		TableString string
-		TableSetName string	// These three have the same value.
-		NameSpace string	// These three have the same value.
-		RootType string		// These three have the same value.
-		Tables []TableInfo
-	}
-
-	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", err }
-
-		if table.ColCount() >= 0 {
-			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
-		} else {
-			// Skip tables with zero cols.
-			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
-			continue
-		}
-
-		if startsWithLowerCase(table.Name()) {
-			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-			return "", fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
-				table.Name(), firstCharToUpper(table.Name()))
-		}
-
-		if isGoKeyWord(table.Name()) {
-			return "", fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
-		}
-
-		if isFlatTablesKeyWord(table.Name()) {
-			return "", fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
-		}
-	
-		tables[tableIndex].Table = table
-
-		var cols []ColInfo = make([]ColInfo, table.ColCount())
-		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
-			colName, err := table.ColNameByColIndex(colIndex)
-			if err != nil { return "", err }
-
-			if startsWithUpperCase(colName) {
-				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-				return "", fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
-					table.Name(), colName, firstCharToLower(colName))
-			}
-
-			if isGoKeyWord(colName) {
-				return "", fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
-			}
-
-			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return "", err }
-
-			cols[colIndex].IsDeprecated = isDeprecated(colName)
-			if cols[colIndex].IsDeprecated {
-				// Restore the col name by removing _DEPRECATED_ indicator.
-				colName = strings.Replace(colName, deprecated, "", 1)
-				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
-			}
-
-			cols[colIndex].ColName = colName
-			cols[colIndex].ColType = colType
-			cols[colIndex].FbsType, err = schemaType(colType)
-			if err != nil { return "", err }
-		}
-
-		tables[tableIndex].Cols = cols
-		tables[tableIndex].TableIndex = tableIndex
-	}
-
-	// More-complex assignments
-	var generatedFrom string
-	if tableSet.FileName() != "" {
-		generatedFrom = fmt.Sprintf("FlatBuffers schema generated %s from file: %s",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006" ), tableSet.FileName())
-	} else {
-		generatedFrom = fmt.Sprintf("FlatBuffers schema generated %s from a gotables.TableSet",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006" ))
-	}
-
-	// Populate schema struct.
-	var schemaInfo = SchemaInfo {
-		SchemaFileName: filepath.Base(schemaFileName),
-		GeneratedFrom: generatedFrom,
-		TableSetName: tableSet.Name(),
-		NameSpace: tableSet.Name(),
-		RootType: tableSet.Name(),
-		Tables: tables,
-	}
-// fmt.Println(schemaInfo)
 
 	// Add a user-defined function to schema tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
@@ -273,8 +161,8 @@ func FlatBuffersSchemaFromTableSet(tableSet *gotables.TableSet, schemaFileName s
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { log.Fatal(err) }
 
-	err = tplate.Execute(buf, schemaInfo)
-//	err = tplate.Execute(buf, rootInfo)
+//	err = tplate.Execute(buf, schemaInfo)
+	err = tplate.Execute(buf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
@@ -700,6 +588,7 @@ func isFlatTablesKeyWord(name string) bool {
 type ColInfo struct {
 	ColName string
 	ColType string
+	FbsType string
 	IsScalar bool
 	IsString bool
 	IsBool bool
@@ -717,6 +606,7 @@ type TemplateInfo struct {
 	GeneratedFrom string
 	NameSpace string	// These have the same value.
 	PackageName string	// These have the same value.
+//	TableSetName string	// These three have the same value.
 	Year string
 	SchemaFileName string
 	ToFbImports []string
@@ -734,7 +624,7 @@ type TemplateInfo struct {
 	Tables []TableInfo
 }
 
-func initTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
+func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 
 	var emptyTemplateInfo TemplateInfo
 
@@ -803,13 +693,25 @@ func initTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 	}
 
 	var templateInfo = TemplateInfo {
-		SchemaFileName: filepath.Base(schemaFileName),
-		GeneratedFrom: generatedFrom,
-		TableSetName: tableSet.Name(),
+//		SchemaFileName: filepath.Base(schemaFileName),
+		GeneratedFrom: generatedFrom(tableSet),
 		NameSpace: tableSet.Name(),
-		RootType: tableSet.Name(),
 		Tables: tables,
 	}
 
 	return templateInfo, nil
+}
+
+func generatedFrom(tableSet *gotables.TableSet) string {
+	var generatedFrom string
+
+	if tableSet.FileName() != "" {
+		generatedFrom = fmt.Sprintf("Generated %s from file: %s",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
+	} else {
+		generatedFrom = fmt.Sprintf("Generated %s from a gotables.TableSet",
+			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+	}
+
+	return generatedFrom
 }

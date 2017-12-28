@@ -2,7 +2,6 @@
 	{{.SchemaFileName}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
-{{.TableString -}}
 */
 
 namespace {{.NameSpace}};
@@ -20,7 +19,7 @@ table {{.Table.Name}} {
 }
 {{end}}
 
-// root table. Contains all other (data) tables.
+// root table. Contains all the above data tables.
 table FlatTables {
 	{{range .Tables}}
 		{{- .Table.Name}}:[ubyte] (nested_flatbuffer: "{{- .Table.Name}}");
