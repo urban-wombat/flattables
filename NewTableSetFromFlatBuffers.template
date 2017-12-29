@@ -55,7 +55,8 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 		return nil, fmt.Errorf("table.%s() len(flatBuffers) []byte is 0", funcName())
 	}
 
-	// This is the source gotables tables stripped of their data.
+	// Use a stripped down set of tables as a kind of metadata schema.
+	// This is the source gotables tables stripped of any data, for simplicity.
 	// Each table is set to "struct" shape (rotated right) for easy human readability.
 	var tableSetMetadata = `
 {{.TableSetMetadata -}}`

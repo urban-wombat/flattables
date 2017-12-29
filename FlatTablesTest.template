@@ -7,7 +7,7 @@ package {{.PackageName}}
 */
 
 import (
-	{{range .Imports}}
+	{{range .TestImports}}
 	{{- .}}
 	{{end}}
 )
@@ -297,7 +297,7 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 		if {{.Table.Name | firstCharToLower}} == nil { __b.Errorf("{{.Table.Name | firstCharToLower}} is nil") }
 
 		{{/* Save .Table.Name before it goes out of scope. */}}
-		{{$tableName := .Table.Name}}
+		{{$tableName := .Table.Name -}}
 			{{range .Cols}}
 			for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 				{{- if .IsString}}
