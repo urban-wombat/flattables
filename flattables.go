@@ -197,56 +197,9 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 		return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
 
-	type ColInfo struct {
-		ColName string
-		ColType string
-		IsScalar bool
-		IsString bool
-		IsBool bool
-		IsDeprecated bool
-	}
-
-	type TableInfo struct {
-		Table *gotables.Table
-		Cols []ColInfo
-	}
-
-	type GoCodeInfo struct {
-		PackageName string
-		ToFbImports []string
-		FromFbImports []string
-		MainImports []string
-//		FlatTablesCodeFileName string
-		GotablesFileName string
-		ToFbCodeFileName string
-		FromFbCodeFileName string
-		MainCodeFileName string
-		GeneratedFrom string
-		Year string
-		Tables []TableInfo
-//		TableNames []string
-		TableSetMetadata string
-	}
-
-	// Remove data (which we don't use anyway) from tables so we are left with metadata.
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", "", "", err }
-
-		err = table.DeleteRowsAll()
-		if err != nil { return "", "", "", err }
-
-		err = table.SetStructShape(true)
-		if err != nil { return "", "", "", err }
-	}
-	tableSetMetadata := tableSet.String()
-	tableSetMetadata = indentText("\t\t", tableSetMetadata)
-	// fmt.Println(tableSetMetadata)
-
 	templateInfo.ToFbImports = []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
 		`"fmt"`,
 		`"log"`,
 		`"path/filepath"`,
@@ -255,80 +208,19 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	}
 
 	templateInfo.FromFbImports = []string {
-//		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
 		`"fmt"`,
 		`"log"`,
-//		`"path/filepath"`,
-//		`"runtime"`,
-//		`"strings"`,
 	}
 
 	templateInfo.MainImports = []string {
-//		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
-//		`"fmt"`,
 		`"log"`,
-//		`"path/filepath"`,
-//		`"runtime"`,
-//		`"strings"`,
-	}
-
-	templateInfo.TestImports = []string {
-//		`flatbuffers "github.com/google/flatbuffers/go"`,
-		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
-//		`"fmt"`,
-//		`"log"`,
-//		`"path/filepath"`,
-//		`"runtime"`,
-//		`"strings"`,
-		`"testing"`,
-	}
-
-	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
-//	var tableNames []string = make([]string, tableSet.TableCount())
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", "", "", err }
-	
-		tables[tableIndex].Table = table
-//		tableNames[tableIndex] = table.Name()
-
-		var cols []ColInfo = make([]ColInfo, table.ColCount())
-		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
-			colName, err := table.ColName(colIndex)
-			if err != nil { return "", "", "", err }
-
-			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return "", "", "", err }
-
-			cols[colIndex].IsDeprecated = isDeprecated(colName)
-			if cols[colIndex].IsDeprecated {
-				// Restore the col name by removing _DEPRECATED_ indicator.
-				colName = strings.Replace(colName, deprecated, "", 1)
-//				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
-			}
-
-			cols[colIndex].ColName = colName
-			cols[colIndex].ColType = colType
-			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
-			cols[colIndex].IsString = colType == "string"
-			cols[colIndex].IsBool = colType == "bool"
-		}
-
-		tables[tableIndex].Cols = cols
 	}
 
 	templateInfo.ToFbCodeFileName = filepath.Base(fileNames[0])
 	templateInfo.FromFbCodeFileName = filepath.Base(fileNames[1])
 	templateInfo.MainCodeFileName = filepath.Base(fileNames[2])
-
-	// Add a user-defined function to Go code tplate.
-//	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
-//	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 
 	// (1) Generate NewFlatBuffersFromTableSet()
@@ -346,8 +238,6 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	tofbTplate, err = tofbTplate.Parse(string(tofbData))
 	if err != nil { log.Fatal(err) }
 
-// where(goCodeInfo)
-//	err = tofbTplate.Execute(toFlatBuf, goCodeInfo)
 	err = tofbTplate.Execute(toFlatBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
@@ -369,8 +259,6 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	fromTplate, err = fromTplate.Parse(string(fromData))
 	if err != nil { log.Fatal(err) }
 
-// where(goCodeInfo)
-//	err = fromTplate.Execute(fromFlatBuf, goCodeInfo)
 	err = fromTplate.Execute(fromFlatBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
@@ -389,7 +277,6 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	mainTplate, err = mainTplate.Parse(string(mainData))
 	if err != nil { log.Fatal(err) }
 
-//	err = mainTplate.Execute(mainBuf, goCodeInfo)
 	err = mainTplate.Execute(mainBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
@@ -407,118 +294,10 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 	var tplate *template.Template = template.New("FlatTables Test Go")
 
-	type ColInfo struct {
-		ColName string
-		ColType string
-		IsScalar bool
-		IsString bool
-		IsBool bool
-		IsDeprecated bool
-	}
-
-	type TableInfo struct {
-		Table *gotables.Table
-		Cols []ColInfo
-	}
-
-	type GoTestCodeInfo struct {
-		PackageName string
-		GotablesFileName string
-		TestCodeFileName string
-		GeneratedFrom string
-		Year string
-		Imports []string
-		Tables []TableInfo
-		TableNames []string
-	}
-
-/*
-	var generatedFrom string
-	if tableSet.FileName() != "" {
-		generatedFrom = fmt.Sprintf("FlatBuffers Test Go code generated %s from file: %s",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
-	} else {
-		generatedFrom = fmt.Sprintf("FlatBuffers Test Go code generated %s from a gotables.TableSet",
-			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
-	}
-*/
-
-/*
-	year := fmt.Sprintf("%s", time.Now().Format("2006"))
-*/
-
-/*
-	imports := []string {
-//		`flatbuffers "github.com/google/flatbuffers/go"`,
-		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
-//		`"fmt"`,
-//		`"log"`,
-//		`"path/filepath"`,
-//		`"runtime"`,
-//		`"strings"`,
-		`"testing"`,
-	}
-*/
 	templateInfo.TestImports = []string {
-//		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
-//		`"github.com/urban-wombat/flattables"`,
-//		`"fmt"`,
-//		`"log"`,
-//		`"path/filepath"`,
-//		`"runtime"`,
-//		`"strings"`,
 		`"testing"`,
 	}
-
-	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
-//	var tableNames []string = make([]string, tableSet.TableCount())
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return "", err }
-	
-		tables[tableIndex].Table = table
-//		tableNames[tableIndex] = table.Name()
-
-		var cols []ColInfo = make([]ColInfo, table.ColCount())
-		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
-			colName, err := table.ColName(colIndex)
-			if err != nil { return "", err }
-
-			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return "", err }
-
-			cols[colIndex].IsDeprecated = isDeprecated(colName)
-			if cols[colIndex].IsDeprecated {
-				// Restore the col name by removing _DEPRECATED_ indicator.
-				colName = strings.Replace(colName, deprecated, "", 1)
-//				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
-			}
-
-			cols[colIndex].ColName = colName
-			cols[colIndex].ColType = colType
-			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
-			cols[colIndex].IsString = colType == "string"
-			cols[colIndex].IsBool = colType == "bool"
-		}
-
-		tables[tableIndex].Cols = cols
-	}
-
-/*
-	var goTestCodeInfo = GoTestCodeInfo {
-		PackageName: tableSet.Name(),
-		GotablesFileName: tableSet.FileName(),
-//		TestCodeFileName: filepath.Base(testCodeFileName),
-		TestCodeFileName: templateInfo.TestCodeFileName,
-		GeneratedFrom: generatedFrom,
-		Year: year,
-		Imports: imports,
-		Tables: tables,
-//		TableNames: tableNames,
-	}
-*/
 
 	// Add a user-defined function to Test Go code tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
@@ -534,7 +313,6 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { log.Fatal(err) }
 
-//	err = tplate.Execute(buf, goTestCodeInfo)
 	err = tplate.Execute(buf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
@@ -608,7 +386,6 @@ type TemplateInfo struct {
 	GeneratedFrom string
 	NameSpace string	// These have the same value.
 	PackageName string	// These have the same value.
-//	TableSetName string	// These have the same value.
 	Year string
 	SchemaFileName string
 	ToFbImports []string
@@ -650,11 +427,13 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 		}
 
 		if isGoKeyWord(table.Name()) {
-			return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
+			return emptyTemplateInfo,
+				fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 		}
 
 		if isFlatTablesKeyWord(table.Name()) {
-			return emptyTemplateInfo, fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
+			return emptyTemplateInfo,
+				fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
 		}
 	
 		tables[tableIndex].Table = table
