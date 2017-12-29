@@ -47,18 +47,19 @@ func main() {
 	var tableSet2 *gotables.TableSet
 
 	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
-    if err != nil { log.Fatal(err) }
+    if err != nil { panic(err) }
 
 	println(tableSet1.String())
 
 	_, flatBuffers, err = {{.PackageName}}.NewFlatBuffersFromTableSet(tableSet1)
-    if err != nil { log.Fatal(err) }
+    if err != nil { panic(err) }
 
 	// You now have a FlatBuffers []byte array you can transmit or save to file, etc.
 
 	// We will now convert it back to gotables format, as if we just received it.
 
 	tableSet2, err = {{.PackageName}}.NewTableSetFromFlatBuffers(flatBuffers)
+    if err != nil { panic(err) }
 
 	println(tableSet2.String())
 }

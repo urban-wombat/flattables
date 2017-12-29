@@ -158,7 +158,6 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { log.Fatal(err) }
 
-//	err = tplate.Execute(buf, schemaInfo)
 	err = tplate.Execute(buf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
@@ -193,7 +192,7 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []string) (tofbStr, fromfbStr, mainStr string, err error) {
+func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo, fileNames []string) (tofbStr, fromfbStr, mainStr string, err error) {
 	if tableSet == nil {
 		return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
@@ -229,6 +228,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		TableSetMetadata string
 	}
 
+/*
 	var generatedFrom string
 	if tableSet.FileName() != "" {
 		generatedFrom = fmt.Sprintf("FlatBuffers Go code generated %s from file: %s",
@@ -237,8 +237,11 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		generatedFrom = fmt.Sprintf("FlatBuffers Go code generated %s from a gotables.TableSet",
 			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
 	}
+*/
 
+/*
 	year := fmt.Sprintf("%s", time.Now().Format("2006"))
+*/
 
 	// Remove data (which we don't use anyway) from tables so we are left with metadata.
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
@@ -255,7 +258,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 	// fmt.Println(tableSetMetadata)
 
-	tofbImports := []string {
+	templateInfo.ToFbImports = []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 //		`"github.com/urban-wombat/flattables"`,
@@ -265,8 +268,21 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		`"runtime"`,
 		`"strings"`,
 	}
+/*
+	// REMOVE
+	toFbImports := []string {
+		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+		`"fmt"`,
+		`"log"`,
+		`"path/filepath"`,
+		`"runtime"`,
+		`"strings"`,
+	}
+*/
 
-	fromfbImports := []string {
+	templateInfo.FromFbImports = []string {
 //		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 //		`"github.com/urban-wombat/flattables"`,
@@ -276,7 +292,32 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //		`"runtime"`,
 //		`"strings"`,
 	}
+/*
+// REMOVE
+	fromFbImports := []string {
+//		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+		`"fmt"`,
+		`"log"`,
+//		`"path/filepath"`,
+//		`"runtime"`,
+//		`"strings"`,
+	}
+*/
 
+	templateInfo.MainImports = []string {
+//		`flatbuffers "github.com/google/flatbuffers/go"`,
+		`"github.com/urban-wombat/gotables"`,
+//		`"github.com/urban-wombat/flattables"`,
+//		`"fmt"`,
+		`"log"`,
+//		`"path/filepath"`,
+//		`"runtime"`,
+//		`"strings"`,
+	}
+/*
+// REMOVE
 	mainImports := []string {
 //		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
@@ -287,6 +328,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //		`"runtime"`,
 //		`"strings"`,
 	}
+*/
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 //	var tableNames []string = make([]string, tableSet.TableCount())
@@ -322,10 +364,11 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 		tables[tableIndex].Cols = cols
 	}
 
+/*
 	var goCodeInfo = GoCodeInfo {
 		PackageName: tableSet.Name(),
-		ToFbImports: tofbImports,
-		FromFbImports: fromfbImports,
+		ToFbImports: toFbImports,
+		FromFbImports: fromFbImports,
 		MainImports: mainImports,
 //		FlatTablesCodeFileName: filepath.Base(flatTablesCodeFileName),
 		GotablesFileName: tableSet.FileName(),
@@ -338,6 +381,11 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 //		TableNames: tableNames,
 		TableSetMetadata: tableSetMetadata,
 	}
+*/
+
+	templateInfo.ToFbCodeFileName = filepath.Base(fileNames[0])
+	templateInfo.FromFbCodeFileName = filepath.Base(fileNames[1])
+	templateInfo.MainCodeFileName = filepath.Base(fileNames[2])
 
 	// Add a user-defined function to Go code tplate.
 //	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
@@ -360,7 +408,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	if err != nil { log.Fatal(err) }
 
 // where(goCodeInfo)
-	err = tofbTplate.Execute(toFlatBuf, goCodeInfo)
+//	err = tofbTplate.Execute(toFlatBuf, goCodeInfo)
+	err = tofbTplate.Execute(toFlatBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
 	tofbStr = toFlatBuf.String()
@@ -382,7 +431,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	if err != nil { log.Fatal(err) }
 
 // where(goCodeInfo)
-	err = fromTplate.Execute(fromFlatBuf, goCodeInfo)
+//	err = fromTplate.Execute(fromFlatBuf, goCodeInfo)
+	err = fromTplate.Execute(fromFlatBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
 	fromfbStr = fromFlatBuf.String()
@@ -405,7 +455,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, fileNames []stri
 	mainTplate, err = mainTplate.Parse(string(mainData))
 	if err != nil { log.Fatal(err) }
 
-	err = mainTplate.Execute(mainBuf, goCodeInfo)
+//	err = mainTplate.Execute(mainBuf, goCodeInfo)
+	err = mainTplate.Execute(mainBuf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
 	mainStr = mainBuf.String()
@@ -531,6 +582,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, TestCodeFile
 
 // where(goTestCodeInfo)
 	err = tplate.Execute(buf, goTestCodeInfo)
+//	err = tplate.Execute(buf, templateInfo)
 	if err != nil { log.Fatal(err) }
 
 	return buf.String(), nil
@@ -603,7 +655,7 @@ type TemplateInfo struct {
 	GeneratedFrom string
 	NameSpace string	// These have the same value.
 	PackageName string	// These have the same value.
-//	TableSetName string	// These three have the same value.
+//	TableSetName string	// These have the same value.
 	Year string
 	SchemaFileName string
 	ToFbImports []string
@@ -681,6 +733,9 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
+			cols[colIndex].IsString = colType == "string"
+			cols[colIndex].IsBool = colType == "bool"
 			cols[colIndex].FbsType, err = schemaType(colType)
 			if err != nil { return emptyTemplateInfo, err }
 		}
@@ -689,9 +744,27 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 		tables[tableIndex].TableIndex = tableIndex
 	}
 
+	// Get tableset metadata.
+	// Remove data (which we don't use anyway) from tables so we are left with metadata.
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return emptyTemplateInfo, err }
+
+		err = table.DeleteRowsAll()
+		if err != nil { return emptyTemplateInfo, err }
+
+		err = table.SetStructShape(true)
+		if err != nil { return emptyTemplateInfo, err }
+	}
+	tableSetMetadata := tableSet.String()
+	tableSetMetadata = indentText("\t\t", tableSetMetadata)
+
 	var templateInfo = TemplateInfo {
 		GeneratedFrom: generatedFrom(tableSet),
+		Year: fmt.Sprintf("%s", time.Now().Format("2006")),
 		NameSpace: tableSet.Name(),
+		PackageName: tableSet.Name(),
+		TableSetMetadata: tableSetMetadata,
 		Tables: tables,
 	}
 

@@ -184,7 +184,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
 
 	{{- else}}
-	t.Errorf("Unimplemented col type: %s", {{.ColType}})
+	return nil, nil, fmt.Errorf("Unimplemented col type: %s", {{.ColType}})
 	{{end}}	{{/* end if scalar */}}
 
 	{{end}}	{{/* end range cols */}}
