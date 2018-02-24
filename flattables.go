@@ -349,8 +349,8 @@ var goKeyWords = map[string]string {
 }
 
 func isGoKeyWord(name string) bool {
-	name = strings.ToLower(name)
-	_, exists := goKeyWords[name]
+	nameLower = strings.ToLower(name)
+	_, exists := goKeyWords[nameLower]
 	return exists
 }
 
