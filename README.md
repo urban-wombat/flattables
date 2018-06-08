@@ -1,6 +1,6 @@
 # A simple and fast way to get started with Google FlatBuffers.
 
-FlatTables is a simple subset of flatBuffers.
+FlatTables is a simple subset of FlatBuffers.
 
 Have a look at the [Google FlatBuffers official documentation](https://google.github.io/flatbuffers) to see
 why you should seriously consider FlatBuffers (and perhaps FlatTables) for VERY FAST binary
