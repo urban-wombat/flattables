@@ -384,6 +384,7 @@ type TableInfo struct {
 
 type TemplateInfo struct {
 	GeneratedFrom string
+	UsingCommand string
 	NameSpace string	// These have the same value.
 	PackageName string	// These have the same value.
 	Year string
@@ -493,6 +494,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 
 	var templateInfo = TemplateInfo {
 		GeneratedFrom: generatedFrom(tableSet),
+		UsingCommand: usingCommand(tableSet),
 		GotablesFileName: tableSet.FileName(),
 		Year: fmt.Sprintf("%s", time.Now().Format("2006")),
 		NameSpace: tableSet.Name(),
@@ -508,14 +510,30 @@ func generatedFrom(tableSet *gotables.TableSet) string {
 	var generatedFrom string
 
 	if tableSet.FileName() != "" {
-		generatedFrom = fmt.Sprintf("Generated %s from file %s",
-//			time.Now().Format("3:04 PM Monday 2 Jan 2006"), tableSet.FileName())
+		generatedFrom = fmt.Sprintf("Generated %s from your gotables file %s",
 			time.Now().Format("Monday 2 Jan 2006"), tableSet.FileName())
 	} else {
-		generatedFrom = fmt.Sprintf("Generated %s from a gotables.TableSet",
-//			time.Now().Format("3:04 PM Monday 2 Jan 2006"))
+		generatedFrom = fmt.Sprintf("Generated %s from your gotables.TableSet",
 			time.Now().Format("Monday 2 Jan 2006"))
 	}
 
 	return generatedFrom
+}
+
+func usingCommand(tableSet *gotables.TableSet) string {
+	var usingCommand string
+
+	// Sample:
+	// gotflat -f ../flattables_sample/tables.got -n flattables_sample
+
+	packageName := tableSet.Name()
+	fileName := filepath.Base(tableSet.FileName())
+
+	indent := "\t"
+	usingCommand = "using the following command:\n"
+	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", packageName, fileName))
+	usingCommand += indentText(indent, fmt.Sprintf("$ gotflat -f ../%s/%s -n %s\n", packageName, fileName, packageName))
+	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
+
+	return usingCommand
 }

@@ -2,6 +2,7 @@
 	{{.SchemaFileName}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
+	{{.UsingCommand}}
 */
 
 namespace {{.NameSpace}};

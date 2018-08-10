@@ -4,6 +4,7 @@ package main
     {{.MainCodeFileName}}
     DO NOT MODIFY
     {{.GeneratedFrom}}
+	{{.UsingCommand}}
 */
 
 import (

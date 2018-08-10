@@ -4,6 +4,7 @@ package {{.PackageName}}
 	{{.ToFbCodeFileName}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
+	{{.UsingCommand}}
 */
 
 import (
