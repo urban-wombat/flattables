@@ -496,7 +496,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 		GeneratedFrom: generatedFrom(tableSet),
 		UsingCommand: usingCommand(tableSet),
 		GotablesFileName: tableSet.FileName(),
-		Year: fmt.Sprintf("%s", time.Now().Format("2006")),
+		Year: copyrightYear(),
 		NameSpace: tableSet.Name(),
 		PackageName: tableSet.Name(),
 		TableSetMetadata: tableSetMetadata,
@@ -504,6 +504,12 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 	}
 
 	return templateInfo, nil
+}
+
+func copyrightYear() (copyrightYear string) {
+	firstYear := "2017"	// See github dates.
+	copyrightYear = fmt.Sprintf("%s-%s", firstYear, time.Now().Format("2006"))
+	return
 }
 
 func generatedFrom(tableSet *gotables.TableSet) string {
