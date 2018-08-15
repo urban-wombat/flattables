@@ -1,4 +1,4 @@
-# A simple and fast way to get started with `Google FlatBuffers`.
+# A simple and fast way to get started with `Google FlatBuffers`
 
 `FlatTables` is a simple tabular subset of `FlatBuffers`.
 
@@ -22,7 +22,7 @@ The generated code includes conversion functions (which include all the code gen
 test code, and a main program.
 
 I have created a sample implementation (using a gotables file as input to the `gotflat` utility) the same way you would
-create your own implementation. I have called it `flattables_sample`, though it is an actual implementation.
+create your own implementation. I have called it `flattables_sample`. It is an actual implementation, not just a toy sample.
 
 Have a look at [urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample) which
 is a sample of FlatBuffers code generated entirely by `flatc` (FlatBuffers utility) and `gotflat` (gotables FlatTables utility).
