@@ -12,6 +12,7 @@ package main
 	Generated FROM the metadata in your data file, and (if there is data in it) FOR processing your data file.
 
 	You may wish to read {{.GotablesFileName}} to better understand the code.
+	The tables from {{.GotablesFileName}} will be printed to stdout when you run {{.NameSpace}}_main.go
 */
 
 import (
