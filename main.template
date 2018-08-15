@@ -7,11 +7,18 @@ package main
 	{{.UsingCommand}}
 */
 
+/*
+	This is a brief tutorial that has been created specifically (both FROM and FOR) your {{.GotablesFileName}} data file.
+	Generated FROM the metadata in your data file, and (if there is data in it) FOR processing your data file.
+
+	You may wish to read {{.GotablesFileName}} to better understand the code.
+*/
+
 import (
     {{range .MainImports}}
     {{- .}}
     {{end -}}
-	"github.com/urban-wombat/{{.PackageName}}"
+	"{{.PackageName}}"
 )
 
 
@@ -42,24 +49,144 @@ func init() {
 }
 
 func main() {
+	var tableSet1 *gotables.TableSet	// Constructed from gotables data.
+	var tableSet2 *gotables.TableSet	// Constructed from FlatBuffers data.
+	var flatBuffers []byte				// FlatBuffers data.
 	var err error
-	var tableSet1 *gotables.TableSet
-	var flatBuffers []byte
-	var tableSet2 *gotables.TableSet
 
+	//
+	// Read gotables data into FlatBuffers, and then back to gotables.
+	//
+
+	// This is a standard constructor function from the gotables library.
+	// It creates an in-memory TableSet from a text file of tables.
+	// There are other gotables.NewTableSetFrom...() and gotablesNewTableFrom...() functions.
 	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
     if err != nil { panic(err) }
 
+	println("#1 The gotables data ready to convert to FlatBuffers")
 	println(tableSet1.String())
+	println()
 
-	_, flatBuffers, err = {{.PackageName}}.NewFlatBuffersFromTableSet(tableSet1)
+	// This is an auto-generated constructor function, generated when you run gotables utility gotflat.
+	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
+	// (2) Its internal implementation is generated specific to YOUR set of tables.
+	_, flatBuffers, err = {{.NameSpace}}.NewFlatBuffersFromTableSet(tableSet1)
     if err != nil { panic(err) }
 
 	// You now have a FlatBuffers []byte array you can transmit or save to file, etc.
-	// We will now convert it back to gotables format, as if we just received it.
 
-	tableSet2, err = {{.PackageName}}.NewTableSetFromFlatBuffers(flatBuffers)
+	// We will now convert it back to gotables format, as if we just received it from the wire or a file.
+
+	// This is an auto-generated constructor function, generated when you run gotables utility gotflat.
+	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
+	// (2) Its internal implementation is generated specific to YOUR set of tables.
+	tableSet2, err = {{.NameSpace}}.NewTableSetFromFlatBuffers(flatBuffers)
     if err != nil { panic(err) }
 
+	// All functions that have package {{.NameSpace}} are auto-generated for you from gotables utility gotflat.
+
+	println("#2 The data reconstructed from FlatBuffers []byte data back into gotables.")
+	println("   You can access the data via gotables methods or (see below) directly from FlatBuffers methods.")
 	println(tableSet2.String())
+	println()
+
+	println("#3 Getting data explicitly from FlatBuffers tables. Retrieving and displaying in column-major order.")
+	//
+	// Now let's read columns of data explicitly from the FlatBuffers tables.
+	// Note: {{.NameSpace}}.NewTableSetFromFlatBuffers(flatBuffers) does this under the hood.
+	//
+
+	// Get the FlatTables object, just once, from the byte slice. It contains the nested tables.
+	var flatTables *{{.NameSpace}}.FlatTables = {{.NameSpace}}.GetRootAsFlatTables(flatBuffers, 0)
+
+	{{$nameSpace := .NameSpace}}
+	{{range $tableIndex, $element := .Tables}}
+	{{$tableName := .Table.Name}}
+	// Table #{{$tableIndex}} {{.Table.Name}}
+	{
+		// Get the FlatBuffers bytes specific to table {{.Table.Name}}.
+		{{.Table.Name}}Bytes := flatTables.{{.Table.Name}}Bytes()
+		if {{.Table.Name}}Bytes == nil { panic(fmt.Errorf("{{.Table.Name}}Bytes is <nil>")) }
+
+		// Get the FlatBuffers {{.Table.Name}} object from its FlatBuffers bytes.
+		{{.Table.Name|firstCharToLower}} := {{$nameSpace}}.GetRootAs{{.Table.Name}}({{.Table.Name}}Bytes, 0)
+		if {{.Table.Name|firstCharToLower}} == nil { panic(fmt.Errorf("{{.Table.Name}} is <nil>")) }
+
+		fmt.Printf("[%s]\n", "{{.Table.Name}}")	// Table name.
+		var rowCount int	// rowCount will be the same for each column of a given table.
+		{{range .Cols}}
+		fmt.Printf("%s\n", "{{.ColName}}")			// Column name.
+		rowCount = {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}Length()
+		for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+			{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
+			{{- if .IsString}}
+			// FlatBuffers stores strings as []byte arrays. Convert {{.ColName}} []byte to string.
+			fmt.Printf("%s\n", string({{.ColName}}))
+			{{else if .IsBool}}
+			// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
+			var boolValue bool = {{.ColName}} != 0
+			fmt.Printf("%t\n", boolValue)
+			{{else}}
+			fmt.Printf("%v\n", {{.ColName}})
+			{{end}}
+		}
+		fmt.Println()
+		{{end}}
+		println()
+	}
+	{{end}}
+
+	println()
+
+	println("#4 Getting FlatBuffers data using a gotables method RowCount(). Retrieving and displaying in row-major order.")
+	//
+	// We will try that again using a gotables-generated helper function: RowCount().
+	//
+
+	{{$nameSpace := .NameSpace}}
+	{{range $tableIndex, $element := .Tables}}
+	{{$tableName := .Table.Name}}
+	// Table #{{$tableIndex}} {{.Table.Name}}
+	{
+		println("[{{$tableName}}]")
+		// Get the FlatBuffers bytes specific to table {{.Table.Name}}.
+		{{.Table.Name|firstCharToLower}}Bytes := flatTables.{{.Table.Name}}Bytes()
+		if {{.Table.Name|firstCharToLower}}Bytes == nil { panic(fmt.Errorf("{{.Table.Name|firstCharToLower}}Bytes is <nil>")) }
+
+		// Get the FlatBuffers {{.Table.Name}} object from its FlatBuffers bytes.
+		{{.Table.Name|firstCharToLower}} := {{$nameSpace}}.GetRootAs{{.Table.Name}}({{.Table.Name|firstCharToLower}}Bytes, 0)
+		if {{.Table.Name|firstCharToLower}} == nil { panic(fmt.Errorf("{{.Table.Name}} is <nil>")) }
+
+		var rowCount int = {{.Table.Name|firstCharToLower}}.RowCount()
+		fmt.Printf("{{.Table.Name|firstCharToLower}} rowCount = %d\n", rowCount)
+
+		var colCount int = {{.Table.Name|firstCharToLower}}.ColCount()
+		fmt.Printf("{{.Table.Name|firstCharToLower}} colCount = %d\n", colCount)
+
+		for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+		{{range .Cols}}
+			{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
+			{{- if .IsString}}
+			// FlatBuffers stores strings as []byte arrays. Convert {{.ColName}} []byte to string.
+			fmt.Printf("%-15s", string({{.ColName}}))
+			{{else if .IsBool}}
+			// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
+			var boolValue bool = {{.ColName}} != 0
+			fmt.Printf("%-6t", boolValue)
+			{{else}}
+			fmt.Printf("%6v", {{.ColName}})
+			{{end}}
+		{{end}}
+			fmt.Println()
+		}
+
+		for colIndex := 0; colIndex < colCount; colIndex++ {
+			goType, fbType, err := {{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex)
+			if err != nil { panic(err) }
+			fmt.Printf("{{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex) goType = %-8s fbType = %-8s\n", goType, fbType)
+		}
+	}
+	println()
+	{{end}}
 }

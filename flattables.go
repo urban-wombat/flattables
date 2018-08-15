@@ -197,6 +197,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 		return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
 	}
 
+	// imports
 	templateInfo.ToFbImports = []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
@@ -207,15 +208,18 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 		`"strings"`,
 	}
 
+	// imports
 	templateInfo.FromFbImports = []string {
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
 		`"log"`,
 	}
 
+	// imports
 	templateInfo.MainImports = []string {
-		`"github.com/urban-wombat/gotables"`,
+		`"fmt"`,
 		`"log"`,
+		`"github.com/urban-wombat/gotables"`,
 	}
 
 	templateInfo.ToFbCodeFileName = filepath.Base(fileNames[0])
@@ -269,6 +273,8 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	var mainBuf *bytes.Buffer = bytes.NewBufferString("")
 	const mainBuffersTemplateFile = "../flattables/main.template"
 	var mainTplate *template.Template = template.New("MAIN FlatBuffers Go Code")
+	mainTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
+	mainTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
 	// Open and read file explicitly to avoid calling mainTplate.ParseFile() which has problems.
 	mainData, err := ioutil. ReadFile(mainBuffersTemplateFile)
@@ -369,6 +375,7 @@ type ColInfo struct {
 	ColName string
 	ColType string
 	FbsType string
+	ColIndex int
 	IsScalar bool
 	IsString bool
 	IsBool bool
@@ -385,8 +392,8 @@ type TableInfo struct {
 type TemplateInfo struct {
 	GeneratedFrom string
 	UsingCommand string
-	NameSpace string	// These have the same value.
-	PackageName string	// These have the same value.
+	NameSpace string	// Included in PackageName.
+	PackageName string	// Includes NameSpace
 	Year string
 	SchemaFileName string
 	ToFbImports []string
@@ -404,7 +411,7 @@ type TemplateInfo struct {
 	Tables []TableInfo
 }
 
-func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
+func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (TemplateInfo, error) {
 
 	var emptyTemplateInfo TemplateInfo
 
@@ -414,7 +421,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 		if err != nil { return emptyTemplateInfo, err }
 
 		if table.ColCount() >= 0 {
-			fmt.Fprintf(os.Stderr, "*** FlatTables: Adding table [%s] to FlatBuffers schema\n", table.Name())
+			fmt.Fprintf(os.Stderr, "  #%d FlatTables: Adding gotables table [%s] to FlatBuffers schema\n", tableIndex, table.Name())
 		} else {
 			// Skip tables with zero cols.
 			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
@@ -466,11 +473,12 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
+			cols[colIndex].FbsType, err = schemaType(colType)
+			if err != nil { return emptyTemplateInfo, err }
+			cols[colIndex].ColIndex = colIndex
 			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
 			cols[colIndex].IsString = colType == "string"
 			cols[colIndex].IsBool = colType == "bool"
-			cols[colIndex].FbsType, err = schemaType(colType)
-			if err != nil { return emptyTemplateInfo, err }
 		}
 
 		tables[tableIndex].Cols = cols
@@ -494,11 +502,11 @@ func InitTemplateInfo(tableSet *gotables.TableSet) (TemplateInfo, error) {
 
 	var templateInfo = TemplateInfo {
 		GeneratedFrom: generatedFrom(tableSet),
-		UsingCommand: usingCommand(tableSet),
+		UsingCommand: usingCommand(tableSet, packageName),
 		GotablesFileName: tableSet.FileName(),
 		Year: copyrightYear(),
 		NameSpace: tableSet.Name(),
-		PackageName: tableSet.Name(),
+		PackageName: packageName,
 		TableSetMetadata: tableSetMetadata,
 		Tables: tables,
 	}
@@ -526,19 +534,20 @@ func generatedFrom(tableSet *gotables.TableSet) string {
 	return generatedFrom
 }
 
-func usingCommand(tableSet *gotables.TableSet) string {
+func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	var usingCommand string
 
 	// Sample:
 	// gotflat -f ../flattables_sample/tables.got -n flattables_sample
 
-	packageName := tableSet.Name()
+	nameSpace := tableSet.Name()
 	fileName := filepath.Base(tableSet.FileName())
 
 	indent := "\t"
 	usingCommand = "using the following command:\n"
-	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", packageName, fileName))
-	usingCommand += indentText(indent, fmt.Sprintf("$ gotflat -f ../%s/%s -n %s\n", packageName, fileName, packageName))
+	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", nameSpace, fileName))
+	usingCommand += indentText(indent, fmt.Sprintf("$ gotflat -f ../%s/%s -n %s -p %s\n",
+		nameSpace, fileName, nameSpace, packageName))
 	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
 
 	return usingCommand
