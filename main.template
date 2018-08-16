@@ -63,7 +63,7 @@ func main() {
 	// It creates an in-memory TableSet from a text file of tables.
 	// There are other gotables.NewTableSetFrom...() and gotablesNewTableFrom...() functions.
 	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
-    if err != nil { panic(err) }
+	if err != nil { panic(err) }
 
 	println("#1 The gotables data ready to convert to FlatBuffers")
 	println(tableSet1.String())
@@ -73,7 +73,7 @@ func main() {
 	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	_, flatBuffers, err = {{.NameSpace}}.NewFlatBuffersFromTableSet(tableSet1)
-    if err != nil { panic(err) }
+	if err != nil { panic(err) }
 
 	// You now have a FlatBuffers []byte array you can transmit or save to file, etc.
 
@@ -83,7 +83,7 @@ func main() {
 	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	tableSet2, err = {{.NameSpace}}.NewTableSetFromFlatBuffers(flatBuffers)
-    if err != nil { panic(err) }
+	if err != nil { panic(err) }
 
 	// All functions that have package {{.NameSpace}} are auto-generated for you from gotables utility gotflat.
 
