@@ -69,7 +69,7 @@ func main() {
 	println(tableSet1.String())
 	println()
 
-	// This is an auto-generated constructor function, generated when you run gotables utility `gotflat`.
+	// This is an auto-generated constructor function, generated when you run gotables utility: gotflat.
 	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	_, flatBuffers, err = {{.NameSpace}}.NewFlatBuffersFromTableSet(tableSet1)
@@ -79,13 +79,13 @@ func main() {
 
 	// We will now convert it back to gotables format, as if we just received it from the wire or a file.
 
-	// This is an auto-generated constructor function, generated when you run gotables utility `gotflat`.
+	// This is an auto-generated constructor function, generated when you run gotables utility: gotflat.
 	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	tableSet2, err = {{.NameSpace}}.NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { panic(err) }
 
-	// All functions that have package {{.NameSpace}} are auto-generated for you from gotables utility `gotflat`.
+	// All functions that have package {{.NameSpace}} are auto-generated for you from gotables utility: gotflat.
 
 	println("#2 The data reconstructed from FlatBuffers []byte data back into gotables.")
 	println("   You can access the data via gotables methods or (see below) directly from FlatBuffers methods.")
