@@ -360,14 +360,27 @@ func isGoKeyWord(name string) bool {
 	return exists
 }
 
-// Could be tricky if a user inadvertently uses FlatTables as a table name.
-var flatTablesKeyWords = map[string]string {
-	"flattables":	"flattables",
+// Could be tricky if a user inadvertently uses a word used in FlatBuffers schemas.
+var flatBuffersOrFlatTablesKeyWords = map[string]string {
+	"flattables":	"flattables",	// FlatTables is used as the root table name and root_type.
+	"table":		"table",
+	"namespace":	"namespace",
+	"root_type":	"root_type",
+	"ubyte":		"ubyte",
+	"float":		"float",
+	"long":			"long",
+	"ulong":		"ulong",
+	"short":		"short",
+	"ushort":		"ushort",
+	"double":		"double",
+	"enum":			"enum",
+	"union":		"union",
+	"include":		"include",
 }
 
-func isFlatTablesKeyWord(name string) bool {
+func isFlatBuffersOrFlatTablesKeyWord(name string) bool {
 	name = strings.ToLower(name)
-	_, exists := goKeyWords[name]
+	_, exists := flatBuffersOrFlatTablesKeyWords[name]
 	return exists
 }
 
@@ -439,11 +452,11 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 				fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 		}
 
-		if isFlatTablesKeyWord(table.Name()) {
+		if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
 			return emptyTemplateInfo,
-				fmt.Errorf("Cannot use a FlatBuffers key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
+				fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
 		}
-	
+
 		tables[tableIndex].Table = table
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
@@ -459,6 +472,11 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 
 			if isGoKeyWord(colName) {
 				return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
+			}
+
+			if isFlatBuffersOrFlatTablesKeyWord(colName) {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename [%s]", colName)
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
