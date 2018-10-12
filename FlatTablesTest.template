@@ -318,17 +318,24 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 func BenchmarkWrite(__b *testing.B) {
 	var err error
 
+// here
+	var tableSet *gotables.TableSet
+	tableSet, err = gotables.NewTableSet("ForFlatTables")
+	if err != nil { __b.Error(err) }
+	where(tableSet)
+
+/*
+	{{- range $tableIndex, $table := .Tables}}
+	{{$table.Name}}
+	{{$table.GetValAsStringByColIndex 0 0}}
+	{{end}}
+*/
+
+/*
 	var tableSet *gotables.TableSet
 	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { __b.Error(err) }
 
-	/*
-		Note:
-		We discard the complete flatbuffers []byte slice here, using blank _
-		We would use it if we wanted to transmit it or save it to file.
-		We use the flatTables object to obtain flatbuffers []byte slices later on
-		for individual tables inside the complete flatbuffers []byte slice.
-	*/
 	var flatTables *FlatTables
 	flatTables, _, err = NewFlatBuffersFromTableSet(tableSet)
 	if err != nil { __b.Fatal(err) }
@@ -375,4 +382,5 @@ func BenchmarkWrite(__b *testing.B) {
 			{{end}}
 		{{end -}}	{{/* end tables */}}
 	}
+*/
 }

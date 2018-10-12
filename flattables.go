@@ -309,6 +309,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
 	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
+//	tplate = tplate.Funcs(template.FuncMap{"getValAsStringByColIndex": getValAsStringByColIndex})
 
 	const templateFile = "../flattables/FlatTablesTest.template"
 
@@ -402,6 +403,16 @@ type TableInfo struct {
 	Cols []ColInfo
 }
 
+func (tableInfo TableInfo) Name() string {
+	return tableInfo.Table.Name()
+}
+
+func (tableInfo TableInfo) GetValAsStringByColIndex(colIndex int, rowIndex int) string {
+	sval, err := tableInfo.Table.GetValAsStringByColIndex(colIndex, rowIndex)
+	if err != nil { log.Fatal(err) }
+	return sval
+}
+
 type TemplateInfo struct {
 	GeneratedFrom string
 	UsingCommand string
@@ -422,6 +433,10 @@ type TemplateInfo struct {
 	TablesDataFileName string	// For main() to populate flatbuffers.
 	TableSetMetadata string
 	Tables []TableInfo
+}
+
+func (templateInfo TemplateInfo) Name(tableIndex int) string {
+	return templateInfo.Tables[0].Table.Name()
 }
 
 func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (TemplateInfo, error) {
@@ -504,18 +519,24 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 	}
 
 	// Get tableset metadata.
-	// Remove data (which we don't use anyway) from tables so we are left with metadata.
-	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
-		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return emptyTemplateInfo, err }
+	// Make a copy of the tables and use them as metadata-only.
+	// We end up with 2 instances of TableSet:
+	// (1) tableSet which contains data.            Is accessible in templates as: .Tables           (an array of Table)
+	// (2) metadataTableSet which contains NO data. Is accessible in templates as: .TableSetMetadata (a TableSet)
 
-		err = table.DeleteRowsAll()
+	const copyRows = false	// i.e., don't copy rows.
+	metadataTableSet, err := tableSet.Copy(copyRows)
+	if err != nil { return emptyTemplateInfo, err }
+
+	for tableIndex := 0; tableIndex < metadataTableSet.TableCount(); tableIndex++ {
+		table, err := metadataTableSet.TableByTableIndex(tableIndex)
 		if err != nil { return emptyTemplateInfo, err }
 
 		err = table.SetStructShape(true)
 		if err != nil { return emptyTemplateInfo, err }
 	}
-	tableSetMetadata := tableSet.String()
+
+	tableSetMetadata := metadataTableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
 	var templateInfo = TemplateInfo {
