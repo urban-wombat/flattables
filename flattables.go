@@ -165,23 +165,43 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 }
 
 func startsWithLowerCase(s string) bool {
-    rune0 := rune(s[0])
-	return unicode.IsLower(rune0)
+	if len(s) > 0 {
+		rune0 := rune(s[0])
+		return unicode.IsLower(rune0)
+	} else {
+		return false
+	}
 }
 
 func startsWithUpperCase(s string) bool {
-    rune0 := rune(s[0])
-	return unicode.IsUpper(rune0)
+	if len(s) > 0 {
+		rune0 := rune(s[0])
+		return unicode.IsUpper(rune0)
+	} else {
+		return false
+	}
 }
 
 func firstCharToUpper(s string) string {
-    rune0 := rune(s[0])
-	return string(unicode.ToUpper(rune0)) + s[1:]
+	var upper string
+	if len(s) > 0 {
+		rune0 := rune(s[0])
+		upper = string(unicode.ToUpper(rune0)) + s[1:]
+	} else {
+		upper = ""
+	}
+	return upper
 }
 
 func firstCharToLower(s string) string {
-    rune0 := rune(s[0])
-	return string(unicode.ToLower(rune0)) + s[1:]
+	var lower string
+	if len(s) > 0 {
+		rune0 := rune(s[0])
+		lower = string(unicode.ToLower(rune0)) + s[1:]
+	} else {
+		lower = ""
+	}
+	return lower
 }
 
 func tableName(table *gotables.Table) string {
@@ -396,15 +416,18 @@ type ColInfo struct {
 	IsDeprecated bool
 }
 
+type Row []string
+
 type TableInfo struct {
 	Table *gotables.Table
 	TableIndex int
 	TableName string
+	RowCount int
+	ColCount int
 	Cols []ColInfo
-}
-
-func (tableInfo TableInfo) Name() string {
-	return tableInfo.Table.Name()
+	Rows []Row
+	ColNames []string
+	ColTypes []string
 }
 
 func (tableInfo TableInfo) GetValAsStringByColIndex(colIndex int, rowIndex int) string {
@@ -472,7 +495,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 				fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
 		}
 
-		tables[tableIndex].Table = table
+		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
@@ -514,18 +537,57 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			cols[colIndex].IsBool = colType == "bool"
 		}
 
+		// Populate Rows with a string representation of each table cell.
+		var rows []Row = make([]Row, table.RowCount())
+// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
+		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+			var row []string = make([]string, table.ColCount())
+			for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+				var cell string
+				cell, err = table.GetValAsStringByColIndex(colIndex, rowIndex)
+				if err != nil { return emptyTemplateInfo, err }
+				var isStringType bool
+				isStringType, err = table.IsColTypeByColIndex(colIndex, "string")
+				if err != nil { return emptyTemplateInfo, err }
+				if isStringType {
+					cell = fmt.Sprintf("%q", cell)	// Add delimiters.
+				}
+				row[colIndex] = cell
+			}
+			rows[rowIndex] = row
+// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
+		}
+
+		var colNames []string = make([]string, table.ColCount())
+		var colTypes []string = make([]string, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColName(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+			colNames[colIndex] = colName
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+			colTypes[colIndex] = colType
+		}
+
 		tables[tableIndex].Cols = cols
 		tables[tableIndex].TableIndex = tableIndex
+		tables[tableIndex].TableName = table.Name()
+		tables[tableIndex].RowCount = table.RowCount()
+		tables[tableIndex].ColCount = table.ColCount()
+		tables[tableIndex].Rows = rows
+		tables[tableIndex].ColNames = colNames
+		tables[tableIndex].ColTypes = colTypes
 	}
 
 	// Get tableset metadata.
 	// Make a copy of the tables and use them as metadata-only.
-	// We end up with 2 instances of TableSet:
+	// We end up with 2 instances of TableSet:-
 	// (1) tableSet which contains data.            Is accessible in templates as: .Tables           (an array of Table)
 	// (2) metadataTableSet which contains NO data. Is accessible in templates as: .TableSetMetadata (a TableSet)
 
 	const copyRows = false	// i.e., don't copy rows.
-	metadataTableSet, err := tableSet.Copy(copyRows)
+	metadataTableSet, err := tableSet.Copy(copyRows)	// Accessible as 
 	if err != nil { return emptyTemplateInfo, err }
 
 	for tableIndex := 0; tableIndex < metadataTableSet.TableCount(); tableIndex++ {
