@@ -472,7 +472,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		if err != nil { return emptyTemplateInfo, err }
 
 		if table.ColCount() >= 0 {
-			fmt.Fprintf(os.Stderr, "  #%d FlatTables: Adding gotables table [%s] to FlatBuffers schema\n", tableIndex, table.Name())
+			fmt.Fprintf(os.Stderr, "  #%d Adding gotables table  to FlatBuffers schema: [%s] \n", tableIndex, table.Name())
 		} else {
 			// Skip tables with zero cols.
 			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
