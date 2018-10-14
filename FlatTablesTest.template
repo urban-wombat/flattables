@@ -353,41 +353,18 @@ func BenchmarkWrite(__b *testing.B) {
 
 		{{range $tableIndex, $table := .Tables}}
 		{
-/*
-			type {{$table.TableName}} struct {
-			{{- range .Cols}}
-				{{.ColName}} {{.ColType -}}
-			{{end}}
-			}
-
-			var {{$table.TableName|firstCharToLower}} = []{{$table.TableName}} {
-			{{range $rowIndex, $row := .Rows}}
-				{ {{range $colIndex, $cell := $row -}}
-			{{index $table.ColNames $colIndex}}:{{$cell}},{{print " "}}
-			{{- end}}},
-			{{end}}
-			}
-
-			var {{$table.TableName|firstCharToLower}}ColNames = []string { {{range $colIndex, $colName := $table.ColNames -}}
-				"{{$colName -}}",{{print " "}}
-			{{- end}}}
-			var {{$table.TableName|firstCharToLower}}ColTypes = []string { {{range $colIndex, $colType := $table.ColTypes -}}
-				"{{$colType -}}",{{print " "}}
-			{{- end}}}
-*/
-
 			var {{$table.TableName|firstCharToLower}}Table *gotables.Table
 			{{$table.TableName|firstCharToLower}}Table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", {{$table.TableName|firstCharToLower}}ColNames, {{$table.TableName|firstCharToLower}}ColTypes)
 			if err != nil { __b.Error(err) }
 
+/*			Isn't any faster than individual calls to AppendRow(). AppendRows() needs tuning?
 			err = {{$table.TableName|firstCharToLower}}Table.AppendRows(len({{$table.TableName|firstCharToLower}}))
 			if err != nil { __b.Error(err) }
+*/
 
 			for rowIndex := 0; rowIndex < len({{$table.TableName|firstCharToLower}}); rowIndex++ {
-/*
 				err = {{$table.TableName|firstCharToLower}}Table.AppendRow()
 				if err != nil { __b.Error(err) }
-*/
 
 				{{- range $table.Cols}}
 
