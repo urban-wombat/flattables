@@ -318,6 +318,32 @@ func BenchmarkGetFlatBuffersOnly(__b *testing.B) {
 func BenchmarkWrite(__b *testing.B) {
 	var err error
 
+	{{range $tableIndex, $table := .Tables}}
+
+	type {{$table.TableName}} struct {
+	{{- range .Cols}}
+		{{.ColName}} {{.ColType -}}
+	{{end}}
+	}
+
+	var {{$table.TableName|firstCharToLower}} = []{{$table.TableName}} {
+	{{range $rowIndex, $row := .Rows -}}
+		{{print "\t"}}{ {{range $colIndex, $cell := $row -}}
+		{{index $table.ColNames $colIndex}}:{{$cell}},{{print " " -}}
+	{{end}}},
+	{{end}}
+	}
+
+	var {{$table.TableName|firstCharToLower}}ColNames = []string { {{range $colIndex, $colName := $table.ColNames -}}
+		"{{$colName -}}",{{print " "}}
+	{{- end}}}
+	var {{$table.TableName|firstCharToLower}}ColTypes = []string { {{range $colIndex, $colType := $table.ColTypes -}}
+		"{{$colType -}}",{{print " "}}
+	{{- end}}}
+
+	{{end}}
+
+
 	// Begin benchmark ...
 	for i := 0; i < __b.N; i++ {
 
@@ -327,6 +353,7 @@ func BenchmarkWrite(__b *testing.B) {
 
 		{{range $tableIndex, $table := .Tables}}
 		{
+/*
 			type {{$table.TableName}} struct {
 			{{- range .Cols}}
 				{{.ColName}} {{.ColType -}}
@@ -341,29 +368,35 @@ func BenchmarkWrite(__b *testing.B) {
 			{{end}}
 			}
 
-			var colNames = []string { {{range $colIndex, $colName := $table.ColNames -}}
+			var {{$table.TableName|firstCharToLower}}ColNames = []string { {{range $colIndex, $colName := $table.ColNames -}}
 				"{{$colName -}}",{{print " "}}
 			{{- end}}}
-			var colTypes = []string { {{range $colIndex, $colType := $table.ColTypes -}}
+			var {{$table.TableName|firstCharToLower}}ColTypes = []string { {{range $colIndex, $colType := $table.ColTypes -}}
 				"{{$colType -}}",{{print " "}}
 			{{- end}}}
+*/
 
-			var table *gotables.Table
-			table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", colNames, colTypes)
+			var {{$table.TableName|firstCharToLower}}Table *gotables.Table
+			{{$table.TableName|firstCharToLower}}Table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", {{$table.TableName|firstCharToLower}}ColNames, {{$table.TableName|firstCharToLower}}ColTypes)
+			if err != nil { __b.Error(err) }
+
+			err = {{$table.TableName|firstCharToLower}}Table.AppendRows(len({{$table.TableName|firstCharToLower}}))
 			if err != nil { __b.Error(err) }
 
 			for rowIndex := 0; rowIndex < len({{$table.TableName|firstCharToLower}}); rowIndex++ {
-				err = table.AppendRow()
+/*
+				err = {{$table.TableName|firstCharToLower}}Table.AppendRow()
 				if err != nil { __b.Error(err) }
+*/
 
 				{{- range $table.Cols}}
 
-				err = table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, {{$table.TableName|firstCharToLower}}[rowIndex].{{.ColName}})
+				err = {{$table.TableName|firstCharToLower}}Table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, {{$table.TableName|firstCharToLower}}[rowIndex].{{.ColName}})
 				if err != nil { __b.Error(err) }
 				{{- end}}
 			}
 
-			err = tableSet.AppendTable(table)
+			err = tableSet.AppendTable({{$table.TableName|firstCharToLower}}Table)
 			if err != nil { __b.Error(err) }
 		}
 		{{end}}
