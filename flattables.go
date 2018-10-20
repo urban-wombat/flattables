@@ -38,6 +38,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+func init() {
+	log.SetFlags(log.Lshortfile) // For var where
+}
+var where = log.Print
+
 // FlatBuffers schema types: bool | byte | ubyte | short | ushort | int | uint | float | long | ulong | double | string
 // From: https://google.github.io/flatbuffers/flatbuffers_grammar.html
 
@@ -82,8 +87,6 @@ var goFlatBuffersScalarTypes = map[string]string {
 	"float64": "double",
 }
 
-var where = log.Print
-
 func funcName() string {
     pc, _, _, _ := runtime.Caller(1)
     nameFull := runtime.FuncForPC(pc).Name() // main.foo
@@ -120,12 +123,19 @@ func IsFlatBuffersScalar(colType string) bool {
 	return exists
 }
 
+// This is possibly unused.
 func isScalar(table *gotables.Table, colName string) bool {
 	colType, err := table.ColType(colName)
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		return false
+	}
 
 	isNumeric, err := gotables.IsNumericColType(colType)
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		return false
+	}
 
 	return isNumeric || colType == "bool"
 }
@@ -144,22 +154,24 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	var err error
 
 	var buf *bytes.Buffer = bytes.NewBufferString("")
-	var tplate *template.Template = template.New("FlatTables Schema")
+
+	const schemaFromTableSetTemplateFile = "../flattables/schema.template"
+	// Use the file name as the template name so that file name appears in error output.
+//	var tplate *template.Template = template.New("FlatTables Schema")
+	var tplate *template.Template = template.New(schemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
 	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
-	const templateFile = "../flattables/schema.template"
-
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(templateFile)
-	if err != nil { log.Fatal(err) }
+	data, err := ioutil. ReadFile(schemaFromTableSetTemplateFile)
+	if err != nil { return "", err }
 
 	tplate, err = tplate.Parse(string(data))
-	if err != nil { log.Fatal(err) }
+	if err != nil { return "", err }
 
 	err = tplate.Execute(buf, templateInfo)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return "", err }
 
 	return buf.String(), nil
 }
@@ -249,62 +261,73 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 
 	// (1) Generate NewFlatBuffersFromTableSet()
 
-	const toFlatBuffersTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
 	var toFlatBuf *bytes.Buffer = bytes.NewBufferString("")
-	var tofbTplate *template.Template = template.New("TO FlatBuffers Go Code")
+
+	const toFlatBuffersTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
+	// Use the file name as the template name so that file name appears in error output.
+//	var tofbTplate *template.Template = template.New("TO FlatBuffers Go Code")
+	var tofbTplate *template.Template = template.New(toFlatBuffersTemplateFile)
+
 	tofbTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tofbTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	tofbData, err := ioutil. ReadFile(toFlatBuffersTemplateFile)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	tofbTplate, err = tofbTplate.Parse(string(tofbData))
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	err = tofbTplate.Execute(toFlatBuf, templateInfo)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	tofbStr = toFlatBuf.String()
 
 
 	// (2) Generate NewTableSetFromFlatBuffers()
 	var fromFlatBuf *bytes.Buffer = bytes.NewBufferString("")
+
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-	var fromTplate *template.Template = template.New("FROM FlatBuffers Go Code")
+//	var fromTplate *template.Template = template.New("FROM FlatBuffers Go Code")
+	var fromTplate *template.Template = template.New(fromFlatBuffersTemplateFile)
+
 	fromTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	fromTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
 	fromTplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 	// Open and read file explicitly to avoid calling fromTplate.ParseFile() which has problems.
 	fromData, err := ioutil. ReadFile(fromFlatBuffersTemplateFile)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	fromTplate, err = fromTplate.Parse(string(fromData))
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	err = fromTplate.Execute(fromFlatBuf, templateInfo)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	fromfbStr = fromFlatBuf.String()
 
 
 	// (3) Generate main()
 	var mainBuf *bytes.Buffer = bytes.NewBufferString("")
+
 	const mainBuffersTemplateFile = "../flattables/main.template"
-	var mainTplate *template.Template = template.New("MAIN FlatBuffers Go Code")
+	// Use the file name as the template name so that file name appears in error output.
+//	var mainTplate *template.Template = template.New("MAIN FlatBuffers Go Code")
+	var mainTplate *template.Template = template.New(mainBuffersTemplateFile)
+
 	mainTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
 	mainTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 
 	// Open and read file explicitly to avoid calling mainTplate.ParseFile() which has problems.
 	mainData, err := ioutil. ReadFile(mainBuffersTemplateFile)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	mainTplate, err = mainTplate.Parse(string(mainData))
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	err = mainTplate.Execute(mainBuf, templateInfo)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return }
 
 	mainStr = mainBuf.String()
 
@@ -312,13 +335,15 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 }
 
 func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo) (string, error) {
-	if tableSet == nil {
-		return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
-	}
+	if tableSet == nil { return "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName()) }
 
 	var err error
+
 	var buf *bytes.Buffer = bytes.NewBufferString("")
-	var tplate *template.Template = template.New("FlatTables Test Go")
+
+	const testTemplateFile = "../flattables/FlatTablesTest.template"
+	// Use the file name as the template name so that file name appears in error output.
+	var tplate *template.Template = template.New(testTemplateFile)
 
 	templateInfo.TestImports = []string {
 		`"github.com/urban-wombat/gotables"`,
@@ -331,17 +356,15 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo
 	tplate = tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 //	tplate = tplate.Funcs(template.FuncMap{"getValAsStringByColIndex": getValAsStringByColIndex})
 
-	const templateFile = "../flattables/FlatTablesTest.template"
-
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(templateFile)
-	if err != nil { log.Fatal(err) }
+	data, err := ioutil. ReadFile(testTemplateFile)
+	if err != nil { return "", err }
 
 	tplate, err = tplate.Parse(string(data))
-	if err != nil { log.Fatal(err) }
+	if err != nil { return "", err }
 
 	err = tplate.Execute(buf, templateInfo)
-	if err != nil { log.Fatal(err) }
+	if err != nil { return "", err }
 
 	return buf.String(), nil
 }
@@ -410,7 +433,7 @@ type ColInfo struct {
 	ColType string
 	FbsType string
 	ColIndex int
-	IsScalar bool
+	IsScalar bool	// FlatBuffers Scalar includes bool
 	IsString bool
 	IsBool bool
 	IsDeprecated bool
@@ -428,12 +451,6 @@ type TableInfo struct {
 	Rows []Row
 	ColNames []string
 	ColTypes []string
-}
-
-func (tableInfo TableInfo) GetValAsStringByColIndex(colIndex int, rowIndex int) string {
-	sval, err := tableInfo.Table.GetValAsStringByColIndex(colIndex, rowIndex)
-	if err != nil { log.Fatal(err) }
-	return sval
 }
 
 type TemplateInfo struct {
@@ -532,7 +549,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			cols[colIndex].FbsType, err = schemaType(colType)
 			if err != nil { return emptyTemplateInfo, err }
 			cols[colIndex].ColIndex = colIndex
-			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)	// FlatBuffers Scalar includes bool
 			cols[colIndex].IsString = colType == "string"
 			cols[colIndex].IsBool = colType == "bool"
 		}
@@ -639,7 +656,7 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	var usingCommand string
 
 	// Sample:
-	// gotflat -f ../flattables_sample/tables.got -n flattables_sample
+	// flattablesc -f ../flattables_sample/tables.got -n flattables_sample
 
 	nameSpace := tableSet.Name()
 	fileName := filepath.Base(tableSet.FileName())
@@ -647,7 +664,7 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	indent := "\t"
 	usingCommand = "using the following command:\n"
 	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", nameSpace, fileName))
-	usingCommand += indentText(indent, fmt.Sprintf("$ gotflat -f ../%s/%s -n %s -p %s\n",
+	usingCommand += indentText(indent, fmt.Sprintf("$ flattablesc -f ../%s/%s -n %s -p %s\n",
 		nameSpace, fileName, nameSpace, packageName))
 	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
 

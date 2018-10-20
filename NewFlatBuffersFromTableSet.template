@@ -49,11 +49,11 @@ func funcName() string {
 }
 
 /*
-	This function NewFlatBuffersFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/gotflat.go
+	This function NewFlatBuffersFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
 
-	(1) You must first run gotflat (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
+	(1) You must first run flattablesc (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
-	    Utility gotflat creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
+	    Utility flattablesc creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
 		Utility goft generates everything you need. It relies on flatc being installed, which it calls.
 
 	(2) The FlatTables custom generated functions have a signature pattern:
@@ -150,7 +150,7 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 	// Create child: {{.ColName}}
 
 
-	{{if .IsScalar}}
+	{{if .IsScalar}}	{{/* FlatBuffers Scalar includes bool */}}
 
 	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
 	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
