@@ -234,7 +234,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
-		`"log"`,
+//		`"log"`,
 		`"path/filepath"`,
 		`"runtime"`,
 		`"strings"`,
@@ -348,6 +348,7 @@ func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo
 	templateInfo.TestImports = []string {
 		`"github.com/urban-wombat/gotables"`,
 		`"testing"`,
+		`"fmt"`,
 	}
 
 	// Add a user-defined function to Test Go code tplate.
@@ -489,7 +490,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		if err != nil { return emptyTemplateInfo, err }
 
 		if table.ColCount() >= 0 {
-			fmt.Fprintf(os.Stderr, "  #%d Adding gotables table  to FlatBuffers schema: [%s] \n", tableIndex, table.Name())
+			fmt.Fprintf(os.Stderr, "  %d  Adding gotables table  to FlatBuffers schema: [%s] \n", tableIndex, table.Name())
 		} else {
 			// Skip tables with zero cols.
 			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
