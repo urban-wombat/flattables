@@ -43,6 +43,8 @@ func init() {
 }
 var where = log.Print
 
+const GenerateStruct bool = true
+
 // FlatBuffers schema types: bool | byte | ubyte | short | ushort | int | uint | float | long | ulong | double | string
 // From: https://google.github.io/flatbuffers/flatbuffers_grammar.html
 
@@ -224,13 +226,27 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo, fileNames []string) (tofbStr, fromfbStr, mainStr string, err error) {
-	if tableSet == nil {
-		return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName())
-	}
+type FileNamesStruct struct {
+	NewFlatBuffersFromTableSetFileName string
+	NewTableSetFromFlatBuffersFileName string
+	NewStructFromFlatBuffersFileName string
+	NewFlatBuffersFromStructFileName string
+	MainCodeFileName string
+}
+var FileNames FileNamesStruct
+
+func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
+		templateInfo TemplateInfo,
+		fileNamesList []string,
+		fileNames FileNamesStruct) (
+		NewFlatBuffersFromTableSetCode string,
+		NewTableSetFromFlatBuffersString string,
+		mainString string,
+		err error) {
+	if tableSet == nil { return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName()) }
 
 	// imports
-	templateInfo.ToFbImports = []string {
+	templateInfo.NewFlatBuffersFromTableSetImports = []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
@@ -241,7 +257,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	}
 
 	// imports
-	templateInfo.FromFbImports = []string {
+	templateInfo.NewTableSetFromFlatBuffersImports = []string {
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
 		`"log"`,
@@ -254,66 +270,92 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 		`"github.com/urban-wombat/gotables"`,
 	}
 
-	templateInfo.ToFbCodeFileName = filepath.Base(fileNames[0])
-	templateInfo.FromFbCodeFileName = filepath.Base(fileNames[1])
-	templateInfo.MainCodeFileName = filepath.Base(fileNames[2])
+	templateInfo.NewFlatBuffersFromTableSetFileName = filepath.Base(fileNamesList[0])
+	templateInfo.NewTableSetFromFlatBuffersFileName = filepath.Base(fileNamesList[1])
+	templateInfo.MainCodeFileName = filepath.Base(fileNamesList[2])
 
 
 	// (1) Generate NewFlatBuffersFromTableSet()
 
-	var toFlatBuf *bytes.Buffer = bytes.NewBufferString("")
+	var NewFlatBuffersFromTableSetStringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
-	const toFlatBuffersTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
+	const NewFlatBuffersFromTableSetTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
 	// Use the file name as the template name so that file name appears in error output.
-//	var tofbTplate *template.Template = template.New("TO FlatBuffers Go Code")
-	var tofbTplate *template.Template = template.New(toFlatBuffersTemplateFile)
+	var NewFlatBuffersFromTableSetTemplate *template.Template = template.New(NewFlatBuffersFromTableSetTemplateFile)
 
-	tofbTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
-	tofbTplate.Funcs(template.FuncMap{"rowCount": rowCount})
+	NewFlatBuffersFromTableSetTemplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	NewFlatBuffersFromTableSetTemplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	tofbData, err := ioutil. ReadFile(toFlatBuffersTemplateFile)
+	NewFlatBuffersFromTableSetText, err := ioutil. ReadFile(NewFlatBuffersFromTableSetTemplateFile)
 	if err != nil { return }
 
-	tofbTplate, err = tofbTplate.Parse(string(tofbData))
+	NewFlatBuffersFromTableSetTemplate, err = NewFlatBuffersFromTableSetTemplate.Parse(string(NewFlatBuffersFromTableSetText))
 	if err != nil { return }
 
-	err = tofbTplate.Execute(toFlatBuf, templateInfo)
+	err = NewFlatBuffersFromTableSetTemplate.Execute(NewFlatBuffersFromTableSetStringBuffer, templateInfo)
 	if err != nil { return }
 
-	tofbStr = toFlatBuf.String()
+	NewFlatBuffersFromTableSetCode = NewFlatBuffersFromTableSetStringBuffer.String()
+
+	NewFlatBuffersFromTableSetCode, err = generateGoCodeFromTemplate(NewFlatBuffersFromTableSetTemplateFile, templateInfo)
+	if err != nil { return }
 
 
 	// (2) Generate NewTableSetFromFlatBuffers()
-	var fromFlatBuf *bytes.Buffer = bytes.NewBufferString("")
+	var NewTableSetFromFlatBuffersStringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-//	var fromTplate *template.Template = template.New("FROM FlatBuffers Go Code")
-	var fromTplate *template.Template = template.New(fromFlatBuffersTemplateFile)
+	var NewTableSetFromFlatBuffersTemplate *template.Template = template.New(fromFlatBuffersTemplateFile)
 
-	fromTplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
-	fromTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
-	fromTplate.Funcs(template.FuncMap{"rowCount": rowCount})
+	NewTableSetFromFlatBuffersTemplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	NewTableSetFromFlatBuffersTemplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
+	NewTableSetFromFlatBuffersTemplate.Funcs(template.FuncMap{"rowCount": rowCount})
 
-	// Open and read file explicitly to avoid calling fromTplate.ParseFile() which has problems.
-	fromData, err := ioutil. ReadFile(fromFlatBuffersTemplateFile)
+	// Open and read file explicitly to avoid calling NewTableSetFromFlatBuffersTemplate.ParseFile() which has problems.
+	NewTableSetFromFlatBuffersText, err := ioutil. ReadFile(fromFlatBuffersTemplateFile)
 	if err != nil { return }
 
-	fromTplate, err = fromTplate.Parse(string(fromData))
+	NewTableSetFromFlatBuffersTemplate, err = NewTableSetFromFlatBuffersTemplate.Parse(string(NewTableSetFromFlatBuffersText))
 	if err != nil { return }
 
-	err = fromTplate.Execute(fromFlatBuf, templateInfo)
+	err = NewTableSetFromFlatBuffersTemplate.Execute(NewTableSetFromFlatBuffersStringBuffer, templateInfo)
 	if err != nil { return }
 
-	fromfbStr = fromFlatBuf.String()
+	NewTableSetFromFlatBuffersString = NewTableSetFromFlatBuffersStringBuffer.String()
 
 
-	// (3) Generate main()
+/*
+	// (3) Generate NewFlatBuffersFromStruct()
+
+	var NewFlatBuffersFromStructStringBuffer *bytes.Buffer = bytes.NewBufferString("")
+
+	const NewFlatBuffersFromStructTemplateFile = "../flattables/NewFlatBuffersFromStruct.template"
+	// Use the file name as the template name so that file name appears in error output.
+	var NewFlatBuffersFromStructTemplate *template.Template = template.New(NewFlatBuffersFromStructTemplateFile)
+
+	NewFlatBuffersFromStructTemplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	NewFlatBuffersFromStructTemplate.Funcs(template.FuncMap{"rowCount": rowCount})
+
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	NewFlatBuffersFromStructText, err := ioutil. ReadFile(NewFlatBuffersFromStructTemplateFile)
+	if err != nil { return }
+
+	NewFlatBuffersFromStructTemplate, err = NewFlatBuffersFromStructTemplate.Parse(string(NewFlatBuffersFromStructText))
+	if err != nil { return }
+
+	err = NewFlatBuffersFromStructTemplate.Execute(NewFlatBuffersFromStructStringBuffer, templateInfo)
+	if err != nil { return }
+
+	structToFlatBuffersString = NewFlatBuffersFromStructStringBuffer.String()
+*/
+
+
+	// (4) Generate main()
 	var mainBuf *bytes.Buffer = bytes.NewBufferString("")
 
 	const mainBuffersTemplateFile = "../flattables/main.template"
 	// Use the file name as the template name so that file name appears in error output.
-//	var mainTplate *template.Template = template.New("MAIN FlatBuffers Go Code")
 	var mainTplate *template.Template = template.New(mainBuffersTemplateFile)
 
 	mainTplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
@@ -329,9 +371,36 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo Tem
 	err = mainTplate.Execute(mainBuf, templateInfo)
 	if err != nil { return }
 
-	mainStr = mainBuf.String()
+	mainString = mainBuf.String()
 
 	return
+}
+
+func generateGoCodeFromTemplate(templateFile string, templateInfo TemplateInfo) (code string, err error) {
+
+	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
+
+	// Use the file name as the template name so that file name appears in error output.
+	var tplate *template.Template = template.New(templateFile)
+
+	// Add functions.
+	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
+	tplate.Funcs(template.FuncMap{"rowCount": rowCount})
+
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	templateText, err := ioutil.ReadFile(templateFile)
+	if err != nil { return }
+
+	tplate, err = tplate.Parse(string(templateText))
+	if err != nil { return }
+
+	err = tplate.Execute(stringBuffer, templateInfo)
+	if err != nil { return }
+
+	code = stringBuffer.String()
+
+	return code, err
 }
 
 func FlatBuffersTestGoCodeFromTableSet(tableSet *gotables.TableSet, templateInfo TemplateInfo) (string, error) {
@@ -461,10 +530,13 @@ type TemplateInfo struct {
 	PackageName string	// Includes NameSpace
 	Year string
 	SchemaFileName string
-	ToFbImports []string
-	ToFbCodeFileName string
-	FromFbImports []string
-	FromFbCodeFileName string
+	NewFlatBuffersFromTableSetFileName string
+	NewFlatBuffersFromTableSetImports []string
+	NewTableSetFromFlatBuffersFileName string
+	NewTableSetFromFlatBuffersImports []string
+	NewFlatBuffersFromStructFileName string
+	NewStructFromFlatBuffersFileName string
+	NewStructFromFlatBuffersImports []string
 	MainImports []string
 	MainCodeFileName string
 	TestCodeFileName string

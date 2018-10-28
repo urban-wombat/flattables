@@ -1,14 +1,14 @@
 package {{.NameSpace}}
 
 /*
-	{{.NewFlatBuffersFromTableSetFileName}}
+	{{.ToFbCodeFileName}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
 	{{.UsingCommand}}
 */
 
 import (
-	{{range .NewFlatBuffersFromTableSetImports}}
+	{{range .NewFlatBuffersFromStructImports}}
 	{{- .}}
 	{{end}}
 //	"log"	// For use with where
@@ -52,7 +52,7 @@ func funcName() string {
 }
 
 /*
-	This function NewFlatBuffersFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
+	This function NewFlatBuffersFromStruct() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
 
 	(1) You must first run flattablesc (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
@@ -60,19 +60,19 @@ func funcName() string {
 		Utility goft generates everything you need. It relies on flatc being installed, which it calls.
 
 	(2) The FlatTables custom generated functions have a signature pattern:
-	    func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
+	    func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
 		The flatBuffers bytes are ready for transmission.
 		The flatTables object is ready for you to invoke methods on it.
-		The name NewFlatBuffersFromTableSet() is hard-coded, as is the root_type table FlatTables.
+		The name NewFlatBuffersFromStruct() is hard-coded, as is the root_type table FlatTables.
 
-		Subsidiary functions (called by NewFlatBuffersFromTableSet(), and which you may call directly by passing in a *gotables.Table)
+		Subsidiary functions (called by NewFlatBuffersFromStruct(), and which you may call directly by passing in a *gotables.Table)
 		have the same signature pattern, with their name soft-coded to reflect the table names in gotables and the schema:
 		func <table-name>FlatBuffersFromTable(table *gotables.Table) (flatTables *<table-name>, flatBuffers []byte, err error)
 
 	(3) All of the types are in package <namespace>, which means a main function would import <namespace>, and the types would be
 	    <namespace>.FlatTables for the root_type, and <namespace>.<table-name> for each data table.
 */
-func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
+func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
 	if tableSet == nil {
 		return nil, nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
 	}
