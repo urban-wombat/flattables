@@ -235,6 +235,8 @@ type FileNamesStruct struct {
 }
 var FileNames FileNamesStruct
 
+var goCodeInfo GoCodeInfo	// Temporary for compilation. This will be moved to flattablesc.go
+
 func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 		templateInfo TemplateInfo,
 		fileNamesList []string,
@@ -299,7 +301,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //	NewFlatBuffersFromTableSetCode = NewFlatBuffersFromTableSetStringBuffer.String()
 
 	const NewFlatBuffersFromTableSetTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
-	NewFlatBuffersFromTableSetCode, err = generateGoCodeFromTemplate(NewFlatBuffersFromTableSetTemplateFile, templateInfo)
+	NewFlatBuffersFromTableSetCode, err = generateGoCodeFromTemplate(goCodeInfo, NewFlatBuffersFromTableSetTemplateFile, templateInfo)
 	if err != nil { return }
 
 
@@ -326,7 +328,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //	NewTableSetFromFlatBuffersString = NewTableSetFromFlatBuffersStringBuffer.String()
 
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-	NewTableSetFromFlatBuffersString, err = generateGoCodeFromTemplate(fromFlatBuffersTemplateFile, templateInfo)
+	NewTableSetFromFlatBuffersString, err = generateGoCodeFromTemplate(goCodeInfo, fromFlatBuffersTemplateFile, templateInfo)
 	if err != nil { return }
 
 
@@ -379,18 +381,29 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //	mainString = mainBuf.String()
 
 	const mainBuffersTemplateFile = "../flattables/main.template"
-	mainString, err = generateGoCodeFromTemplate(mainBuffersTemplateFile, templateInfo)
+	mainString, err = generateGoCodeFromTemplate(goCodeInfo, mainBuffersTemplateFile, templateInfo)
 	if err != nil { return }
 
 	return
 }
 
-func generateGoCodeFromTemplate(templateFile string, templateInfo TemplateInfo) (code string, err error) {
+// Information specific to each generated function.
+type GoCodeInfo struct {
+	FuncName   string
+	Imports  []string
+}
+
+func generateGoCodeFromTemplate(goCodeInfo GoCodeInfo, templateFile string, templateInfo TemplateInfo) (code string, err error) {
 
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	// Use the file name as the template name so that file name appears in error output.
 	var tplate *template.Template = template.New(templateFile)
+
+// TODO:
+	// Calculate input template file name.
+
+	// Calculate output Go file name.
 
 	// Add functions.
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
