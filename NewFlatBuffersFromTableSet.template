@@ -8,7 +8,7 @@ package {{.NameSpace}}
 */
 
 import (
-	{{range .NewFlatBuffersFromTableSetImports}}
+	{{range .Imports}}
 	{{- .}}
 	{{end}}
 //	"log"	// For use with where

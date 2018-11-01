@@ -240,13 +240,16 @@ var goCodeInfo GoCodeInfo	// Temporary for compilation. This will be moved to fl
 func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 		templateInfo TemplateInfo,
 		fileNamesList []string,
-		fileNames FileNamesStruct) (
+		fileNames FileNamesStruct,
+		nameSpace string) (
 		NewFlatBuffersFromTableSetCode string,
 		NewTableSetFromFlatBuffersString string,
 		mainString string,
 		err error) {
 	if tableSet == nil { return "", "", "", fmt.Errorf("%s(tableSet): tableSet is <nil>", funcName()) }
 
+// DONE
+/*
 	// imports
 	templateInfo.NewFlatBuffersFromTableSetImports = []string {
 		`flatbuffers "github.com/google/flatbuffers/go"`,
@@ -257,13 +260,17 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 		`"runtime"`,
 		`"strings"`,
 	}
+*/
 
+// DONE
+/*
 	// imports
 	templateInfo.NewTableSetFromFlatBuffersImports = []string {
 		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
 		`"log"`,
 	}
+*/
 
 	// imports
 	templateInfo.MainImports = []string {
@@ -300,9 +307,12 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //
 //	NewFlatBuffersFromTableSetCode = NewFlatBuffersFromTableSetStringBuffer.String()
 
+// DONE
+/*
 	const NewFlatBuffersFromTableSetTemplateFile = "../flattables/NewFlatBuffersFromTableSet.template"
-	NewFlatBuffersFromTableSetCode, err = generateGoCodeFromTemplate(goCodeInfo, NewFlatBuffersFromTableSetTemplateFile, templateInfo)
+	NewFlatBuffersFromTableSetCode, err = generateGoCodeFromTemplate(goCodeInfo, NewFlatBuffersFromTableSetTemplateFile, templateInfo, nameSpace)
 	if err != nil { return }
+*/
 
 
 //	// (2) Generate NewTableSetFromFlatBuffers()
@@ -327,9 +337,12 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //
 //	NewTableSetFromFlatBuffersString = NewTableSetFromFlatBuffersStringBuffer.String()
 
+// DOING
+/*
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
-	NewTableSetFromFlatBuffersString, err = generateGoCodeFromTemplate(goCodeInfo, fromFlatBuffersTemplateFile, templateInfo)
+	NewTableSetFromFlatBuffersString, err = generateGoCodeFromTemplate(goCodeInfo, fromFlatBuffersTemplateFile, templateInfo, nameSpace)
 	if err != nil { return }
+*/
 
 
 /*
@@ -381,7 +394,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //	mainString = mainBuf.String()
 
 	const mainBuffersTemplateFile = "../flattables/main.template"
-	mainString, err = generateGoCodeFromTemplate(goCodeInfo, mainBuffersTemplateFile, templateInfo)
+	mainString, err = generateGoCodeFromTemplate(goCodeInfo, mainBuffersTemplateFile, templateInfo, nameSpace)
 	if err != nil { return }
 
 	return
@@ -393,17 +406,63 @@ type GoCodeInfo struct {
 	Imports  []string
 }
 
-func generateGoCodeFromTemplate(goCodeInfo GoCodeInfo, templateFile string, templateInfo TemplateInfo) (code string, err error) {
+// Information specific to each generated function.
+var generations = []GoCodeInfo {
+	{	FuncName: "NewFlatBuffersFromTableSet",
+		Imports:  []string {
+			`flatbuffers "github.com/google/flatbuffers/go"`,
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+//	  		`"log"`,
+			`"path/filepath"`,
+			`"runtime"`,
+			`"strings"`,
+		},
+	},
+	{	FuncName: "NewTableSetFromFlatBuffers",
+		Imports:  []string {
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+			`"log"`,
+		},
+	},
+}
+
+func GenerateAll(nameSpace string) {
+	for genIndex, genInfo := range generations {
+_ = genIndex
+//fmt.Printf("GenerateAll(): genIndex=%d, genInfo=%v\n", genIndex, genInfo)
+		code, err := generateGoCodeFromTemplate(genInfo, "NOTHING", templateInfo, nameSpace)
+		_ = code
+		if err != nil {
+			fmt.Printf("err: %s\n", err)
+		}
+	}
+}
+
+func generateGoCodeFromTemplate(goCodeInfo GoCodeInfo, templateFile string, templateInfo TemplateInfo, nameSpace string) (code string, err error) {
+//gotables.PrintCaller()
+
+	var outDir  string
+	var outFile string
+
+// TODO:
+if goCodeInfo.FuncName != "" {	// Transitional
+	// Calculate input template file name.
+	templateFile = "../flattables/" + goCodeInfo.FuncName + ".template"
+
+	// Calculate output Go file name.
+	outDir = "../" + nameSpace
+	outFile = outDir + "/" + nameSpace + "_" + goCodeInfo.FuncName + ".go"
+
+//fmt.Printf("goCodeInfo.Imports = %v\n", goCodeInfo.Imports)
+	templateInfo.Imports = goCodeInfo.Imports
+}
 
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	// Use the file name as the template name so that file name appears in error output.
 	var tplate *template.Template = template.New(templateFile)
-
-// TODO:
-	// Calculate input template file name.
-
-	// Calculate output Go file name.
 
 	// Add functions.
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
@@ -421,6 +480,15 @@ func generateGoCodeFromTemplate(goCodeInfo GoCodeInfo, templateFile string, temp
 	if err != nil { return }
 
 	code = stringBuffer.String()
+
+// TODO:
+if goCodeInfo.FuncName != "" {	// Transitional
+	err = ioutil.WriteFile(outFile, []byte(code), 0644)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(30)
+	}
+}
 
 	return code, err
 }
@@ -560,6 +628,7 @@ type TemplateInfo struct {
 	NewStructFromFlatBuffersFileName string
 	NewStructFromFlatBuffersImports []string
 	MainImports []string
+	Imports []string
 	MainCodeFileName string
 	TestCodeFileName string
 	TestImports []string
@@ -569,6 +638,7 @@ type TemplateInfo struct {
 	TableSetMetadata string
 	Tables []TableInfo
 }
+var templateInfo TemplateInfo
 
 func (templateInfo TemplateInfo) Name(tableIndex int) string {
 	return templateInfo.Tables[0].Table.Name()
@@ -713,7 +783,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 	tableSetMetadata := metadataTableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
-	var templateInfo = TemplateInfo {
+	templateInfo = TemplateInfo {
 		GeneratedFrom: generatedFrom(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
 		GotablesFileName: tableSet.FileName(),
