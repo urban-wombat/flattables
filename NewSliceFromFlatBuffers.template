@@ -126,7 +126,7 @@ func NewSliceFromFlatBuffers(flatBuffers []byte) (Slices TableSlices, err error)
 		{{else if .IsScalar}}
 		{{- if .IsBool}}
 		// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
-		Slices.TableSlice_{{$table.Name}}[rowIndex].{{.ColName|firstCharToUpper}} = byteToBool({{.ColName}})
+		Slices.TableSlice_{{$table.Name}}[rowIndex].{{.ColName|firstCharToUpper}} = {{.ColName}} != 0
 		{{else}}
 		Slices.TableSlice_{{$table.Name}}[rowIndex].{{.ColName|firstCharToUpper}} = {{.ColName}}
 		{{end}}
