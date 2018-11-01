@@ -24,7 +24,7 @@ import (
 
 
 /*
-Copyright (c) {{.Year}} Malcolm Gorman
+Copyright (c) {{"2017"|yearRangeFromFirstYear}} Malcolm Gorman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ func main() {
 	println()
 
 	// This is an auto-generated constructor function, generated when you run gotables utility: flattablesc
-	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
+	// (1) Its signature is always the same (except for its package import, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	_, flatBuffers, err = {{.NameSpace}}.NewFlatBuffersFromTableSet(tableSet1)
 	if err != nil { panic(err) }
@@ -80,7 +80,7 @@ func main() {
 	// We will now convert it back to gotables format, as if we just received it from the wire or a file.
 
 	// This is an auto-generated constructor function, generated when you run gotables utility: flattablesc
-	// (1) Its signature is always the same (except for its package, which is here {{.NameSpace}}).
+	// (1) Its signature is always the same (except for its package import, which is here {{.NameSpace}}).
 	// (2) Its internal implementation is generated specific to YOUR set of tables.
 	tableSet2, err = {{.NameSpace}}.NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { panic(err) }
@@ -191,4 +191,70 @@ func main() {
 	}
 	println()
 	{{end}}
+
+	println("#5 Getting FlatBuffers data using NewSliceFromFlatBuffers()")
+
+	var slices {{$nameSpace}}.TableSlices
+	slices, err = {{$nameSpace}}.NewSliceFromFlatBuffers(flatBuffers)
+	if err != nil { panic(err) }
+
+//	fmt.Printf("%#v\n", slices)
+
+	{{range .Tables}}
+		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
+			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
+		}
+		println()
+	{{end}}
+
+/*
+	{{$nameSpace := .NameSpace}}
+	{{range $tableIndex, $element := .Tables}}
+	{{$tableName := .Table.Name}}
+	// Table #{{$tableIndex}} {{.Table.Name}}
+	{
+		println("[{{$tableName}}]")
+		// Get the FlatBuffers bytes specific to table {{.Table.Name}}.
+		{{.Table.Name|firstCharToLower}}Bytes := flatTables.{{.Table.Name}}Bytes()
+		if {{.Table.Name|firstCharToLower}}Bytes == nil { panic(fmt.Errorf("{{.Table.Name|firstCharToLower}}Bytes is <nil>")) }
+
+		// Get the FlatBuffers {{.Table.Name}} object from its FlatBuffers bytes.
+		{{.Table.Name|firstCharToLower}} := {{$nameSpace}}.GetRootAs{{.Table.Name}}({{.Table.Name|firstCharToLower}}Bytes, 0)
+		if {{.Table.Name|firstCharToLower}} == nil { panic(fmt.Errorf("{{.Table.Name}} is <nil>")) }
+
+
+
+		var rowCount int = {{.Table.Name|firstCharToLower}}.RowCount()
+		fmt.Printf("{{.Table.Name|firstCharToLower}} rowCount = %d\n", rowCount)
+
+		var colCount int = {{.Table.Name|firstCharToLower}}.ColCount()
+		fmt.Printf("{{.Table.Name|firstCharToLower}} colCount = %d\n", colCount)
+
+		for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+		{{range .Cols}}
+			{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
+			{{- if .IsString}}
+			// FlatBuffers stores strings as []byte arrays. Convert {{.ColName}} []byte to string.
+			fmt.Printf("%-15s", string({{.ColName}}))
+			{{else if .IsBool}}
+			// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
+			var boolValue bool = {{.ColName}} != 0
+			fmt.Printf("%-6t", boolValue)
+			{{else}}
+			fmt.Printf("%6v", {{.ColName}})
+			{{end}}
+		{{end}}
+			fmt.Println()
+		}
+
+		// Use a gotables method to get the col type (for both Go and FlatBuffers) for each column.
+		for colIndex := 0; colIndex < colCount; colIndex++ {
+			goType, fbType, err := {{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex)
+			if err != nil { panic(err) }
+			fmt.Printf("{{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex) goType = %-8s fbType = %-8s\n", goType, fbType)
+		}
+	}
+	println()
+	{{end}}
+*/
 }

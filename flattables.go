@@ -162,7 +162,8 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	var tplate *template.Template = template.New(schemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
-	tplate = tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	data, err := ioutil. ReadFile(schemaFromTableSetTemplateFile)
@@ -266,14 +267,12 @@ var generations = []GenerationInfo {
 		},
 	},
 // DOING
-/*
 	{	FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
-			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
+			`"log"`,
 		},
 	},
-*/
 }
 
 func GenerateAll(nameSpace string, verbose bool) {
@@ -309,6 +308,7 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 	if verbose { fmt.Printf("     Generating: %s\n", generatedFile) }
 
 	templateInfo.GeneratedFile = generatedFile
+	templateInfo.FuncName = generationInfo.FuncName
 	templateInfo.Imports = generationInfo.Imports
 
 /*
@@ -329,6 +329,7 @@ fmt.Printf("\n")
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"firstCharToLower": firstCharToLower})
 	tplate.Funcs(template.FuncMap{"rowCount": rowCount})
+	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	templateText, err := ioutil.ReadFile(templateFile)
@@ -445,6 +446,7 @@ type TemplateInfo struct {
 	Year string
 	SchemaFileName string
 	GeneratedFile string
+	FuncName string
 	Imports []string
 	GotablesFileName string	// We want to replace this with the following TWO file names.
 	TableSetMetadata string
@@ -611,7 +613,22 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 
 func copyrightYear() (copyrightYear string) {
 	firstYear := "2017"	// See github dates.
-	copyrightYear = fmt.Sprintf("%s-%s", firstYear, time.Now().Format("2006"))
+	copyrightYear = fmt.Sprintf("%s-%s", firstYear, thisYear())
+	return
+}
+
+func yearRangeFromFirstYear(firstYear string) (yearRange string) {
+	thisYear := thisYear()
+	if firstYear == thisYear {
+		yearRange = fmt.Sprintf("%s", firstYear)
+	} else {
+		yearRange = fmt.Sprintf("%s-%s", firstYear, thisYear)
+	}
+	return
+}
+
+func thisYear() (thisYear string) {
+	thisYear = fmt.Sprintf("%s", time.Now().Format("2006"))
 	return
 }
 
@@ -656,7 +673,7 @@ type removeStruct struct {
 }
 var rmstr = []removeStruct {
 	{ "\r\n",               "\n",       "rn", 0 },	// Remove ^M
-	{ "\r",                 "",         "01", 0 },
+//	{ "\r",                 "",         "r",  0 },	// Maybe replace by rn
 	{ "\n\n\n",             "\n\n",     "02", 0 },
 	{ "\n\n\n",             "\n\n",     "03", 0 },
 	{ "\n\t\n",             "\n\n",     "04", 0 },
@@ -677,6 +694,7 @@ var rmstr = []removeStruct {
 	{ "\n\n\t}",            "\n\t}",    "19", 0 },
 	{ "\n    \n)",          "\n)",      "20", 0 },
 	{ "\t\t\t\t\t\t}",      "\t\t\t}",  "21", 0 },
+	{ "{\n\n",              "{\n",      "22", 0 },
 }
 
 func RemoveExcessTabsAndNewLines(code string) string {

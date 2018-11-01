@@ -14,7 +14,7 @@ import (
 )
 
 /*
-Copyright (c) {{.Year}} Malcolm Gorman
+Copyright (c) {{"2017"|yearRangeFromFirstYear}} Malcolm Gorman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ func init() {
 
 	You must first run flattablesc pass it -f <gotables-file> and specify -n <namespace> -p <package>.
 	Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
-    Utility flattablesc creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
+	Utility flattablesc creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
 	Utility flattablesc generates everything you need. It relies on flatc being installed, which it calls.
 */
 func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
@@ -103,7 +103,7 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 	{{range .Cols}}
 	childLength = {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}Length()
 	if prevChildLength == uninitialisedLength {
-		// If first child, then append uninitialised rows to gotables table ready for populating. Only once per table.
+		// First row. Append uninitialised rows to gotables table ready for populating. Only once per table.
 		err = table.AppendRows(childLength)
 		if err != nil { return nil, err }
 	} else if childLength != prevChildLength {
