@@ -1,14 +1,14 @@
 package {{.NameSpace}}
 
 /*
-	{{.NewTableSetFromFlatBuffersFileName}}
+	{{.GeneratedFile}}
 	DO NOT MODIFY
 	{{.GeneratedFrom}}
 	{{.UsingCommand}}
 */
 
 import (
-	{{range .NewTableSetFromFlatBuffersImports}}
+	{{range .Imports}}
 	{{- .}}
 	{{end}}
 )
@@ -48,7 +48,7 @@ func init() {
     Utility flattablesc creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
 	Utility flattablesc generates everything you need. It relies on flatc being installed, which it calls.
 */
-func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
+func NewSliceFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
 	if flatBuffers == nil {
 		return nil, fmt.Errorf("table.%s() flatBuffers []byte is <nil>", funcName())
 	}
