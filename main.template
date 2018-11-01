@@ -16,7 +16,7 @@ package main
 */
 
 import (
-    {{range .MainImports}}
+    {{range .Imports}}
     {{- .}}
     {{end -}}
 	"{{.PackageName}}"

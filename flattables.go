@@ -272,12 +272,15 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 	}
 */
 
+// DOING
+/*
 	// imports
 	templateInfo.MainImports = []string {
+		`"github.com/urban-wombat/gotables"`,
 		`"fmt"`,
 		`"log"`,
-		`"github.com/urban-wombat/gotables"`,
 	}
+*/
 
 	templateInfo.NewFlatBuffersFromTableSetFileName = filepath.Base(fileNamesList[0])
 	templateInfo.NewTableSetFromFlatBuffersFileName = filepath.Base(fileNamesList[1])
@@ -337,7 +340,7 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //
 //	NewTableSetFromFlatBuffersString = NewTableSetFromFlatBuffersStringBuffer.String()
 
-// DOING
+// DONE
 /*
 	const fromFlatBuffersTemplateFile = "../flattables/NewTableSetFromFlatBuffers.template"
 	NewTableSetFromFlatBuffersString, err = generateGoCodeFromTemplate(goCodeInfo, fromFlatBuffersTemplateFile, templateInfo, nameSpace)
@@ -393,9 +396,12 @@ func FlatBuffersGoCodeFromTableSet(tableSet *gotables.TableSet,
 //
 //	mainString = mainBuf.String()
 
+// DOING
+/*
 	const mainBuffersTemplateFile = "../flattables/main.template"
 	mainString, err = generateGoCodeFromTemplate(goCodeInfo, mainBuffersTemplateFile, templateInfo, nameSpace)
 	if err != nil { return }
+*/
 
 	return
 }
@@ -426,6 +432,22 @@ var generations = []GoCodeInfo {
 			`"log"`,
 		},
 	},
+// DONE
+	{	FuncName: "main",
+		Imports:  []string {
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+			`"log"`,
+		},
+	},
+// DOING
+	{	FuncName: "test",
+		Imports:  []string {
+			`"github.com/urban-wombat/gotables"`,
+			`"testing"`,
+			`"fmt"`,
+		},
+	},
 }
 
 func GenerateAll(nameSpace string) {
@@ -451,12 +473,27 @@ if goCodeInfo.FuncName != "" {	// Transitional
 	// Calculate input template file name.
 	templateFile = "../flattables/" + goCodeInfo.FuncName + ".template"
 
+	// Calculate output Go dir name.
+	switch goCodeInfo.FuncName {
+		case "main":
+			outDir = "../" + nameSpace + "_main"	// main is in its own directory
+		default:
+			outDir = "../" + nameSpace
+	}
+
 	// Calculate output Go file name.
-	outDir = "../" + nameSpace
 	outFile = outDir + "/" + nameSpace + "_" + goCodeInfo.FuncName + ".go"
 
-//fmt.Printf("goCodeInfo.Imports = %v\n", goCodeInfo.Imports)
 	templateInfo.Imports = goCodeInfo.Imports
+
+/*
+fmt.Printf("\n")
+fmt.Printf("%#v\n", goCodeInfo)
+fmt.Printf("templateFile = %s\n", templateFile)
+fmt.Printf("outDir = %s\n", outDir)
+fmt.Printf("outFile = %s\n", outFile)
+fmt.Printf("\n")
+*/
 }
 
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
