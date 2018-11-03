@@ -115,7 +115,8 @@ func TestNewFlatBuffersFromTableSet(t *testing.T) {
 		{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
 		// println(cell)
 		{{- if .IsBool}}
-		if byteToBool({{.ColName}}) != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+		// Inline conversion of FlatBuffers byte to Go bool: ({{.ColName}} != 0)
+		if ({{.ColName}} != 0) != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
 			"{{$tableName}}", rowIndex, byteToBool({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
 		{{else}}
 		if {{.ColName}} != cell { t.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
@@ -243,7 +244,8 @@ func BenchmarkGetAndCompareFlatBuffersObjectsWithEquivalentGotablesObjects(__b *
 			{{else if .IsScalar}}
 			{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
 			{{- if .IsBool}}
-			if byteToBool({{.ColName}}) != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
+			// Inline conversion of FlatBuffers byte to Go bool: ({{.ColName}} != 0)
+			if ({{.ColName}} != 0) != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",
 				"{{$tableName}}", rowIndex, byteToBool({{.ColName}}), "{{$tableName}}", "{{.ColName}}", rowIndex, cell) }
 			{{else}}
 			if {{.ColName}} != cell { __b.Errorf("flatbuffers {{$packageName}}.%s.{{.ColName}}[%d] %v != gotables [%s].%s[%d] %v",

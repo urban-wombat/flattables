@@ -124,7 +124,8 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 		{{else if .IsScalar}}
 		{{- if .IsBool}}
 		// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
-		err = table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, byteToBool({{.ColName}}))
+		// Inline conversion of FlatBuffers byte to Go bool: ({{.ColName}} != 0)
+		err = table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, ({{.ColName}} != 0))
 		if err != nil { return nil, err }
 		{{else}}
 		err = table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, {{.ColName}})

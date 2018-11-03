@@ -45,6 +45,9 @@ func init() {
 	The rules for reading a bool are:
 	When a stored value is interpreted as boolean it should not be assumed to be either 1 or 0 but rather as not equal to 0.
 	(From: https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#flatbuffers-binary-format)
+
+	byteToBool() is inlined wherever beneficial as: (byteVal != 0)
+	The parentheses are not necessary. Just easier to read.
 */
 func byteToBool(b byte) bool {
 	return b != 0
