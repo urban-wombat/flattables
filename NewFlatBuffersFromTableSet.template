@@ -46,6 +46,8 @@ var where = log.Print
 /*
 	This function NewFlatBuffersFromTableSet() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
 
+	... expecting breaks between paragraphs ...
+
 	(1) You must first run flattablesc (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 	Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
 	Utility flattablesc creates schema file <namespace>.fbs, and a custom set of functions in a file named <namespace>_flattables.go.
