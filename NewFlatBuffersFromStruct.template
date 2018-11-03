@@ -3,7 +3,7 @@ package {{.NameSpace}}
 /*
 	{{.GeneratedFile}}
 	DO NOT MODIFY
-	{{.GeneratedFrom}}
+	{{.GeneratedDateFromFile}}
 	{{.UsingCommand}}
 */
 

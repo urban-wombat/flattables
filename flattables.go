@@ -276,6 +276,12 @@ var generations = []GenerationInfo {
 			`"log"`,
 		},
 	},
+	{	FuncName: "NewArrayFromFlatBuffers",
+		Imports:  []string {
+			`"fmt"`,
+			`"log"`,
+		},
+	},
 }
 
 func GenerateAll(nameSpace string, verbose bool) error {
@@ -442,7 +448,9 @@ type TableInfo struct {
 }
 
 type TemplateInfo struct {
-	GeneratedFrom string
+//	GeneratedFrom string
+	GeneratedDateFromFile string
+	GeneratedFromFile string
 	UsingCommand string
 	NameSpace string	// Included in PackageName.
 	PackageName string	// Includes NameSpace
@@ -601,7 +609,8 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
 	templateInfo = TemplateInfo {
-		GeneratedFrom: generatedFrom(tableSet),
+		GeneratedDateFromFile: generatedDateFromFile(tableSet),
+		GeneratedFromFile: generatedFromFile(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
 		GotablesFileName: tableSet.FileName(),
 		Year: copyrightYear(),
@@ -635,18 +644,12 @@ func thisYear() (thisYear string) {
 	return
 }
 
-func generatedFrom(tableSet *gotables.TableSet) string {
-	var generatedFrom string
+func generatedDateFromFile(tableSet *gotables.TableSet) string {
+	return fmt.Sprintf("Generated %s from your gotables file %s", time.Now().Format("Monday 2 Jan 2006"), tableSet.FileName())
+}
 
-	if tableSet.FileName() != "" {
-		generatedFrom = fmt.Sprintf("Generated %s from your gotables file %s",
-			time.Now().Format("Monday 2 Jan 2006"), tableSet.FileName())
-	} else {
-		generatedFrom = fmt.Sprintf("Generated %s from your gotables.TableSet",
-			time.Now().Format("Monday 2 Jan 2006"))
-	}
-
-	return generatedFrom
+func generatedFromFile(tableSet *gotables.TableSet) string {
+	return fmt.Sprintf("%s", tableSet.FileName())
 }
 
 func usingCommand(tableSet *gotables.TableSet, packageName string) string {

@@ -3,7 +3,7 @@ package {{.NameSpace}}
 /*
 	{{.GeneratedFile}}
 	DO NOT MODIFY
-	{{.GeneratedFrom}}
+	{{.GeneratedDateFromFile}}
 	{{.UsingCommand}}
 */
 
@@ -157,7 +157,7 @@ func ({{$tableName|firstCharToLower}} *{{$tableName}}) RowCount() int {
 	{{$colName := $colInfo.ColName -}}
 	// All columns in the table are the same length, as required by gotables.
 	// Return the length of {{$colName}}, which is the first column in the table.
-	// Tables with zero columns are prohibited by flattablesc (even though allowed by gotables).
+	// This is safe, because tables with zero columns are prohibited by flattablesc (even though allowed by gotables).
 	return {{$tableName|firstCharToLower}}.{{$colName|firstCharToUpper}}Length()
 }
 

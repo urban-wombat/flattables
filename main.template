@@ -3,7 +3,7 @@ package main
 /*
     {{.GeneratedFile}}
     DO NOT MODIFY
-    {{.GeneratedFrom}}
+    {{.GeneratedDateFromFile}}
 	{{.UsingCommand}}
 */
 
@@ -192,6 +192,7 @@ func main() {
 	println()
 	{{end}}
 
+
 	println("#5 Getting FlatBuffers data using NewSliceFromFlatBuffers()")
 
 	// Returned slices is of type {{$nameSpace}}.RootTableSlice struct
@@ -209,54 +210,22 @@ func main() {
 		println()
 	{{end}}
 
-/*
-	{{$nameSpace := .NameSpace}}
-	{{range $tableIndex, $element := .Tables}}
-	{{$tableName := .Table.Name}}
-	// Table #{{$tableIndex}} {{.Table.Name}}
-	{
-		println("[{{$tableName}}]")
-		// Get the FlatBuffers bytes specific to table {{.Table.Name}}.
-		{{.Table.Name|firstCharToLower}}Bytes := flatTables.{{.Table.Name}}Bytes()
-		if {{.Table.Name|firstCharToLower}}Bytes == nil { panic(fmt.Errorf("{{.Table.Name|firstCharToLower}}Bytes is <nil>")) }
 
-		// Get the FlatBuffers {{.Table.Name}} object from its FlatBuffers bytes.
-		{{.Table.Name|firstCharToLower}} := {{$nameSpace}}.GetRootAs{{.Table.Name}}({{.Table.Name|firstCharToLower}}Bytes, 0)
-		if {{.Table.Name|firstCharToLower}} == nil { panic(fmt.Errorf("{{.Table.Name}} is <nil>")) }
+	println("#6 Getting FlatBuffers data using NewArrayFromFlatBuffers()")
 
+	// Returned arrays is of type {{$nameSpace}}.RootTableArray struct
+	// defined in {{$nameSpace}}_NewArrayFromFlatBuffers.go
+	var arrays {{$nameSpace}}.RootTableArray
+//	arrays, err = {{$nameSpace}}.NewArrayFromFlatBuffers(flatBuffers)
+	err = {{$nameSpace}}.NewArrayFromFlatBuffers(flatBuffers, &arrays)
+	if err != nil { panic(err) }
 
+//	fmt.Printf("%#v\n", arrays)
 
-		var rowCount int = {{.Table.Name|firstCharToLower}}.RowCount()
-		fmt.Printf("{{.Table.Name|firstCharToLower}} rowCount = %d\n", rowCount)
-
-		var colCount int = {{.Table.Name|firstCharToLower}}.ColCount()
-		fmt.Printf("{{.Table.Name|firstCharToLower}} colCount = %d\n", colCount)
-
-		for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
-		{{range .Cols}}
-			{{.ColName}} := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
-			{{- if .IsString}}
-			// FlatBuffers stores strings as []byte arrays. Convert {{.ColName}} []byte to string.
-			fmt.Printf("%-15s", string({{.ColName}}))
-			{{else if .IsBool}}
-			// FlatBuffers stores bools as bytes. Convert {{.ColName}} byte to bool.
-			var boolValue bool = {{.ColName}} != 0
-			fmt.Printf("%-6t", boolValue)
-			{{else}}
-			fmt.Printf("%6v", {{.ColName}})
-			{{end}}
-		{{end}}
-			fmt.Println()
+	{{range .Tables}}
+		for i := 0; i < len(arrays.TableArray_{{.Table.Name}}); i++ {
+			fmt.Printf("%#v\n", arrays.TableArray_{{.Table.Name}}[i])
 		}
-
-		// Use a gotables method to get the col type (for both Go and FlatBuffers) for each column.
-		for colIndex := 0; colIndex < colCount; colIndex++ {
-			goType, fbType, err := {{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex)
-			if err != nil { panic(err) }
-			fmt.Printf("{{.Table.Name|firstCharToLower}}.ColTypeByColIndex(colIndex) goType = %-8s fbType = %-8s\n", goType, fbType)
-		}
-	}
-	println()
+		println()
 	{{end}}
-*/
 }
