@@ -194,7 +194,9 @@ func main() {
 
 	println("#5 Getting FlatBuffers data using NewSliceFromFlatBuffers()")
 
-	var slices {{$nameSpace}}.TableSlices
+	// Returned slices is of type {{$nameSpace}}.RootTableSlice struct
+	// defined in {{$nameSpace}}_NewSliceFromFlatBuffers.go
+	var slices {{$nameSpace}}.RootTableSlice
 	slices, err = {{$nameSpace}}.NewSliceFromFlatBuffers(flatBuffers)
 	if err != nil { panic(err) }
 
