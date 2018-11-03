@@ -278,17 +278,17 @@ var generations = []GenerationInfo {
 	},
 }
 
-func GenerateAll(nameSpace string, verbose bool) {
+func GenerateAll(nameSpace string, verbose bool) error {
 	for _, genInfo := range generations {
-		code, err := generateGoCodeFromTemplate(genInfo, templateInfo, nameSpace, verbose)
-		_ = code
-		if err != nil {
-			fmt.Printf("err: %s\n", err)
-		}
+		// templateInfo is global.
+		err := generateGoCodeFromTemplate(genInfo, templateInfo, nameSpace, verbose)
+		if err != nil { return err }
 	}
+
+	return nil
 }
 
-func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo TemplateInfo, nameSpace string, verbose bool) (goCode string, err error) {
+func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo TemplateInfo, nameSpace string, verbose bool) (err error) {
 //gotables.PrintCaller()
 
 	var templateFile string
@@ -344,8 +344,8 @@ fmt.Printf("\n")
 	err = tplate.Execute(stringBuffer, templateInfo)
 	if err != nil { return }
 
+	var goCode string
 	goCode = stringBuffer.String()
-
 	goCode = RemoveExcessTabsAndNewLines(goCode)
 
 	err = ioutil.WriteFile(generatedFile, []byte(goCode), 0644)
@@ -354,7 +354,7 @@ fmt.Printf("\n")
 		os.Exit(30)
 	}
 
-	return goCode, err
+	return
 }
 
 // Compilation will fail if a user inadvertently uses a Go key word as a name.
