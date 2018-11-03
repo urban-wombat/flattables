@@ -230,8 +230,8 @@ var generationInfo GenerationInfo	// Temporary for compilation. This will be mov
 
 // Information specific to each generated function.
 type GenerationInfo struct {
-	FuncName   string
-	Imports  []string
+	FuncName   string	// Used as basename of *.template and *.go files. Not always a function name.
+	Imports  []string	// Imports for this template.
 }
 var generations = []GenerationInfo {
 	{	FuncName: "NewFlatBuffersFromTableSet",
@@ -239,10 +239,6 @@ var generations = []GenerationInfo {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
-//	  		`"log"`,
-			`"path/filepath"`,
-			`"runtime"`,
-			`"strings"`,
 		},
 	},
 	{	FuncName: "NewTableSetFromFlatBuffers",
@@ -266,7 +262,14 @@ var generations = []GenerationInfo {
 			`"fmt"`,
 		},
 	},
-// DOING
+	{	FuncName: "helpers",
+		Imports:  []string {
+			`"log"`,
+			`"path/filepath"`,
+			`"runtime"`,
+			`"strings"`,
+		},
+	},
 	{	FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,

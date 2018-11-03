@@ -141,26 +141,6 @@ func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet
 	return tableSet, nil
 }
 
-/*
-	FlatBuffers stores bool as byte=1 for true and byte=0 for false.
-
-	The rules for reading a bool are:
-	When a stored value is interpreted as boolean it should not be assumed to be either 1 or 0 but rather as not equal to 0.
-	(From: https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#flatbuffers-binary-format)
-*/
-func byteToBool(b byte) bool {
-	return b != 0
-}
-
-// Take no chances of writing beyond a column or vector length before all children have been checked.
-func min(a int, b int) int {
-	if a < b {
-		return a
-	} else {
-		return b
-	}
-}
-
 //
 // Helper functions
 //
