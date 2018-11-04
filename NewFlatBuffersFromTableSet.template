@@ -45,7 +45,7 @@ var where = log.Print
 
 /*
 	This function NewFlatBuffersFromTableSet() is generated automatically by `flattablesc`
-	github.com/urban-wombat/flattablesmain/flattablesc.go
+	https://github.com/urban-wombat/flattablesmain/flattablesc.go
 
 	Here is how to install and run flattablesc:
 	https://github.com/urban-wombat/flattables#a-simple-and-fast-way-to-get-started-with-google-flatbuffers
