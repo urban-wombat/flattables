@@ -516,6 +516,7 @@ func ExampleNewFlatBuffersFromTableSet() {
 	if err != nil { fmt.Println(err) }
 	err = snsTable.SetBool("female", rowIndex, false)
 	if err != nil { fmt.Println(err) }
+	// We "forgot" to set column "myui32", so it defaults to 0
 
 	// Populate Wombats table
 
