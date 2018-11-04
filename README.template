@@ -1,0 +1,6 @@
+# Your Generated Package: `{{.NameSpace}}`
+
+## Online documentation - only works for `urban-wombat`
+
+* [package {{.NameSpace}}](https://godoc.org/github.com/urban-wombat/{{.NameSpace}})
+* [Command {{.NameSpace}}_main](https://godoc.org/github.com/urban-wombat/{{.NameSpace}}_main)

@@ -75,7 +75,7 @@ func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTa
 		return nil, nil, fmt.Errorf("Could not create FlatBuffers builder") 
 	}
 
-	var buffers = make([][]byte, tableSet.TableCount()) // For all the tables.
+	var buffers = make([][]byte, tableSet.TableCount()) // A buffer for each of the tables.
 	var table *gotables.Table
 
 	// Call each function to get its FlatBuffers buffer.

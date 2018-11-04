@@ -260,6 +260,7 @@ var generations = []GenerationInfo {
 			`"github.com/urban-wombat/gotables"`,
 			`"testing"`,
 			`"fmt"`,
+			`"log"`,
 		},
 	},
 	{	FuncName: "helpers",
@@ -280,6 +281,10 @@ var generations = []GenerationInfo {
 		Imports:  []string {
 			`"fmt"`,
 			`"log"`,
+		},
+	},
+	{	FuncName: "README",
+		Imports:  []string {
 		},
 	},
 }
@@ -304,18 +309,24 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 	// Calculate input template file name.
 	templateFile = "../flattables/" + generationInfo.FuncName + ".template"
 
-	// Calculate output Go dir name.
+	// Calculate output dir name.
 	switch generationInfo.FuncName {
-		case "main":
-			outDir = "../" + nameSpace + "_main"	// main is in its own directory
-		default:
+		case "main":	// main is in its own directory
+			outDir = "../" + nameSpace + "_main"
+		default:		// the typical case
 			outDir = "../" + nameSpace
 	}
 
-	// Calculate output Go file name.
-	generatedFile = outDir + "/" + nameSpace + "_" + generationInfo.FuncName + ".go"
+	// Calculate output file name.
+	switch generationInfo.FuncName {
+		case "README":	// README is a markdown .md file
+			generatedFile = outDir + "/" + generationInfo.FuncName + ".md"
+		default:		// the typical case
+			generatedFile = outDir + "/" + nameSpace + "_" + generationInfo.FuncName + ".go"
+	}
 	if verbose { fmt.Printf("     Generating: %s\n", generatedFile) }
 
+	templateInfo.SchemaFileName = outDir + "/" + nameSpace + ".fbs"
 	templateInfo.GeneratedFile = generatedFile
 	templateInfo.FuncName = generationInfo.FuncName
 	templateInfo.Imports = generationInfo.Imports
@@ -448,7 +459,6 @@ type TableInfo struct {
 }
 
 type TemplateInfo struct {
-//	GeneratedFrom string
 	GeneratedDateFromFile string
 	GeneratedFromFile string
 	UsingCommand string
