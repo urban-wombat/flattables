@@ -260,7 +260,7 @@ var generations = []GenerationInfo {
 			`"github.com/urban-wombat/gotables"`,
 			`"testing"`,
 			`"fmt"`,
-			`"log"`,
+//			`"log"`,
 		},
 	},
 	{	FuncName: "helpers",
