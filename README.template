@@ -4,3 +4,4 @@
 
 * [package {{.NameSpace}}](https://godoc.org/github.com/urban-wombat/{{.NameSpace}})
 * [Command {{.NameSpace}}_main](https://godoc.org/github.com/urban-wombat/{{.NameSpace}}_main)
+* [All Go code and the FlatBuffers schema are generated from this gotables file](https://github.com/urban-wombat/{{.NameSpace}}/blob/master/tables.got)

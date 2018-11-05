@@ -416,7 +416,9 @@ func ExampleNewFlatBuffersFromTableSet() {
 	This is the setup.
 	We will use the contents of "{{.GotablesFileName}}"
 	A *gotables.TableSet is a set of one or more gotables tables,
-	not necessarily stored in a file.
+	not necessarily stored in a file. See the file we used in the link below:
+
+	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
 */
 	var tableSet1 *gotables.TableSet
 	var err error
@@ -488,33 +490,33 @@ func ExampleNewFlatBuffersFromTableSet() {
 
 	// Populate StringsAndThings table
 
-	snsTable, err := tableSet2.Table("StringsAndThings")
+	sntTable, err := tableSet2.Table("StringsAndThings")
 	if err != nil { fmt.Println(err) }
 
 	var rowIndex int
 	rowIndex = 0
-	err = snsTable.AppendRow()
+	err = sntTable.AppendRow()
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetString("flintstones", rowIndex, "Dino")
+	err = sntTable.SetString("flintstones", rowIndex, "Dino")
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetInt8("nums", rowIndex, 42)
+	err = sntTable.SetInt8("nums", rowIndex, 42)
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetString("spain", rowIndex, "Salvador")
+	err = sntTable.SetString("spain", rowIndex, "Salvador")
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetBool("female", rowIndex, false)
+	err = sntTable.SetBool("female", rowIndex, false)
 	if err != nil { fmt.Println(err) }
 
 	rowIndex = 1
-	err = snsTable.AppendRow()
+	err = sntTable.AppendRow()
 	if err != nil { fmt.Println(err) }
 	// Hoppy is a pet hopparoo (a combination of a kangaroo and dinosaur)
-	err = snsTable.SetString("flintstones", rowIndex, "Hoppy")
+	err = sntTable.SetString("flintstones", rowIndex, "Hoppy")
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetInt8("nums", rowIndex, 43)
+	err = sntTable.SetInt8("nums", rowIndex, 43)
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetString("spain", rowIndex, "Dali")
+	err = sntTable.SetString("spain", rowIndex, "Dali")
 	if err != nil { fmt.Println(err) }
-	err = snsTable.SetBool("female", rowIndex, false)
+	err = sntTable.SetBool("female", rowIndex, false)
 	if err != nil { fmt.Println(err) }
 	// We "forgot" to set column "myui32", so it defaults to 0
 

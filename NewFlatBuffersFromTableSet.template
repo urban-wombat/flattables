@@ -44,6 +44,12 @@ var where = log.Print
 */
 
 /*
+	The flatBuffers bytes are ready for transmission.
+
+	The flatTables object is ready for you to invoke FlatBuffers methods on it.
+
+	The name NewFlatBuffersFromTableSet() is hard-coded, as is the root_type table FlatTables.
+
 	This function NewFlatBuffersFromTableSet() is generated automatically by flattablesc
 
 	https://github.com/urban-wombat/gotablesutils/blob/master/README.md#flattablesc
@@ -52,17 +58,7 @@ var where = log.Print
 
 	https://github.com/urban-wombat/flattables#a-simple-and-fast-way-to-get-started-with-google-flatbuffers
 
-	flattablesc does everything for you. Run flattablesc with -v
-
-	The FlatTables custom generated functions have a signature pattern:
-
-	func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
-
-	The flatBuffers bytes are ready for transmission.
-
-	The flatTables object is ready for you to invoke FlatBuffers methods on it.
-
-	The name NewFlatBuffersFromTableSet() is hard-coded, as is the root_type table FlatTables.
+	flattablesc does all the code generation. Run flattablesc with -v
 */
 func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
 	if tableSet == nil { return nil, nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName()) }
