@@ -644,7 +644,7 @@ func ExampleNewSliceFromFlatBuffers() {
 	This is the setup.
 
 	We need to create some FlatBuffers data from which to
-	demonstrate converting it back to a Go slice.
+	demonstrate converting it to a Go slice.
 
 	We will use the contents of "{{.GotablesFileName}}"
 	A *gotables.TableSet is a set of one or more gotables tables,
@@ -678,8 +678,10 @@ func ExampleNewSliceFromFlatBuffers() {
 */
 
 	//	Now convert it to tables in a struct of Go slices ...
-	// Returned slices is of type {{.NameSpace}}.RootTableSlice struct
-	// defined in {{.NameSpace}}_NewSliceFromFlatBuffers.go
+	// Returned slices is a struct of type {{.NameSpace}}.RootTableSlice
+	// Each field in the struct is a slice of table rows.
+	// Defined in {{.NameSpace}}_NewSliceFromFlatBuffers.go
+	// See https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go
 	var slices RootTableSlice
 	slices, err = NewSliceFromFlatBuffers(flatBuffers)
 	if err != nil { panic(err) }
@@ -691,7 +693,6 @@ func ExampleNewSliceFromFlatBuffers() {
 		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
 			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
 		}
-		println()
 	{{end}}
 
 	// Output:
