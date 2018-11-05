@@ -234,18 +234,8 @@ type GenerationInfo struct {
 	Imports  []string	// Imports for this template.
 }
 var generations = []GenerationInfo {
-	{	FuncName: "NewFlatBuffersFromTableSet",
+	{	FuncName: "README",
 		Imports:  []string {
-			`flatbuffers "github.com/google/flatbuffers/go"`,
-			`"github.com/urban-wombat/gotables"`,
-			`"fmt"`,
-		},
-	},
-	{	FuncName: "NewTableSetFromFlatBuffers",
-		Imports:  []string {
-			`"github.com/urban-wombat/gotables"`,
-			`"fmt"`,
-			`"log"`,
 		},
 	},
 	{	FuncName: "main",	// Not really a function name.
@@ -260,7 +250,6 @@ var generations = []GenerationInfo {
 			`"bytes"`,
 			`"fmt"`,
 			`"github.com/urban-wombat/gotables"`,
-//			`"log"`,
 			`"testing"`,
 		},
 	},
@@ -272,26 +261,36 @@ var generations = []GenerationInfo {
 			`"strings"`,
 		},
 	},
+	{	FuncName: "NewFlatBuffersFromTableSet",
+		Imports:  []string {
+			`flatbuffers "github.com/google/flatbuffers/go"`,
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+		},
+	},
+	{	FuncName: "NewTableSetFromFlatBuffers",
+		Imports:  []string {
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+			`"log"`,
+		},
+	},
 	{	FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 			`"log"`,
 		},
 	},
-	{	FuncName: "NewArrayFromFlatBuffers",
-		Imports:  []string {
-			`"fmt"`,
-			`"log"`,
-		},
-	},
-	{	FuncName: "README",
-		Imports:  []string {
-		},
-	},
 	{	FuncName: "NewFlatBuffersFromSlice",
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"fmt"`,
+		},
+	},
+	{	FuncName: "NewArrayFromFlatBuffers",
+		Imports:  []string {
+			`"fmt"`,
+			`"log"`,
 		},
 	},
 }
