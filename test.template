@@ -777,3 +777,83 @@ func ExampleNewFlatBuffersFromSlice() {
 	// Output:
 	// bytes.Equal(flatBuffers1, flatBuffers2) = true
 }
+
+func BenchmarkNewSliceFromFlatBuffers(__b *testing.B) {
+	// __b leading underscores to avoid name conflict with generated code.
+
+	var err error
+
+	var tableSet1 *gotables.TableSet
+	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	if err != nil { __b.Error(err) }
+
+	var flatBuffers []byte
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	if err != nil { __b.Error(err) }
+
+	var slices RootTableSlice
+	// Begin benchmark ...
+	for i := 0; i < __b.N; i++ {
+		slices, err = NewSliceFromFlatBuffers(flatBuffers)
+		if err != nil { __b.Error(err) }
+		_ = slices
+	}
+
+
+/*
+	_, flatBuffers2, err := NewFlatBuffersFromSlice(slices)
+	if err != nil { panic(err) }
+	equals := bytes.Equal(flatBuffers, flatBuffers2)
+	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
+*/
+
+//	__b.Log(fmt.Sprintf("%#v\n", slices))
+/*
+	// Here are the returned slices as text:
+	{{range .Tables}}
+		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
+			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
+		}
+	{{end}}
+*/
+}
+
+func BenchmarkOldSliceFromFlatBuffers(__b *testing.B) {
+	// __b leading underscores to avoid name conflict with generated code.
+
+	var err error
+
+	var tableSet1 *gotables.TableSet
+	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	if err != nil { __b.Error(err) }
+
+	var flatBuffers []byte
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	if err != nil { __b.Error(err) }
+
+	var slices RootTableSlice
+	// Begin benchmark ...
+	for i := 0; i < __b.N; i++ {
+		err = OldSliceFromFlatBuffers(&slices, flatBuffers)
+		if err != nil { __b.Error(err) }
+		_ = slices
+	}
+
+
+/*
+	_, flatBuffers2, err := NewFlatBuffersFromSlice(slices)
+	if err != nil { panic(err) }
+	equals := bytes.Equal(flatBuffers, flatBuffers2)
+	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
+*/
+
+//	__b.Log(fmt.Sprintf("%#v\n", slices))
+/*
+	// Here are the returned slices as text:
+	{{range .Tables}}
+		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
+			__b.Log(fmt.Sprintf("%#v\n", slices.TableSlice_{{.Table.Name}}[i]))
+		}
+	{{end}}
+*/
+}

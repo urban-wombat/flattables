@@ -226,8 +226,6 @@ func rowCount(table *gotables.Table) int {
 	return table.RowCount()
 }
 
-var generationInfo GenerationInfo	// Temporary for compilation. This will be moved to flattablesc.go
-
 // Information specific to each generated function.
 type GenerationInfo struct {
 	FuncName   string	// Used as basename of *.template and *.go files. Not always a function name.
@@ -276,6 +274,12 @@ var generations = []GenerationInfo {
 		},
 	},
 	{	FuncName: "NewSliceFromFlatBuffers",
+		Imports:  []string {
+			`"fmt"`,
+			`"log"`,
+		},
+	},
+	{	FuncName: "OldSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 			`"log"`,
@@ -672,7 +676,7 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	var usingCommand string
 
 	// Sample:
-	// flattablesc -f ../flattables_sample/tables.got -n flattables_sample
+	// flattablesc -f ../flattables_sample/tables.got -n flattables_sample -p package_name
 
 	nameSpace := tableSet.Name()
 	fileName := filepath.Base(tableSet.FileName())
@@ -680,7 +684,7 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	indent := "\t"
 	usingCommand = "using the following command:\n"
 	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", nameSpace, fileName))
-	usingCommand += indentText(indent, fmt.Sprintf("$ flattablesc -f ../%s/%s -n %s -p %s\n",
+	usingCommand += indentText(indent, fmt.Sprintf("$ flattablesc -v -f ../%s/%s -n %s -p %s\n",
 		nameSpace, fileName, nameSpace, packageName))
 	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
 
