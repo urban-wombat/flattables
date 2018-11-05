@@ -48,9 +48,9 @@ var where = log.Print
 
 	The flatTables object is ready for you to invoke FlatBuffers methods on it.
 
-	The name NewFlatBuffersFromTableSet() is hard-coded, as is the root_type table FlatTables.
+	The name {{.FuncName}}() is hard-coded, as is the root_type table FlatTables.
 
-	This function NewFlatBuffersFromTableSet() is generated automatically by flattablesc
+	This function {{.FuncName}}() is generated automatically by flattablesc
 
 	https://github.com/urban-wombat/gotablesutils/blob/master/README.md#flattablesc
 
