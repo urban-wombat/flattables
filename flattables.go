@@ -257,10 +257,11 @@ var generations = []GenerationInfo {
 	},
 	{	FuncName: "test",	// Not really a function name.
 		Imports:  []string {
-			`"github.com/urban-wombat/gotables"`,
-			`"testing"`,
+			`"bytes"`,
 			`"fmt"`,
+			`"github.com/urban-wombat/gotables"`,
 //			`"log"`,
+			`"testing"`,
 		},
 	},
 	{	FuncName: "helpers",
@@ -285,6 +286,12 @@ var generations = []GenerationInfo {
 	},
 	{	FuncName: "README",
 		Imports:  []string {
+		},
+	},
+	{	FuncName: "NewFlatBuffersFromSlice",
+		Imports:  []string {
+			`flatbuffers "github.com/google/flatbuffers/go"`,
+			`"fmt"`,
 		},
 	},
 }

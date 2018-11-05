@@ -61,7 +61,7 @@ var where = log.Print
 	flattablesc does all the code generation. Run flattablesc with -v
 */
 func NewFlatBuffersFromTableSet(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
-	if tableSet == nil { return nil, nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName()) }
+	if tableSet == nil { return nil, nil, fmt.Errorf("%s(): tableSet *gotables.TableSet is <nil>", funcName()) }
 
 	const initialSize = 0
 	builder := flatbuffers.NewBuilder(initialSize)

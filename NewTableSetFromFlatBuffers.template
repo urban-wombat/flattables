@@ -58,12 +58,8 @@ func init() {
 	flattablesc does all the code generation. Run flattablesc with -v
 */
 func NewTableSetFromFlatBuffers(flatBuffers []byte) (tableSet *gotables.TableSet, err error) {
-	if flatBuffers == nil {
-		return nil, fmt.Errorf("table.%s() flatBuffers []byte is <nil>", funcName())
-	}
-	if len(flatBuffers) == 0 {
-		return nil, fmt.Errorf("table.%s() len(flatBuffers) []byte = 0", funcName())
-	}
+	if flatBuffers == nil { return nil, fmt.Errorf("%s() flatBuffers []byte is <nil>", funcName()) }
+	if len(flatBuffers) == 0 { return nil, fmt.Errorf("%s() len(flatBuffers) []byte = 0", funcName()) }
 
 	// Use a stripped down set of tables as a kind of metadata schema.
 	// This is the source gotables tables stripped of any data, for simplicity.

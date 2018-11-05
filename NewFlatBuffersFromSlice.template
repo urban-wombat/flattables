@@ -8,7 +8,7 @@ package {{.NameSpace}}
 */
 
 import (
-	{{range .NewFlatBuffersFromStructImports}}
+	{{range .Imports}}
 	{{- .}}
 	{{end}}
 //	"log"	// For use with where
@@ -43,16 +43,8 @@ func init() {
 var where = log.Print
 */
 
-func funcName() string {
-	pc, _, _, _ := runtime.Caller(1)
-	nameFull := runtime.FuncForPC(pc).Name() // main.foo
-	nameEnd := filepath.Ext(nameFull)        // .foo
-	name := strings.TrimPrefix(nameEnd, ".") // foo
-	return name
-}
-
 /*
-	This function NewFlatBuffersFromStruct() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
+	This function {{.FuncName}}() is generated automatically by github.com/urban-wombat/flattablesmain/flattablesc.go
 
 	(1) You must first run flattablesc (means: gotables FlatTables) pass it -f <gotables-file> and specify -n <namespace>.
 		Go package dir <namespace> will be created. All flatbuffers flatc and flattables generated code will land in dir <namespace>.
@@ -60,22 +52,20 @@ func funcName() string {
 		Utility goft generates everything you need. It relies on flatc being installed, which it calls.
 
 	(2) The FlatTables custom generated functions have a signature pattern:
-	    func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
+	    func {{.FuncName}}(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error)
 		The flatBuffers bytes are ready for transmission.
 		The flatTables object is ready for you to invoke methods on it.
-		The name NewFlatBuffersFromStruct() is hard-coded, as is the root_type table FlatTables.
+		The name {{.FuncName}}() is hard-coded, as is the root_type table FlatTables.
 
-		Subsidiary functions (called by NewFlatBuffersFromStruct(), and which you may call directly by passing in a *gotables.Table)
+		Subsidiary functions (called by {{.FuncName}}(), and which you may call directly by passing in a *gotables.Table)
 		have the same signature pattern, with their name soft-coded to reflect the table names in gotables and the schema:
 		func <table-name>FlatBuffersFromTable(table *gotables.Table) (flatTables *<table-name>, flatBuffers []byte, err error)
 
 	(3) All of the types are in package <namespace>, which means a main function would import <namespace>, and the types would be
 	    <namespace>.FlatTables for the root_type, and <namespace>.<table-name> for each data table.
 */
-func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTables, flatBuffers []byte, err error) {
-	if tableSet == nil {
-		return nil, nil, fmt.Errorf("tableSet.%s() tableSet is <nil>", funcName())
-	}
+func NewFlatBuffersFromSlice(slices RootTableSlice) (flatTables *FlatTables, flatBuffers []byte, err error) {
+	// We can't easily check here whether slices is empty without essentially implementing the entire function.
 
 	const initialSize = 0
 	builder := flatbuffers.NewBuilder(initialSize)
@@ -83,24 +73,22 @@ func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTabl
 		return nil, nil, fmt.Errorf("Could not create FlatBuffers builder") 
 	}
 
-	var buffers = make([][]byte, tableSet.TableCount()) // For all the tables.
-	var table *gotables.Table
+	// Make slice of []byte buffers for each of the {{len .Tables}} table slices in RootTableSlice
+	var buffers = make([][]byte, {{len .Tables}}) // For all the tables.
 
 	// Call each function to get its FlatBuffers buffer.
 
 	{{range $tableIndex, $element := .Tables}}
-	// Get {{.Table.Name}} as FlatBuffers from *gotables.Table
-	table, err = tableSet.TableByTableIndex({{$tableIndex}})
-	if err != nil { return nil, nil, err }
+	// Get {{.Table.Name}} as FlatBuffers from slices.TableSlice_{{.Table.Name}}
 
 	// Convert it to flatbuffers.
-	_, buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromTable(table)
+	_, buffers[{{$tableIndex}}], err = {{.Table.Name}}FlatBuffersFromSlice(slices.TableSlice_{{.Table.Name}})
 	if err != nil { return nil, nil, err }
 	{{end}}	{{/* end tables */}}
 
 	// Now populate FlatTables
 
-	var offsets []flatbuffers.UOffsetT = make([]flatbuffers.UOffsetT, tableSet.TableCount())
+	var offsets []flatbuffers.UOffsetT = make([]flatbuffers.UOffsetT, {{len .Tables}})
 
 	{{range $tableIndex, $element := .Tables -}}
 	{{/* Save .Table.Name before it goes out of scope. */}}
@@ -132,10 +120,8 @@ func NewFlatBuffersFromStruct(tableSet *gotables.TableSet) (flatTables *FlatTabl
 {{range $tableIndex, $element := .Tables}}
 {{/* Save .Table.Name before it goes out of scope. */}}
 {{$tableName := .Table.Name}}
-func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.Table.Name}}, flatBuffers []byte, err error) {
-	if table == nil {
-		return nil, nil, fmt.Errorf("table.%s() table is <nil>", funcName())
-	}
+{{$table := .Table}}
+func {{.Table.Name}}FlatBuffersFromSlice(slice []TableSlice_{{.Table.Name}}) (flatTables *{{.Table.Name}}, flatBuffers []byte, err error) {
 
 	const initialSize = 0
 	builderLocal := flatbuffers.NewBuilder(initialSize)
@@ -155,37 +141,33 @@ func {{.Table.Name}}FlatBuffersFromTable(table *gotables.Table) (flatTables *{{.
 
 	{{if .IsScalar}}	{{/* FlatBuffers Scalar includes bool */}}
 
-	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
-	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
-		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-		if err != nil { return nil, nil, err }
+	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, len(slice))
+	for rowIndex := len(slice)-1; rowIndex >= 0; rowIndex-- {
+		cell := slice[rowIndex].{{.ColName|firstCharToUpper}}
 
-		// Prepend the scalar values.
-
-		builderLocal.Prepend{{if .IsScalar}}{{.ColType | firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
+		// Prepend scalar value.
+		builderLocal.Prepend{{if .IsScalar}}{{.ColType|firstCharToUpper}}(cell){{else}}UOffsetT({{.ColName}}Vector){{end}}
 	}
-	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+	{{.ColName}}Vector = builderLocal.EndVector(len(slice))
 
 	{{else if .IsString}}
 
 	// Type {{.ColType}} is a vector.
 	// Create {{.ColType}} vector outside {{$tableName}}Start{{.ColName | firstCharToUpper}}Vector() to avoid nesting error.
-
-	{{.ColName}}Offsets := make([]flatbuffers.UOffsetT, table.RowCount())
-	for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
-		cell, err := table.Get{{.ColType | firstCharToUpper}}("{{.ColName}}", rowIndex)
-		if err != nil { return nil, nil, err }
+	{{.ColName}}Offsets := make([]flatbuffers.UOffsetT, len(slice))
+	for rowIndex := 0; rowIndex < len(slice); rowIndex++ {
+		cell := slice[rowIndex].{{.ColName|firstCharToUpper}}
 
 		{{.ColName}}Offsets[rowIndex] = builderLocal.CreateString(cell)
 	}
 
 	// Now prepend the offsets (which are scalar).
 
-	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, table.RowCount())
-	for rowIndex := table.RowCount()-1; rowIndex >= 0; rowIndex-- {
+	{{$tableName}}Start{{.ColName | firstCharToUpper}}Vector(builderLocal, len(slice))
+	for rowIndex := len(slice)-1; rowIndex >= 0; rowIndex-- {
 		builderLocal.PrependUOffsetT({{.ColName}}Offsets[rowIndex])
 	}
-	{{.ColName}}Vector = builderLocal.EndVector(table.RowCount())
+	{{.ColName}}Vector = builderLocal.EndVector(len(slice))
 
 	{{- else}}
 	return nil, nil, fmt.Errorf("Unimplemented col type: %s", {{.ColType}})
