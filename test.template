@@ -261,7 +261,7 @@ func BenchmarkGetAndCompareFlatBuffersObjectsWithEquivalentGotablesObjects(__b *
 	}
 }
 
-func BenchmarkWrite(__b *testing.B) {
+func BenchmarkWriteDataToGotablesByColName(__b *testing.B) {
 	var err error
 
 	{{range $tableIndex, $table := .Tables}}
@@ -298,40 +298,96 @@ func BenchmarkWrite(__b *testing.B) {
 		if err != nil { __b.Error(err) }
 
 		{{range $tableIndex, $table := .Tables}}
-		{
-			var {{$table.TableName|firstCharToLower}}Table *gotables.Table
-			{{$table.TableName|firstCharToLower}}Table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", {{$table.TableName|firstCharToLower}}ColNames, {{$table.TableName|firstCharToLower}}ColTypes)
-			if err != nil { __b.Error(err) }
+		var {{$table.TableName|firstCharToLower}}Table *gotables.Table
+		{{$table.TableName|firstCharToLower}}Table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", {{$table.TableName|firstCharToLower}}ColNames, {{$table.TableName|firstCharToLower}}ColTypes)
+		if err != nil { __b.Error(err) }
 
-/*			Isn't any faster than individual calls to AppendRow(). AppendRows() needs tuning?
-			err = {{$table.TableName|firstCharToLower}}Table.AppendRows(len({{$table.TableName|firstCharToLower}}))
-			if err != nil { __b.Error(err) }
+/*		Isn't any faster than individual calls to AppendRow(). AppendRows() needs tuning?
+		err = {{$table.TableName|firstCharToLower}}Table.AppendRows(len({{$table.TableName|firstCharToLower}}))
+		if err != nil { __b.Error(err) }
 */
 
-			for rowIndex := 0; rowIndex < len({{$table.TableName|firstCharToLower}}); rowIndex++ {
-				err = {{$table.TableName|firstCharToLower}}Table.AppendRow()
-				if err != nil { __b.Error(err) }
-
-				{{- range $table.Cols}}
-
-				err = {{$table.TableName|firstCharToLower}}Table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, {{$table.TableName|firstCharToLower}}[rowIndex].{{.ColName}})
-				if err != nil { __b.Error(err) }
-				{{- end}}
-			}
-
-			err = tableSet.AppendTable({{$table.TableName|firstCharToLower}}Table)
+		for rowIndex := 0; rowIndex < len({{$table.TableName|firstCharToLower}}); rowIndex++ {
+			err = {{$table.TableName|firstCharToLower}}Table.AppendRow()
 			if err != nil { __b.Error(err) }
-		}
-		{{end}}
 
-		var flatTables *FlatTables
-		flatTables, _, err = NewFlatBuffersFromTableSet(tableSet)
-		if err != nil { __b.Fatal(err) }
-		flatTables = flatTables	// To get past compiler.
+			{{- range $table.Cols}}
+
+			err = {{$table.TableName|firstCharToLower}}Table.Set{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex, {{$table.TableName|firstCharToLower}}[rowIndex].{{.ColName}})
+			if err != nil { __b.Error(err) }
+			{{- end}}
+		}
+
+		err = tableSet.AppendTable({{$table.TableName|firstCharToLower}}Table)
+		if err != nil { __b.Error(err) }
+		{{end}}
 	}
 }
 
-func BenchmarkRead(__b *testing.B) {
+func BenchmarkWriteDataToGotablesByColIndex(__b *testing.B) {
+	var err error
+
+	{{range $tableIndex, $table := .Tables}}
+
+	type {{$table.TableName}} struct {
+	{{- range .Cols}}
+		{{.ColName}} {{.ColType -}}
+	{{end}}
+	}
+
+	var {{$table.TableName|firstCharToLower}} = []{{$table.TableName}} {
+	{{range $rowIndex, $row := .Rows -}}
+		{{print "\t"}}{ {{range $colIndex, $cell := $row -}}
+		{{index $table.ColNames $colIndex}}:{{$cell}},{{print " " -}}
+	{{end}}},
+	{{end}}
+	}
+
+	var {{$table.TableName|firstCharToLower}}ColNames = []string { {{range $colIndex, $colName := $table.ColNames -}}
+		"{{$colName -}}",{{print " "}}
+	{{- end}}}
+	var {{$table.TableName|firstCharToLower}}ColTypes = []string { {{range $colIndex, $colType := $table.ColTypes -}}
+		"{{$colType -}}",{{print " "}}
+	{{- end}}}
+
+	{{end}}
+
+
+	// Begin benchmark ...
+	for i := 0; i < __b.N; i++ {
+
+		var tableSet *gotables.TableSet
+		tableSet, err = gotables.NewTableSet("MyTableSet")
+		if err != nil { __b.Error(err) }
+
+		{{range $tableIndex, $table := .Tables}}
+		var {{$table.TableName|firstCharToLower}}Table *gotables.Table
+		{{$table.TableName|firstCharToLower}}Table, err = gotables.NewTableFromMetadata("{{$table.TableName}}", {{$table.TableName|firstCharToLower}}ColNames, {{$table.TableName|firstCharToLower}}ColTypes)
+		if err != nil { __b.Error(err) }
+
+/*		Isn't any faster than individual calls to AppendRow(). AppendRows() needs tuning?
+		err = {{$table.TableName|firstCharToLower}}Table.AppendRows(len({{$table.TableName|firstCharToLower}}))
+		if err != nil { __b.Error(err) }
+*/
+
+		for rowIndex := 0; rowIndex < len({{$table.TableName|firstCharToLower}}); rowIndex++ {
+			err = {{$table.TableName|firstCharToLower}}Table.AppendRow()
+			if err != nil { __b.Error(err) }
+
+			{{- range $table.Cols}}
+
+			err = {{$table.TableName|firstCharToLower}}Table.Set{{.ColType|firstCharToUpper}}ByColIndex({{.ColIndex}}, rowIndex, {{$table.TableName|firstCharToLower}}[rowIndex].{{.ColName}})
+			if err != nil { __b.Error(err) }
+			{{- end}}
+		}
+
+		err = tableSet.AppendTable({{$table.TableName|firstCharToLower}}Table)
+		if err != nil { __b.Error(err) }
+		{{end}}
+	}
+}
+
+func BenchmarkReadDataFromFlatBuffersToGotables(__b *testing.B) {
 	// __b leading underscores to avoid name conflict with generated code.
 
 	var err error
@@ -383,25 +439,53 @@ func BenchmarkRead(__b *testing.B) {
 		{{$tableName := .Table.Name -}}
 		{{range .Cols}}
 
-// HERE
 		for rowIndex := 0; rowIndex < {{$tableName|firstCharToLower}}.RowCount(); rowIndex++ {	// {{.ColType}}
-{{/*
-// fmt.Printf("rowIndex = %d\n", rowIndex)
-			{{- if .IsString}}
-			aVal := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
-			aVal = aVal	// For compiler.
-gotables.PrintStderr(fmt.Sprintf(".IsString: %v\n", aVal))
-			{{- else if .IsScalar}}
-			aVal := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
-			aVal = aVal	// For compiler.
-gotables.PrintStderr(fmt.Sprintf(".IsScalar: %v\n", aVal))
-			{{- else}}
-			__b.Errorf("Unimplemented col type: %s", {{.ColType}})
-			{{end}}
-*/}}
 			aVal := {{$tableName|firstCharToLower}}.{{.ColName|firstCharToUpper}}(rowIndex)
 			_ = aVal	// For compiler.
-// fmt.Printf("value = %v\n", aVal)
+		}
+		{{end}}
+		{{end -}}	{{/* end tables */}}
+	}
+}
+
+func BenchmarkReadDataFromGotables(__b *testing.B) {
+	// __b leading underscores to avoid name conflict with generated code.
+
+	var err error
+
+	/* Note:
+		The data doesn't have to be read from a file. See func BenchmarkRead() where
+		a new TableSet is created and populated from data in memory.
+	*/
+	var tableSet *gotables.TableSet
+	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	if err != nil { __b.Error(err) }
+
+	{{/* Save .PackageName before it goes out of scope. */}}
+	{{- $packageName := .PackageName -}}
+
+	// Begin benchmark ...
+	for i := 0; i < __b.N; i++ {
+
+		// "loop" through tables.
+
+		{{- range $tableIndex, $element := .Tables}}
+		{{/* Save .Table.Name before it goes out of scope. */}}
+		{{$tableName := .Table.Name}}
+
+		// table #{{$tableIndex}}
+
+		{{.Table.Name|firstCharToLower}}, err := tableSet.TableByTableIndex({{$tableIndex}})
+		if err != nil { __b.Error(err) }
+
+		{{/* Save .Table.Name before it goes out of scope. */}}
+		{{$tableName := .Table.Name -}}
+		{{range .Cols}}
+
+		for rowIndex := 0; rowIndex < {{$tableName|firstCharToLower}}.RowCount(); rowIndex++ {	// {{.ColType}}
+			val, err := {{$tableName|firstCharToLower}}.Get{{.ColType|firstCharToUpper}}("{{.ColName}}", rowIndex)
+			_ = val	// For compiler.
+			if err != nil { __b.Error(err) }
 		}
 		{{end}}
 		{{end -}}	{{/* end tables */}}
@@ -698,6 +782,84 @@ func ExampleNewSliceFromFlatBuffers() {
 	{{range .Tables}}
 		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
 			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
+		}
+	{{end}}
+
+	// Output:
+	// flattables_sample.TableSlice_MyXyzTable{X:4, Y:5, Z:6}
+	// flattables_sample.TableSlice_MyXyzTable{X:44, Y:55, Z:66}
+	// flattables_sample.TableSlice_MyXyzTable{X:444, Y:555, Z:666}
+	// flattables_sample.TableSlice_MyXyzTable{X:4444, Y:5555, Z:6666}
+	// flattables_sample.TableSlice_MyXyzTable{X:16, Y:32, Z:64}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Fred", Nums:0, Spain:"The rain", Female:false, Myui32:0x0}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Wilma", Nums:1, Spain:"in Spain", Female:true, Myui32:0xb}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Barney", Nums:2, Spain:"stays mainly", Female:false, Myui32:0x16}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Betty", Nums:3, Spain:"in", Female:true, Myui32:0x21}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Bam Bam", Nums:4, Spain:"the", Female:false, Myui32:0x2c}
+	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Pebbles", Nums:5, Spain:"plain.", Female:true, Myui32:0x37}
+	// flattables_sample.TableSlice_Wombats{HousingPolicy:"burrow", TopSpeedKmH:40, Species:"Vombatus", Class:"Mammalia", Wild:true}
+}
+
+func ExampleOldSliceFromFlatBuffers() {
+/*
+	This is the setup.
+
+	We need to create some FlatBuffers data from which to
+	demonstrate converting it to a Go slice.
+
+	We will use the contents of "{{.GotablesFileName}}"
+	A *gotables.TableSet is a set of one or more gotables tables,
+	not necessarily stored in a file. See the file we used in the link below:
+
+	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
+*/
+	var tableSet1 *gotables.TableSet
+	var err error
+	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	if err != nil { fmt.Println(err) }
+
+/*
+	Code in this "{{.NameSpace}}" package is generated by flatc using FlatBuffers
+	schema "{{.SchemaFileName}}" which in turn is generated
+	by flattablesc from gotables *gotables.TableSet "{{.GotablesFileName}}"
+
+	Converting a set of tables to FlatBuffers is a single function call.
+*/
+	var flatBuffers []byte
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	if err != nil { fmt.Println(err) }
+/*
+	flatTables *FlatTables is the binary of the FlatTables root_type in the schema.
+	                       We don't need FlatTables here. Just FlatBuffers []byte
+	flatBuffers []byte     is the FlatBuffers []byte data for storing/transmitting.
+
+	That's all there is to it.
+	You would probably ignore the flatTables variable unless you want to call
+	FlatBuffers (flatc generated) code explicitly.
+*/
+
+	//	Now convert it to tables in a struct of Go slices ...
+	// oldSlices is a struct of type {{.NameSpace}}.RootTableSlice
+	// oldSlices isn't returned. You pass its address as an argument.
+	// Each field in the struct is a slice of table rows.
+	// Defined in {{.NameSpace}}_NewSliceFromFlatBuffers.go
+	// See https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go
+	var oldSlices RootTableSlice	// This memory is reused.
+	err = OldSliceFromFlatBuffers(&oldSlices, flatBuffers)
+	if err != nil { panic(err) }
+
+	// That's it!
+
+	// Just for fun, let's convert it back to FlatBuffers with this newly-minted function.
+	_, flatBuffers2, err := NewFlatBuffersFromSlice(oldSlices)
+	if err != nil { panic(err) }
+	equals := bytes.Equal(flatBuffers, flatBuffers2)
+	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
+
+	// Here are the returned oldSlices as text:
+	{{range .Tables}}
+		for i := 0; i < len(oldSlices.TableSlice_{{.Table.Name}}); i++ {
+			fmt.Printf("%#v\n", oldSlices.TableSlice_{{.Table.Name}}[i])
 		}
 	{{end}}
 

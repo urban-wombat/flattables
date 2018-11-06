@@ -291,12 +291,12 @@ var generations = []GenerationInfo {
 			`"fmt"`,
 		},
 	},
-	{	FuncName: "NewArrayFromFlatBuffers",
-		Imports:  []string {
-			`"fmt"`,
-			`"log"`,
-		},
-	},
+//	{	FuncName: "NewArrayFromFlatBuffers",
+//		Imports:  []string {
+//			`"fmt"`,
+//			`"log"`,
+//		},
+//	},
 }
 
 func GenerateAll(nameSpace string, verbose bool) error {
