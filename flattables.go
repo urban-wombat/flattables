@@ -647,7 +647,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
 	tableSetData := tableSet.String()
-	tableSetData = indentText("\t", tableSetData)
+//	tableSetData = indentText("\t", tableSetData)
 
 	templateInfo = TemplateInfo {
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
