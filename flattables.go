@@ -248,6 +248,7 @@ var generations = []GenerationInfo {
 			`"bytes"`,
 			`"fmt"`,
 			`"github.com/urban-wombat/gotables"`,
+			`"reflect"`,
 			`"testing"`,
 		},
 	},
@@ -489,6 +490,23 @@ func (templateInfo TemplateInfo) Name(tableIndex int) string {
 	return templateInfo.Tables[0].Table.Name()
 }
 
+func DeleteEmptyTables(tableSet *gotables.TableSet) error {
+
+	for tableIndex := tableSet.TableCount()-1; tableIndex >= 0; tableIndex-- {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return err }
+
+		if table.ColCount() == 0 {
+			err = tableSet.DeleteTableByTableIndex(tableIndex)
+			if err != nil { return err }
+			return fmt.Errorf("table has zero cols: [%s] (remove or populate)\n", table.Name())
+		}
+	}
+
+	return nil
+}
+
+// Assumes flattables.RemoveEmptyTables() has been called first.
 func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (TemplateInfo, error) {
 
 	var emptyTemplateInfo TemplateInfo
@@ -498,12 +516,11 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		table, err := tableSet.TableByTableIndex(tableIndex)
 		if err != nil { return emptyTemplateInfo, err }
 
-		if table.ColCount() >= 0 {
+		if table.ColCount() > 0 {
 			fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
 		} else {
 			// Skip tables with zero cols.
-			fmt.Fprintf(os.Stderr, "--- FlatTables: Skip   table [%s] with zero cols\n", table.Name())
-			continue
+			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
 		}
 
 		if startsWithLowerCase(table.Name()) {
