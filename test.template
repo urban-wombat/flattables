@@ -492,7 +492,7 @@ func BenchmarkReadDataFromGotables(__b *testing.B) {
 	}
 }
 
-func ExampleNewFlatBuffersFromTableSet_round_trip() {
+func ExampleNewFlatBuffersFromTableSet_roundtrip() {
 
 //	Reading from a file and marshalling to FlatBuffers.
 
@@ -572,7 +572,7 @@ func ExampleNewFlatBuffersFromTableSet() {
 	_ = flatBuffers	// To compile
 }
 
-func ExampleNewTableSetFromFlatBuffers_round_trip() {
+func ExampleNewTableSetFromFlatBuffers_roundtrip() {
 /*
 	This is the setup.
 
@@ -648,7 +648,7 @@ func ExampleNewTableSetFromFlatBuffers() {
 	_ = tableSetOut	// For compiler
 }
 
-func ExampleNewSliceFromFlatBuffers_round_trip() {
+func ExampleNewSliceFromFlatBuffers_roundtrip() {
 /*
 	This is the setup.
 
@@ -779,7 +779,7 @@ func ExampleNewSliceFromFlatBuffers() {
 	_ = newSlices	// For compiler
 }
 
-func ExampleOldSliceFromFlatBuffers_round_trip() {
+func ExampleOldSliceFromFlatBuffers_roundtrip() {
 /*
 	This is the setup.
 
@@ -910,7 +910,7 @@ func ExampleOldSliceFromFlatBuffers() {
 	if err != nil { panic(err) }
 }
 
-func ExampleNewFlatBuffersFromSlice_round_trip() {
+func ExampleNewFlatBuffersFromSlice_roundtrip() {
 	/*
 	This is the setup.
 
