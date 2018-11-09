@@ -482,6 +482,7 @@ type TemplateInfo struct {
 	Imports []string
 	GotablesFileName string	// We want to replace this with the following TWO file names.
 	TableSetMetadata string
+	TableSetData string
 	Tables []TableInfo
 }
 var templateInfo TemplateInfo
@@ -645,6 +646,9 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 	tableSetMetadata := metadataTableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
+	tableSetData := tableSet.String()
+	tableSetData = indentText("\t", tableSetData)
+
 	templateInfo = TemplateInfo {
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
 		GeneratedFromFile: generatedFromFile(tableSet),
@@ -654,6 +658,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		NameSpace: tableSet.Name(),
 		PackageName: packageName,
 		TableSetMetadata: tableSetMetadata,
+		TableSetData: tableSetData,
 		Tables: tables,
 	}
 

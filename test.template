@@ -492,7 +492,7 @@ func BenchmarkReadDataFromGotables(__b *testing.B) {
 	}
 }
 
-func ExampleNewFlatBuffersFromTableSet() {
+func ExampleNewFlatBuffersFromTableSet_round_trip() {
 
 //	Reading from a file and marshalling to FlatBuffers.
 
@@ -548,7 +548,31 @@ func ExampleNewFlatBuffersFromTableSet() {
 	// tableSetIn.TableCount() == tableSetOut.TableCount() = true
 }
 
-func ExampleNewTableSetFromFlatBuffers() {
+func ExampleNewFlatBuffersFromTableSet() {
+
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	// Setup. Initialise a *TableSet to convert to FlatBuffers.
+
+	var tableSet *gotables.TableSet
+	var err error
+	tableSet, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { fmt.Println(err) }
+
+	// Convert to FlatBuffers.
+
+	var flatTables *FlatTables
+	var flatBuffers []byte
+	flatTables, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet)
+	if err != nil { fmt.Println(err) }
+	_ = flatTables	// To compile
+	_ = flatBuffers	// To compile
+}
+
+func ExampleNewTableSetFromFlatBuffers_round_trip() {
 /*
 	This is the setup.
 
@@ -602,8 +626,29 @@ func ExampleNewTableSetFromFlatBuffers() {
 	// tableSetIn to flatBuffers to tableSetOut:
 	// tableSetIn.TableCount() == tableSetOut.TableCount() = true
 }
+func ExampleNewTableSetFromFlatBuffers() {
 
-func ExampleNewSliceFromFlatBuffers() {
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	var tableSetIn *gotables.TableSet
+	var err error
+	tableSetIn, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { fmt.Println(err) }
+
+	var flatBuffers []byte
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSetIn)
+	if err != nil { fmt.Println(err) }
+
+	var tableSetOut *gotables.TableSet
+	tableSetOut, err = NewTableSetFromFlatBuffers(flatBuffers)
+	if err != nil { fmt.Println(err) }
+	_ = tableSetOut	// For compiler
+}
+
+func ExampleNewSliceFromFlatBuffers_round_trip() {
 /*
 	This is the setup.
 
@@ -693,7 +738,48 @@ func ExampleNewSliceFromFlatBuffers() {
 	// (tableCountIn == newSlicesCountOut) = true
 }
 
-func ExampleOldSliceFromFlatBuffers() {
+func ExampleNewSliceFromFlatBuffers() {
+
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	var tableSetIn *gotables.TableSet
+	var err error
+	tableSetIn, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { fmt.Println(err) }
+
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
+*/
+
+	var flatBuffersIn []byte
+	_, flatBuffersIn, err = NewFlatBuffersFromTableSet(tableSetIn)
+	if err != nil { fmt.Println(err) }
+
+	var newSlices RootTableSlice
+	newSlices, err = NewSliceFromFlatBuffers(flatBuffersIn)
+	if err != nil { panic(err) }
+	_ = newSlices	// For compiler
+}
+
+func ExampleOldSliceFromFlatBuffers_round_trip() {
 /*
 	This is the setup.
 
@@ -784,7 +870,47 @@ func ExampleOldSliceFromFlatBuffers() {
 	// (tableCountIn == oldSlicesCountOut) = true
 }
 
-func ExampleNewFlatBuffersFromSlice() {
+func ExampleOldSliceFromFlatBuffers() {
+
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	var tableSet *gotables.TableSet
+	var err error
+	tableSet, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { fmt.Println(err) }
+
+	var flatBuffersIn []byte
+	_, flatBuffersIn, err = NewFlatBuffersFromTableSet(tableSet)
+	if err != nil { fmt.Println(err) }
+
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
+*/
+
+	var oldSlices RootTableSlice	// This memory is reused. Reallocated if necessary.
+	err = OldSliceFromFlatBuffers(&oldSlices, flatBuffersIn)
+	if err != nil { panic(err) }
+}
+
+func ExampleNewFlatBuffersFromSlice_round_trip() {
 	/*
 	This is the setup.
 
@@ -863,6 +989,50 @@ func ExampleNewFlatBuffersFromSlice() {
 
 	// Output:
 	// bytes.Equal(flatBuffers1, flatBuffers2) = true
+}
+func ExampleNewFlatBuffersFromSlice() {
+
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	var tableSet1 *gotables.TableSet
+	var err error
+	tableSet1, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { fmt.Println(err) }
+
+	var flatBuffers1 []byte
+	_, flatBuffers1, err = NewFlatBuffersFromTableSet(tableSet1)
+	if err != nil { fmt.Println(err) }
+
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
+*/
+
+	var slices RootTableSlice
+	slices, err = NewSliceFromFlatBuffers(flatBuffers1)
+	if err != nil { panic(err) }
+
+	var flatBuffers2 []byte
+	_, flatBuffers2, err = NewFlatBuffersFromSlice(slices)
+	if err != nil { panic(err) }
+	_ = flatBuffers2	// For compiler
 }
 
 func BenchmarkNewSliceFromFlatBuffers(__b *testing.B) {
