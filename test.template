@@ -494,7 +494,7 @@ func BenchmarkReadDataFromGotables(__b *testing.B) {
 
 func ExampleNewFlatBuffersFromTableSet() {
 
-//	Example (1) reading from a file and marshalling to FlatBuffers.
+//	Reading from a file and marshalling to FlatBuffers.
 
 /*
 	This is the setup.
@@ -502,11 +502,12 @@ func ExampleNewFlatBuffersFromTableSet() {
 	A *gotables.TableSet is a set of one or more gotables tables,
 	not necessarily stored in a file. See the file we used in the link below:
 
+	This is the default sample gotables file:
 	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
 */
-	var tableSet1 *gotables.TableSet
+	var tableSetIn *gotables.TableSet
 	var err error
-	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	tableSetIn, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { fmt.Println(err) }
 
 /*
@@ -516,10 +517,12 @@ func ExampleNewFlatBuffersFromTableSet() {
 
 	Converting a set of tables to FlatBuffers is a single function call.
 */
+
 	var flatTables *FlatTables
 	var flatBuffers []byte
-	flatTables, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	flatTables, flatBuffers, err = NewFlatBuffersFromTableSet(tableSetIn)
 	if err != nil { fmt.Println(err) }
+	_ = flatTables	// We don't use flatTables.
 /*
 	flatTables *FlatTables is the binary of the FlatTables root_type in the schema.
 	flatBuffers []byte     is the FlatBuffers []byte data for storing/transmitting.
@@ -531,120 +534,18 @@ func ExampleNewFlatBuffersFromTableSet() {
 
 	// Send flatBuffers off to a file or some other process ...
 
-	// Here are some mildly interesting size statistics for the hell of it:
+	// We will convert it back to gotables and count the tables.
 
-	tableSet1String := fmt.Sprintf("%s", tableSet1.String())
-	flatTablesString := fmt.Sprintf("%#v", flatTables)
-	flatBuffersString := fmt.Sprintf("%#v", flatBuffers)
-
-	fmt.Printf("len(tableSet1)   = %4d\n", len(tableSet1String))
-	fmt.Printf("len(flatTables)  = %4d\n", len(flatTablesString))
-	fmt.Printf("len(flatBuffers) = %4d\n", len(flatBuffersString))
-
-	fmt.Println()
-
-
-//	Example (2) creating data on the fly and marshalling to FlatBuffers.
-
-/*
-	Create an empty *TableSet from the one we already have.
-	We could set it up "programmatically" but this is easier.
-*/
-	tableSet2, err := tableSet1.Copy(false)
+	tableSetOut, err := NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { fmt.Println(err) }
 
-	// Populate MyXyzTable table
-
-	xyzTable, err := tableSet2.Table("MyXyzTable")
-	if err != nil { fmt.Println(err) }
-
-	for rowIndex, num := 0, 42; num <= 44; rowIndex, num = rowIndex+1, num+1 {
-		err = xyzTable.AppendRow()
-		if err != nil { fmt.Println(err) }
-
-		err = xyzTable.SetInt16("x", rowIndex, int16(num))
-		if err != nil { fmt.Println(err) }
-
-		err = xyzTable.SetFloat32("y", rowIndex, float32(num))
-		if err != nil { fmt.Println(err) }
-
-		err = xyzTable.SetFloat64("z", rowIndex, float64(num))
-		if err != nil { fmt.Println(err) }
-	}
-
-	// Populate StringsAndThings table
-
-	sntTable, err := tableSet2.Table("StringsAndThings")
-	if err != nil { fmt.Println(err) }
-
-	var rowIndex int
-	rowIndex = 0
-	err = sntTable.AppendRow()
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetString("flintstones", rowIndex, "Dino")
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetInt8("nums", rowIndex, 42)
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetString("spain", rowIndex, "Salvador")
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetBool("female", rowIndex, false)
-	if err != nil { fmt.Println(err) }
-
-	rowIndex = 1
-	err = sntTable.AppendRow()
-	if err != nil { fmt.Println(err) }
-	// Hoppy is a pet hopparoo (a combination of a kangaroo and dinosaur)
-	err = sntTable.SetString("flintstones", rowIndex, "Hoppy")
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetInt8("nums", rowIndex, 43)
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetString("spain", rowIndex, "Dali")
-	if err != nil { fmt.Println(err) }
-	err = sntTable.SetBool("female", rowIndex, false)
-	if err != nil { fmt.Println(err) }
-	// We "forgot" to set column "myui32", so it defaults to 0
-
-	// Populate Wombats table
-
-	wombatsTable, err := tableSet2.Table("Wombats")
-	if err != nil { fmt.Println(err) }
-	err = wombatsTable.AppendRow()
-	if err != nil { fmt.Println(err) }
-	rowIndex = 0
-	err = wombatsTable.SetString("housingPolicy", rowIndex, "wide burrow")
-	if err != nil { fmt.Println(err) }
-	err = wombatsTable.SetInt8("topSpeedKmH", rowIndex, 42)
-	if err != nil { fmt.Println(err) }
-	err = wombatsTable.SetString("species", rowIndex, "Vombatus")
-	if err != nil { fmt.Println(err) }
-	err = wombatsTable.SetString("class", rowIndex, "Mammalia")
-	if err != nil { fmt.Println(err) }
-	err = wombatsTable.SetBool("wild", rowIndex, true)
-	if err != nil { fmt.Println(err) }
-
-	flatTables, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet2)
-	if err != nil { fmt.Println(err) }
-
-	// Send flatBuffers off to a file or some other process ...
-
-	// Here are some more mildly interesting size statistics for the hell of it:
-
-	tableSet2String := fmt.Sprintf("%s", tableSet2.String())
-	flatTablesString = fmt.Sprintf("%#v", flatTables)
-	flatBuffersString = fmt.Sprintf("%#v", flatBuffers)
-
-	fmt.Printf("len(tableSet2)   = %4d\n", len(tableSet2String))
-	fmt.Printf("len(flatTables)  = %4d\n", len(flatTablesString))
-	fmt.Printf("len(flatBuffers) = %4d\n", len(flatBuffersString))
+	fmt.Println("tableSetIn to flatBuffers to tableSetOut:")
+	equals := tableSetIn.TableCount() == tableSetOut.TableCount()
+	fmt.Printf("tableSetIn.TableCount() == tableSetOut.TableCount() = %t\n", equals)
 
 	// Output:
-	// len(tableSet1)   =  691
-	// len(flatTables)  = 3224
-	// len(flatBuffers) = 3152
-	//
-	// len(tableSet2)   =  481
-	// len(flatTables)  = 2276
-	// len(flatBuffers) = 2204
+	// tableSetIn to flatBuffers to tableSetOut:
+	// tableSetIn.TableCount() == tableSetOut.TableCount() = true
 }
 
 func ExampleNewTableSetFromFlatBuffers() {
@@ -658,11 +559,12 @@ func ExampleNewTableSetFromFlatBuffers() {
 	A *gotables.TableSet is a set of one or more gotables tables,
 	not necessarily stored in a file. See the file we used in the link below:
 
+	This is the default sample gotables file:
 	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
 */
-	var tableSet1 *gotables.TableSet
+	var tableSetIn *gotables.TableSet
 	var err error
-	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	tableSetIn, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { fmt.Println(err) }
 
 /*
@@ -673,7 +575,7 @@ func ExampleNewTableSetFromFlatBuffers() {
 	Converting a set of tables to FlatBuffers is a single function call.
 */
 	var flatBuffers []byte
-	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSetIn)
 	if err != nil { fmt.Println(err) }
 /*
 	flatTables *FlatTables is the binary of the FlatTables root_type in the schema.
@@ -686,41 +588,19 @@ func ExampleNewTableSetFromFlatBuffers() {
 */
 
 	//	Now convert it to GoTables ...
-	var tableSet2 *gotables.TableSet
-	tableSet2, err = NewTableSetFromFlatBuffers(flatBuffers)
+	var tableSetOut *gotables.TableSet
+	tableSetOut, err = NewTableSetFromFlatBuffers(flatBuffers)
 	if err != nil { fmt.Println(err) }
 
 	// That's it!
 
-	// Here's the returned TableSet as text:
-	fmt.Println(tableSet2)
+	fmt.Println("tableSetIn to flatBuffers to tableSetOut:")
+	equals := tableSetIn.TableCount() == tableSetOut.TableCount()
+	fmt.Printf("tableSetIn.TableCount() == tableSetOut.TableCount() = %t\n", equals)
 
 	// Output:
-	// [MyXyzTable]
-	//     x       y       z
-	// int16 float32 float64
-	//     4       5       6
-	//    44      55      66
-	//   444     555     666
-	//  4444    5555    6666
-	//    16      32      64
-	// 
-	// [StringsAndThings]
-	// flintstones nums spain          female myui32
-	// string      int8 string         bool   uint32
-	// "Fred"         0 "The rain"     false       0
-	// "Wilma"        1 "in Spain"     true       11
-	// "Barney"       2 "stays mainly" false      22
-	// "Betty"        3 "in"           true       33
-	// "Bam Bam"      4 "the"          false      44
-	// "Pebbles"      5 "plain."       true       55
-	// 
-	// [Wombats]
-	// housingPolicy string = "burrow"
-	// topSpeedKmH int8 = 40
-	// species string = "Vombatus"
-	// class string = "Mammalia"
-	// wild bool = true
+	// tableSetIn to flatBuffers to tableSetOut:
+	// tableSetIn.TableCount() == tableSetOut.TableCount() = true
 }
 
 func ExampleNewSliceFromFlatBuffers() {
@@ -734,11 +614,12 @@ func ExampleNewSliceFromFlatBuffers() {
 	A *gotables.TableSet is a set of one or more gotables tables,
 	not necessarily stored in a file. See the file we used in the link below:
 
+	This is the default sample gotables file:
 	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
 */
-	var tableSet1 *gotables.TableSet
+	var tableSetIn *gotables.TableSet
 	var err error
-	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	tableSetIn, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { fmt.Println(err) }
 
 /*
@@ -748,56 +629,68 @@ func ExampleNewSliceFromFlatBuffers() {
 
 	Converting a set of tables to FlatBuffers is a single function call.
 */
-	var flatBuffers []byte
-	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	var flatBuffersIn []byte
+	_, flatBuffersIn, err = NewFlatBuffersFromTableSet(tableSetIn)
 	if err != nil { fmt.Println(err) }
 /*
-	flatTables *FlatTables is the binary of the FlatTables root_type in the schema.
+	flatTables *FlatTables Is the binary of the FlatTables root_type in the schema.
 	                       We don't need FlatTables here. Just FlatBuffers []byte
-	flatBuffers []byte     is the FlatBuffers []byte data for storing/transmitting.
+	flatBuffersIn []byte   Is the FlatBuffers []byte data for storing/transmitting.
 
 	That's all there is to it.
 	You would probably ignore the flatTables variable unless you want to call
 	FlatBuffers (flatc generated) code explicitly.
 */
 
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
+*/
+
 	//	Now convert it to tables in a struct of Go slices ...
-	// Returned slices is a struct of type {{.NameSpace}}.RootTableSlice
+	// Returned newSlices is a struct of type {{.NameSpace}}.RootTableSlice
 	// Each field in the struct is a slice of table rows.
 	// Defined in {{.NameSpace}}_NewSliceFromFlatBuffers.go
-	// See https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go
-	var slices RootTableSlice
-	slices, err = NewSliceFromFlatBuffers(flatBuffers)
+	var newSlices RootTableSlice
+	newSlices, err = NewSliceFromFlatBuffers(flatBuffersIn)
 	if err != nil { panic(err) }
 
 	// That's it!
 
 	// Just for fun, let's convert it back to FlatBuffers with this newly-minted function.
-	_, flatBuffers2, err := NewFlatBuffersFromSlice(slices)
+	_, flatBuffersOut, err := NewFlatBuffersFromSlice(newSlices)
 	if err != nil { panic(err) }
-	equals := bytes.Equal(flatBuffers, flatBuffers2)
-	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
 
-	// Here are the returned slices as text:
-	{{range .Tables}}
-		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
-			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
-		}
-	{{end}}
+	equals := bytes.Equal(flatBuffersIn, flatBuffersOut)
+	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffersIn, flatBuffersOut) != %t\n", bytes.Equal(flatBuffersIn, flatBuffersOut))) }
+	fmt.Printf("bytes.Equal(flatBuffersIn, flatBuffersOut) = %t\n", equals)
+
+	tableCountIn := tableSetIn.TableCount()
+
+	// Count the fields (i.e. tables) in struct newSlices
+	newSlicesValue := reflect.ValueOf(newSlices)
+	newSlicesCountOut := newSlicesValue.NumField()
+
+	equals = newSlicesCountOut == tableCountIn
+	fmt.Printf("(tableCountIn == newSlicesCountOut) = %t\n", equals)
 
 	// Output:
-	// flattables_sample.TableSlice_MyXyzTable{X:4, Y:5, Z:6}
-	// flattables_sample.TableSlice_MyXyzTable{X:44, Y:55, Z:66}
-	// flattables_sample.TableSlice_MyXyzTable{X:444, Y:555, Z:666}
-	// flattables_sample.TableSlice_MyXyzTable{X:4444, Y:5555, Z:6666}
-	// flattables_sample.TableSlice_MyXyzTable{X:16, Y:32, Z:64}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Fred", Nums:0, Spain:"The rain", Female:false, Myui32:0x0}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Wilma", Nums:1, Spain:"in Spain", Female:true, Myui32:0xb}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Barney", Nums:2, Spain:"stays mainly", Female:false, Myui32:0x16}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Betty", Nums:3, Spain:"in", Female:true, Myui32:0x21}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Bam Bam", Nums:4, Spain:"the", Female:false, Myui32:0x2c}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Pebbles", Nums:5, Spain:"plain.", Female:true, Myui32:0x37}
-	// flattables_sample.TableSlice_Wombats{HousingPolicy:"burrow", TopSpeedKmH:40, Species:"Vombatus", Class:"Mammalia", Wild:true}
+	// bytes.Equal(flatBuffersIn, flatBuffersOut) = true
+	// (tableCountIn == newSlicesCountOut) = true
 }
 
 func ExampleOldSliceFromFlatBuffers() {
@@ -813,9 +706,9 @@ func ExampleOldSliceFromFlatBuffers() {
 
 	https://github.com/urban-wombat/flattables_sample/blob/master/tables.got
 */
-	var tableSet1 *gotables.TableSet
+	var tableSet *gotables.TableSet
 	var err error
-	tableSet1, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
+	tableSet, err = gotables.NewTableSetFromFile("{{.GotablesFileName}}")
 	if err != nil { fmt.Println(err) }
 
 /*
@@ -825,17 +718,36 @@ func ExampleOldSliceFromFlatBuffers() {
 
 	Converting a set of tables to FlatBuffers is a single function call.
 */
-	var flatBuffers []byte
-	_, flatBuffers, err = NewFlatBuffersFromTableSet(tableSet1)
+	var flatBuffersIn []byte
+	_, flatBuffersIn, err = NewFlatBuffersFromTableSet(tableSet)
 	if err != nil { fmt.Println(err) }
 /*
 	flatTables *FlatTables is the binary of the FlatTables root_type in the schema.
 	                       We don't need FlatTables here. Just FlatBuffers []byte
-	flatBuffers []byte     is the FlatBuffers []byte data for storing/transmitting.
+	flatBuffersIn []byte     is the FlatBuffers []byte data for storing/transmitting.
 
 	That's all there is to it.
 	You would probably ignore the flatTables variable unless you want to call
 	FlatBuffers (flatc generated) code explicitly.
+*/
+
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
 */
 
 	//	Now convert it to tables in a struct of Go slices ...
@@ -844,38 +756,32 @@ func ExampleOldSliceFromFlatBuffers() {
 	// Each field in the struct is a slice of table rows.
 	// Defined in {{.NameSpace}}_NewSliceFromFlatBuffers.go
 	// See https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go
-	var oldSlices RootTableSlice	// This memory is reused.
-	err = OldSliceFromFlatBuffers(&oldSlices, flatBuffers)
+	var oldSlices RootTableSlice	// This memory is reused. Reallocated if necessary.
+	err = OldSliceFromFlatBuffers(&oldSlices, flatBuffersIn)
 	if err != nil { panic(err) }
 
 	// That's it!
 
 	// Just for fun, let's convert it back to FlatBuffers with this newly-minted function.
-	_, flatBuffers2, err := NewFlatBuffersFromSlice(oldSlices)
+	_, flatBuffersOut, err := NewFlatBuffersFromSlice(oldSlices)
 	if err != nil { panic(err) }
-	equals := bytes.Equal(flatBuffers, flatBuffers2)
-	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
 
-	// Here are the returned oldSlices as text:
-	{{range .Tables}}
-		for i := 0; i < len(oldSlices.TableSlice_{{.Table.Name}}); i++ {
-			fmt.Printf("%#v\n", oldSlices.TableSlice_{{.Table.Name}}[i])
-		}
-	{{end}}
+	equals := bytes.Equal(flatBuffersIn, flatBuffersOut)
+	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffersIn, flatBuffersOut) != %t\n", bytes.Equal(flatBuffersIn, flatBuffersOut))) }
+	fmt.Printf("bytes.Equal(flatBuffersIn, flatBuffersOut) = %t\n", equals)
+
+	tableCountIn := tableSet.TableCount()
+
+	// Count the fields (i.e. tables) in struct oldSlices
+	oldSlicesValue := reflect.ValueOf(oldSlices)
+	oldSlicesCountOut := oldSlicesValue.NumField()
+
+	equals = oldSlicesCountOut == tableCountIn
+	fmt.Printf("(tableCountIn == oldSlicesCountOut) = %t\n", equals)
 
 	// Output:
-	// flattables_sample.TableSlice_MyXyzTable{X:4, Y:5, Z:6}
-	// flattables_sample.TableSlice_MyXyzTable{X:44, Y:55, Z:66}
-	// flattables_sample.TableSlice_MyXyzTable{X:444, Y:555, Z:666}
-	// flattables_sample.TableSlice_MyXyzTable{X:4444, Y:5555, Z:6666}
-	// flattables_sample.TableSlice_MyXyzTable{X:16, Y:32, Z:64}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Fred", Nums:0, Spain:"The rain", Female:false, Myui32:0x0}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Wilma", Nums:1, Spain:"in Spain", Female:true, Myui32:0xb}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Barney", Nums:2, Spain:"stays mainly", Female:false, Myui32:0x16}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Betty", Nums:3, Spain:"in", Female:true, Myui32:0x21}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Bam Bam", Nums:4, Spain:"the", Female:false, Myui32:0x2c}
-	// flattables_sample.TableSlice_StringsAndThings{Flintstones:"Pebbles", Nums:5, Spain:"plain.", Female:true, Myui32:0x37}
-	// flattables_sample.TableSlice_Wombats{HousingPolicy:"burrow", TopSpeedKmH:40, Species:"Vombatus", Class:"Mammalia", Wild:true}
+	// bytes.Equal(flatBuffersIn, flatBuffersOut) = true
+	// (tableCountIn == oldSlicesCountOut) = true
 }
 
 func ExampleNewFlatBuffersFromSlice() {
@@ -918,6 +824,25 @@ func ExampleNewFlatBuffersFromSlice() {
 	You would probably ignore the flatTables variable unless you want to call
 	FlatBuffers (flatc generated) code explicitly.
 	*/
+
+/*
+	This is what {{.NameSpace}}.RootTableSlice looks like:
+	{{range .Tables}}
+	type TableSlice_{{.Table.Name}} struct {
+	{{range .Cols}}
+		{{.ColName|firstCharToUpper}} {{.ColType}}
+	{{- end}}
+	}
+	{{end}}
+	
+	type RootTableSlice struct {
+	{{range .Tables}}
+		TableSlice_{{.Table.Name}} []TableSlice_{{.Table.Name}}
+	{{- end}}
+	}
+
+	It is defined in {{.NameSpace}}.NewSliceFromFlatBuffers()
+*/
 
 	// Now convert it to tables in a struct of Go slices ...
 	// Returned slices is a struct of type {{.NameSpace}}.RootTableSlice

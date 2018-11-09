@@ -5,3 +5,7 @@
 * [All Go code and the FlatBuffers schema are generated from this gotables file](https://github.com/urban-wombat/{{.NameSpace}}/blob/master/tables.got)
 
 `$ flattablesc -v -f ../{{.NameSpace}}/{{.GotablesFileName}} -n {{.NameSpace}} -p github.com/urban-wombat/{{.NameSpace}}`
+
+It is recommended that you populate your gotables file with some data.
+The auto-generated bench tests will use it. This means all the benchmarks
+will use exactly the same data sets.
