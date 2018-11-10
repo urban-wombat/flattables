@@ -5,8 +5,8 @@
     `go get -u github.com/google/flatbuffers/go`
 
 	For more information:
-    * See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
-    * See [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
+    * [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
+    * [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
 
 2. Install gotables, flattables and gotablesutils
 
@@ -16,9 +16,11 @@
 
 	`go get -u github.com/urban-wombat/gotablesutils`
 
+	`$ cd gotablesutils`
     `go install flattablesc.go`
+    `go install gotsyntax.go`
 
-	Note:
+	Relationships between the packages:
 	* flattables uses gotables
 	* flattablesc uses flattables and gotables
 
@@ -26,9 +28,18 @@
 
     `$ mkdir my_flatbuffers`
 
+	`my_flatbuffers` (or whatever you decide to call it) will be your namespace and package name.
+
 4. In dir `my_flatbuffers` create a file containing one or more gotables tables. The tables don't need to contain data,
 but let's include some data and use the same file for writing to a FlatBuffers []byte array and running our tests.
 We'll call it "tables.got" (.got is for gotables).
+
+4. Create a text file in gotables format with one or more tables and some rows of data.
+
+    It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
+	and create it in your newly-created directory `my_flatbuffers`.
+
+	You can copy and paste the tables below into `tables.got` or come up with your own tables.
 
 ```
     [MyXyzTable]
@@ -62,11 +73,10 @@ The FlatTables utility `flattablesc` will also do a validity check, but you migh
 
 Check its validity with gotsyntax:
 
-    $ gotsyntax tables.got
-    tables.got (syntax okay 3 tables)
+    `$ gotsyntax tables.got`
 
 
-Note: FlatTables is a little more strict than gotables syntax:
+FlatTables is a little more strict than gotables syntax:
 * Table names must start with an uppercase character.
 * Column names must start with a lowercase character.
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
