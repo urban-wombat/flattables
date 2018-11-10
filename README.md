@@ -1,6 +1,6 @@
 # Get started with `Google FlatBuffers`
 
-## Install and test
+## Install and Test
 
 1. Install FlatBuffers
 
@@ -82,7 +82,9 @@
 
 5. Check its validity with gotsyntax
 
-    $ `gotsyntax tables.got`
+    ```
+    $ gotsyntax tables.got
+    ```
 
 	The FlatTables utility `flattablesc` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
