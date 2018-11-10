@@ -2,7 +2,9 @@
 
 1. Install FlatBuffers
 
+	```
     go get -u github.com/google/flatbuffers/go
+	```
 
 	For more information:
     * [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by [Robert Winslow](https://rwinslow.com)
@@ -32,9 +34,9 @@
 
 	```
     $ mkdir my_flatbuffers
+	```
 
 	`my_flatbuffers` (or whatever you decide to call it) will also be your namespace and package name.
-	```
 
 4. Create your FlatTables schema/data file
 
@@ -77,7 +79,7 @@
 
 The FlatTables utility `flattablesc` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
-Check its validity with gotsyntax:
+Check its validity with gotsyntax
 
 	```
     $ gotsyntax tables.got
