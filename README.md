@@ -75,7 +75,7 @@ The FlatTables utility `flattablesc` will also do a validity check, but you migh
 
 Check its validity with gotsyntax:
 
-    `$ gotsyntax tables.got`
+    $ gotsyntax tables.got
 
 
 FlatTables is a little more strict than gotables syntax:
