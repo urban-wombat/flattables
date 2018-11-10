@@ -98,11 +98,12 @@ FlatTables is a little more strict than gotables syntax:
 * Column names must start with a lowercase character.
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler doesn't like key words used as variables.
-* Transfers between Go slices and FlatBuffers requires the field names to be exported (hence uppercase) which is
+* Transfers between Go slices and FlatBuffers require the field names to be exported (hence uppercase) which is
 done by code generation. So there's a (managed) difference between the
 [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 and the need to export Go fields. Languages such as Java convert field names to lowerCamelCase, which is what FlatTables
-requires here, consistent with Go unexported fields. They are exported as upperCamelCase where needed.
+requires here, consistent with Go unexported fields. They are exported as upperCamelCase where needed in raw Go structs,
+namely `type RootTableSlice struct {...}`
 
 6. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
