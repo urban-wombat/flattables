@@ -102,8 +102,8 @@ variable names in generated Go code, and the compiler doesn't like key words use
 done by code generation. So there's a (managed) difference between the
 [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 and the need to export Go fields. Languages such as Java convert field names to lowerCamelCase, which is what FlatTables
-requires here, consistent with Go unexported fields. They are exported as upperCamelCase where needed in raw Go structs,
-namely:
+requires here, consistent with Go unexported fields. They are exported as UpperCamelCase where needed in raw Go structs
+used by FlatTables, namely:
 ```
 type RootTableSlice struct {...}
 ```
@@ -111,7 +111,7 @@ type RootTableSlice struct {...}
 6. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
     ```
-    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-account/my_flatbuffers
+    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-name/my_flatbuffers
     ```
 
     flattablesc creates a flatbuffers schema *.fbs file and a number of Go source files.
