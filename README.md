@@ -1,12 +1,12 @@
-# A simple and fast way to get started with `Google FlatBuffers`
+# Get started with `Google FlatBuffers`
 
 1. Install FlatBuffers
 
+    `go get -u github.com/google/flatbuffers/go`
+
+	For more information:
     * See [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
-
-    * And the [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
-
-    * `go get -u github.com/google/flatbuffers/go`
+    * See [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
 
 2. Install gotables, flattables and gotablesutils
 
@@ -18,13 +18,15 @@
 
     `go install flattablesc.go`
 
-FlatTables uses [gotables](https://github.com/urban-wombat/gotables) as its underlying data format and library.
+	Note:
+	* flattables uses gotables
+	* flattablesc uses flattables and gotables
 
-3. Create directory `flattables_sample`
+3. Create your directory `my_flatbuffers`
 
-    `$ mkdir flattables_sample`
+    `$ mkdir my_flatbuffers`
 
-4. In dir `flattables_sample` create a file containing one or more gotables tables. The tables don't need to contain data,
+4. In dir `my_flatbuffers` create a file containing one or more gotables tables. The tables don't need to contain data,
 but let's include some data and use the same file for writing to a FlatBuffers []byte array and running our tests.
 We'll call it "tables.got" (.got is for gotables).
 
@@ -70,46 +72,14 @@ Note: FlatTables is a little more strict than gotables syntax:
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler gets very annoyed seeing key words used as variables.
 
-3. From within dir `flattables_sample` run the FlatTables utility `flattablesc`
+3. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
-```
-    $ flattablesc -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample
-     (1) Reading: ../flattables_sample/tables.got (gotables file)
-     (2) Setting gotables.TableSet name to "flattables_sample" (from -n flattables_sample)
-     (3) Setting package name to "github.com/urban-wombat/flattables_sample" (from -p github.com/urban-wombat/flattables_sample)
-     (4) Dir <outdir>     already exists: ../flattables_sample (okay)
-     (5) Dir <outdirmain> already exists: ../flattables_sample_main (okay)
-     (6) Adding gotables tables to FlatBuffers tables schema:
-      #0 FlatTables: Adding gotables table [MyXyzTable] to FlatBuffers schema
-      #1 FlatTables: Adding gotables table [StringsAndThings] to FlatBuffers schema
-      #2 FlatTables: Adding gotables table [Wombats] to FlatBuffers schema
-     (7) FlatTables: Generating schema file: ../flattables_sample/flattables_sample.fbs (from ../flattables_sample/tables.got)
-     (8) flatc:      Generating FlatBuffers Go code from schema. $ flatc --go -o .. ../flattables_sample/flattables_sample.fbs
-     (9) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewFlatBuffersFromTableSet.go
-    (10) FlatTables: Generating FlatTables user Go code: ../flattables_sample/flattables_sample_NewTableSetFromFlatBuffers.go
-    (11) FlatTables: Generating FlatTables user Go code: ../flattables_sample_main/flattables_sample_main.go
-    (12) FlatTables: Generating FlatTables test Go code: ../flattables_sample/flattables_sample_test.go
-    DONE
-```
+    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/urban-wombat/my_flatbuffers
 
-The following files are generated. Some by Google FlatBuffers `flatc` (which is called by `flattablesc`), and some by FlatTables,
-mainly code to link gotables to flattables (a subset of flatbuffers).
+    flattablesc creates a flatbuffers schema *.fbs file and a number of Go source files.
 
-```
-    flattables_sample.fbs (by flattables)
-    MyXyzTable.go (by FlatBuffers flatc)
-    StringsAndThings.go (by FlatBuffers flatc)
-    Wombats.go (by FlatBuffers flatc)
-    FlatTables.go (by FlatBuffers flatc)
-    flattables_sample_NewFlatBuffersFromTableSet.go (by flattables)
-    flattables_sample_NewTableSetFromFlatBuffers.go (by flattables)
-    flattables_sample_test.go (by flattables)
-    flattables_sample/flattables_sample_main.go (by flattables)
-```
 
 `FlatTables` is a simple tabular subset of `FlatBuffers`.
-
-Installation and code generation instructions are provided further below.
 
 Have a look at the Google FlatBuffers official documentation to see
 why you should seriously consider FlatBuffers (and FlatTables)
@@ -125,7 +95,7 @@ FlatBuffers and back again.
 
 `flattablesc` also generates a Go main program with constructor and getter methods
 specific to your FlatBuffers schema.  Just to remind you: you didn't have to
-generate the FlatBuffers schema (.fbs), it was done for you from your gotables file.
+generate the FlatBuffers schema (.fbs), it is done for you from your gotables file.
 
 The generated code includes conversion functions (which include all the code
 generated by the FlatBuffers utility `flatc`), test code, and a main program.
@@ -202,9 +172,9 @@ steps (described below) to generate the schema and code, you can take guidance f
 to write directly from your data objects to FlatBuffers. Perhaps use gotables during initial
 development, and write directly to FlatBuffers later for the highest possible speeds.
 
-You did not have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It was done for you.
+You don't have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It is done for you.
 
-You did not have to write the glue code to get data from `tables.got` to a flatbuffers []byte array.
+You don't have to write the glue code to get data from `tables.got` to a flatbuffers []byte array.
 
 And if you wish to populate the flatbuffers []byte array yourself, and not go via gotables, just
 follow the setter calls in the various Go source files to get you going. In that case, you could use
@@ -212,25 +182,6 @@ the gotables `tables.got` file purely for generating the schema and setter metho
 
 4. Run the tests
 
-```
-    $ go test -v
-    === RUN   TestNewFlatBuffersFromTableSet
-    --- PASS: TestNewFlatBuffersFromTableSet (0.00s)
-    === RUN   TestNewTableSetFromFlatBuffers
-    --- PASS: TestNewTableSetFromFlatBuffers (0.00s)
-    PASS
-    ok      github.com/urban-wombat/flattables_sample       0.123s
-```
-
-```
     $ go test -bench=.
-    goos: windows
-    goarch: amd64
-    pkg: github.com/urban-wombat/flattables_sample
-    BenchmarkGetFlatBuffersAndCompareWithGotables-4           300000              5367 ns/op
-    BenchmarkGetFlatBuffersOnly-4                           10000000               121 ns/op
-    PASS
-    ok      github.com/urban-wombat/flattables_sample       3.194s
-```
 
 That's it!
