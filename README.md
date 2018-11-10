@@ -50,7 +50,8 @@
 	The data in the tables is used in the auto-generated bench tests. So add some dummy data for testing.
 
 	You can come up with your own tables of data, or can copy and paste the tables below into `tables.got`
-	The gotables syntax is self-evident and most Go types are supported -- except complex and rune.
+	The gotables syntax is self-evident and most Go types are supported. Not supported are int, uint
+	(because their size is machine-dependant), complex and rune.
 
 ```
     [MyXyzTable]
