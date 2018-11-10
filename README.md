@@ -2,7 +2,7 @@
 
 1. Install FlatBuffers
 
-    `go get -u github.com/google/flatbuffers/go`
+    go get -u github.com/google/flatbuffers/go
 
 	For more information:
     * [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by [Robert Winslow](https://rwinslow.com)
@@ -10,17 +10,17 @@
 
 2. Install gotables, flattables and gotablesutils
 
-	`go get -u github.com/urban-wombat/gotables`
+	go get -u github.com/urban-wombat/gotables
 
-    `go get -u github.com/urban-wombat/flattables`
+    go get -u github.com/urban-wombat/flattables
 
-	`go get -u github.com/urban-wombat/gotablesutils`
+	go get -u github.com/urban-wombat/gotablesutils
 
-	$ cd gotablesutils
+    $ cd gotablesutils
 
-    `go install flattablesc.go`
+    go install flattablesc.go
 
-    `go install gotsyntax.go`
+    go install gotsyntax.go
 
 	Relationships between the packages:
 	* flattables uses gotables
