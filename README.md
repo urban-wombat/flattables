@@ -5,7 +5,7 @@
     `go get -u github.com/google/flatbuffers/go`
 
 	For more information:
-    * [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by Robert Winslow.
+    * [How-To: Install FlatBuffers](https://rwinslow.com/posts/how-to-install-flatbuffers) by [Robert Winslow](https://rwinslow.com)
     * [FlatBuffers Go Documentation](https://google.github.io/flatbuffers/flatbuffers_guide_use_go.html)
 
 2. Install gotables, flattables and gotablesutils
@@ -75,7 +75,7 @@ The FlatTables utility `flattablesc` will also do a validity check, but you migh
 
 Check its validity with gotsyntax:
 
-    `$ gotsyntax tables.got`
+	`$ gotsyntax tables.got`
 
 
 FlatTables is a little more strict than gotables syntax:

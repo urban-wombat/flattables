@@ -9,3 +9,5 @@
 It is recommended that you populate your gotables file with some data.
 The auto-generated bench tests will use it. This means all the benchmarks
 will use exactly the same data.
+
+See installation instructions at: [Get started with Google FlatBuffers](https://github.com/urban-wombat/flattables#get-started-with-google-flatbuffers)
