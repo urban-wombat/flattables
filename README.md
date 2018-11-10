@@ -86,7 +86,7 @@
     $ gotsyntax tables.got
     ```
 
-	The FlatTables utility `flattablesc` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
+	The FlatTables utility `flattablesc` will also do a syntax check, but you might as well get earlier feedback with `gotsyntax`.
 
 
 FlatTables is a little more strict than gotables syntax:
@@ -94,11 +94,13 @@ FlatTables is a little more strict than gotables syntax:
 * Column names must start with a lowercase character.
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler gets very annoyed seeing key words used as variables.
+* Transfers between Go slices and FlatBuffers requires the field names to be exported (hence uppercase) which is
+done by code generation.
 
 6. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
     ```
-    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/urban-wombat/my_flatbuffers
+    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-account/my_flatbuffers
     ```
 
     flattablesc creates a flatbuffers schema *.fbs file and a number of Go source files.
