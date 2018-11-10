@@ -16,7 +16,7 @@
 
 	`go get -u github.com/urban-wombat/gotablesutils`
 
-	`$ cd gotablesutils`
+	$ cd gotablesutils
 
     `go install flattablesc.go`
 
@@ -28,7 +28,7 @@
 
 3. Create your directory `my_flatbuffers`
 
-    `$ mkdir my_flatbuffers`
+    $ mkdir my_flatbuffers
 
 	`my_flatbuffers` (or whatever you decide to call it) will also be your namespace and package name.
 
