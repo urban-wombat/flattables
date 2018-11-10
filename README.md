@@ -52,7 +52,7 @@
 	You can come up with your own tables of data, or can copy and paste the tables below into `tables.got`
 
 	The gotables syntax is self-evident and most Go types are supported. Not supported are `int` and `uint`
-	(because their size is machine-dependant, and only fixed-size fields are accepted by FlatBuffers),
+	(because their size is machine-dependent, and only fixed-size fields are accepted by FlatBuffers),
 	`complex` and `rune`.
 
 ```
@@ -97,9 +97,9 @@ FlatTables is a little more strict than gotables syntax:
 * Table names must start with an uppercase character.
 * Column names must start with a lowercase character.
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
-variable names in generated Go code, and the compiler gets very annoyed seeing key words used as variables.
+variable names in generated Go code, and the compiler doesn't like key words used as variables.
 * Transfers between Go slices and FlatBuffers requires the field names to be exported (hence uppercase) which is
-done by code generation.
+done by code generation. So there's a (managed) difference between FlatBuffers style guide and the need to export Go fields.
 
 6. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
