@@ -10,11 +10,11 @@
 
 2. Install gotables, flattables and gotablesutils
 
-	go get -u github.com/urban-wombat/gotables
+    go get -u github.com/urban-wombat/gotables
 
     go get -u github.com/urban-wombat/flattables
 
-	go get -u github.com/urban-wombat/gotablesutils
+    go get -u github.com/urban-wombat/gotablesutils
 
     $ cd gotablesutils
 
