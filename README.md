@@ -2,6 +2,8 @@
 
 ## Install and Test
 
+If you hit a wall or feel that something is missing or unclear: [urban.wombat.burrow@gmail.com](mailto:urban.wombat.burrow@gmail.com)
+
 1. Install FlatBuffers
 
 	```
