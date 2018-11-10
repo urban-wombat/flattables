@@ -17,7 +17,9 @@
 	`go get -u github.com/urban-wombat/gotablesutils`
 
 	`$ cd gotablesutils`
+
     `go install flattablesc.go`
+
     `go install gotsyntax.go`
 
 	Relationships between the packages:
