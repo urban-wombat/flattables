@@ -1,5 +1,7 @@
 # Get started with `Google FlatBuffers`
 
+## Install and test
+
 1. Install FlatBuffers
 
 	```
@@ -77,13 +79,12 @@
     wild bool = true
 ```
 
-The FlatTables utility `flattablesc` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
-Check its validity with gotsyntax
+5. Check its validity with gotsyntax
 
-	```
-    $ gotsyntax tables.got
-	```
+    $ `gotsyntax tables.got`
+
+	The FlatTables utility `flattablesc` will also do a validity check, but you might as well get earlier feedback with `gotsyntax`.
 
 
 FlatTables is a little more strict than gotables syntax:
@@ -92,14 +93,22 @@ FlatTables is a little more strict than gotables syntax:
 * Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler gets very annoyed seeing key words used as variables.
 
-3. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
+6. From within dir `my_flatbuffers` run the FlatTables utility `flattablesc`
 
+    ```
     $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/urban-wombat/my_flatbuffers
+    ```
 
     flattablesc creates a flatbuffers schema *.fbs file and a number of Go source files.
 
+7. Run the tests
 
-`FlatTables` is a simple tabular subset of `FlatBuffers`.
+    ```
+    $ go test -bench=.
+    ```
+
+
+## `FlatTables` is a simple tabular subset of `FlatBuffers`.
 
 Have a look at the Google FlatBuffers official documentation to see
 why you should seriously consider FlatBuffers (and FlatTables)
@@ -199,9 +208,3 @@ You don't have to write the glue code to get data from `tables.got` to a flatbuf
 And if you wish to populate the flatbuffers []byte array yourself, and not go via gotables, just
 follow the setter calls in the various Go source files to get you going. In that case, you could use
 the gotables `tables.got` file purely for generating the schema and setter methods. That would run faster.
-
-4. Run the tests
-
-    $ go test -bench=.
-
-That's it!
