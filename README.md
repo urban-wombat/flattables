@@ -10,6 +10,7 @@
 
 2. Install gotables, flattables and gotablesutils
 
+	```
     go get -u github.com/urban-wombat/gotables
 
     go get -u github.com/urban-wombat/flattables
@@ -21,6 +22,7 @@
     go install flattablesc.go
 
     go install gotsyntax.go
+	```
 
 	Relationships between the packages:
 	* flattables uses gotables
@@ -28,9 +30,11 @@
 
 3. Create your directory `my_flatbuffers`
 
+	```
     $ mkdir my_flatbuffers
 
 	`my_flatbuffers` (or whatever you decide to call it) will also be your namespace and package name.
+	```
 
 4. Create your FlatTables schema/data file
 
@@ -75,7 +79,9 @@ The FlatTables utility `flattablesc` will also do a validity check, but you migh
 
 Check its validity with gotsyntax:
 
+	```
     $ gotsyntax tables.got
+	```
 
 
 FlatTables is a little more strict than gotables syntax:
