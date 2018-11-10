@@ -45,10 +45,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-func init() {
-    log.SetFlags(log.Lshortfile)
-}
-
 func main() {
 	var tableSet1 *gotables.TableSet	// Constructed from gotables data.
 	var tableSet2 *gotables.TableSet	// Constructed from FlatBuffers data.

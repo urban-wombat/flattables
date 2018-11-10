@@ -240,7 +240,7 @@ var generations = []GenerationInfo {
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
-			`"log"`,
+//			`"log"`,
 		},
 	},
 	{	FuncName: "test",	// Not really a function name.
@@ -254,7 +254,7 @@ var generations = []GenerationInfo {
 	},
 	{	FuncName: "helpers",
 		Imports:  []string {
-			`"log"`,
+//			`"log"`,
 			`"path/filepath"`,
 			`"runtime"`,
 			`"strings"`,
@@ -271,19 +271,19 @@ var generations = []GenerationInfo {
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
-			`"log"`,
+//			`"log"`,
 		},
 	},
 	{	FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
-			`"log"`,
+//			`"log"`,
 		},
 	},
 	{	FuncName: "OldSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
-			`"log"`,
+//			`"log"`,
 		},
 	},
 	{	FuncName: "NewFlatBuffersFromSlice",
@@ -292,12 +292,6 @@ var generations = []GenerationInfo {
 			`"fmt"`,
 		},
 	},
-//	{	FuncName: "NewArrayFromFlatBuffers",
-//		Imports:  []string {
-//			`"fmt"`,
-//			`"log"`,
-//		},
-//	},
 }
 
 func GenerateAll(nameSpace string, verbose bool) error {

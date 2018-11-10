@@ -35,11 +35,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-func init() {
-	log.SetFlags(log.Lshortfile)
-}
-
-
 // Note: These type definitions may be shared by other functions.
 
 {{range .Tables}}

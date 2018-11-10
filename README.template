@@ -8,4 +8,4 @@
 
 It is recommended that you populate your gotables file with some data.
 The auto-generated bench tests will use it. This means all the benchmarks
-will use exactly the same data sets.
+will use exactly the same data.

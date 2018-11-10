@@ -4,7 +4,7 @@ package {{.NameSpace}}
 	{{.GeneratedFile}}
 	DO NOT MODIFY
 	{{.GeneratedDateFromFile}}
-	{{.UsingCommand}}
+	{{.UsingCommand -}}
 */
 
 import (
@@ -34,8 +34,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-var where func(...interface {})
 
 func TestNewFlatBuffersFromTableSet(t *testing.T) {
 	var err error
@@ -1055,24 +1053,6 @@ func BenchmarkNewSliceFromFlatBuffers(__b *testing.B) {
 		if err != nil { __b.Error(err) }
 		_ = slices
 	}
-
-
-/*
-	_, flatBuffers2, err := NewFlatBuffersFromSlice(slices)
-	if err != nil { panic(err) }
-	equals := bytes.Equal(flatBuffers, flatBuffers2)
-	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
-*/
-
-//	__b.Log(fmt.Sprintf("%#v\n", slices))
-/*
-	// Here are the returned slices as text:
-	{{range .Tables}}
-		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
-			fmt.Printf("%#v\n", slices.TableSlice_{{.Table.Name}}[i])
-		}
-	{{end}}
-*/
 }
 
 func BenchmarkOldSliceFromFlatBuffers(__b *testing.B) {
@@ -1095,22 +1075,4 @@ func BenchmarkOldSliceFromFlatBuffers(__b *testing.B) {
 		if err != nil { __b.Error(err) }
 		_ = slices
 	}
-
-
-/*
-	_, flatBuffers2, err := NewFlatBuffersFromSlice(slices)
-	if err != nil { panic(err) }
-	equals := bytes.Equal(flatBuffers, flatBuffers2)
-	if !equals { panic(fmt.Sprintf("bytes.Equal(flatBuffers, flatBuffers2) != %t\n", bytes.Equal(flatBuffers, flatBuffers2))) }
-*/
-
-//	__b.Log(fmt.Sprintf("%#v\n", slices))
-/*
-	// Here are the returned slices as text:
-	{{range .Tables}}
-		for i := 0; i < len(slices.TableSlice_{{.Table.Name}}); i++ {
-			__b.Log(fmt.Sprintf("%#v\n", slices.TableSlice_{{.Table.Name}}[i]))
-		}
-	{{end}}
-*/
 }
