@@ -179,7 +179,7 @@ was generated automatically from `flatc` and `flattablesc`.
 
 When you download and run flattablesc (referencing a simple
 [gotables](https://github.com/urban-wombat/gotables) file you write yourself)
-you can run the tests and benchtest and see the SPEED of FlatBuffers.
+you can run the tests and benchtest and see the speed of FlatBuffers.
 
 ## Advantages
 
@@ -201,7 +201,7 @@ you can run the tests and benchtest and see the SPEED of FlatBuffers.
 * FlatTables generates Go code to test that data has been written to FlatBuffers correctly.
 
 * The read step is VERY FAST. There is no additional code between you and the auto-generated FlatBuffers code.
-  (Note: the read step at this stage is read-only. This may get better.)
+  (Note: the read step at this stage is read-only. This may get better with the implementation of mutable tables)
 
 * You write only your own code to call these auto-generated methods, and denormalise the data from tables to
   your prefered data structures.
@@ -212,15 +212,8 @@ you can run the tests and benchtest and see the SPEED of FlatBuffers.
   normalised (in Ted Codd, C J Date fashion) to one or more relational tables ready for transmission and re-assembly
   at the receiving end.
 
-* You don't HAVE to use gotables data format to write to a FlatBuffers []byte array. Once you have followed the simple
-steps (described below) to generate the schema and code, you can take guidance from the generated code
-to write directly from your data objects to FlatBuffers. Perhaps use gotables during initial
-development, and write directly to FlatBuffers later for the highest possible speeds.
+* The Example functions in the `*.test.go` file will get you started coding data transfers.
 
 You don't have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It is done for you.
 
 You don't have to write the glue code to get data from `tables.got` to a flatbuffers []byte array.
-
-And if you wish to populate the flatbuffers []byte array yourself, and not go via gotables, just
-follow the setter calls in the various Go source files to get you going. In that case, you could use
-the gotables `tables.got` file purely for generating the schema and setter methods. That would run faster.
