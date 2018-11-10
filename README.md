@@ -149,9 +149,9 @@ There is an Example test function for each of the key functions.
 There is a suite of benchmark tests which will run with the data you put into
 your gotables schema file.
 
-There is a [sample implementation](urban-wombat/flattables_sample](https://github.com/urban-wombat/flattables_sample)
-(using a gotables file as input to the
-`flattablesc` utility) the same way you would create your own implementation.
+There is a [sample implementation](urban-wombat/flattables_sample)
+(using a gotables file as input to the `flattablesc` utility)
+the same way you would create your own implementation.
 It is called `flattables_sample`. It is an actual implementation, not just a
 toy sample.
 
