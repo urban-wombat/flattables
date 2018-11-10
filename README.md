@@ -30,18 +30,18 @@
 
     `$ mkdir my_flatbuffers`
 
-	`my_flatbuffers` (or whatever you decide to call it) will be your namespace and package name.
+	`my_flatbuffers` (or whatever you decide to call it) will also be your namespace and package name.
 
-4. In dir `my_flatbuffers` create a file containing one or more gotables tables. The tables don't need to contain data,
-but let's include some data and use the same file for writing to a FlatBuffers []byte array and running our tests.
-We'll call it "tables.got" (.got is for gotables).
-
-4. Create a text file in gotables format with one or more tables and some rows of data.
+4. Create your FlatTables schema/data file
 
     It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
 	and create it in your newly-created directory `my_flatbuffers`.
 
-	You can copy and paste the tables below into `tables.got` or come up with your own tables.
+	The table names, column names and types are used to generate the FlatBuffers schema file *.fbs
+
+	The data in the tables is used in the auto-generated bench tests. So add some dummy data for testing.
+
+	You can come up with your own tables of data, or can copy and paste the tables below into `tables.got`
 
 ```
     [MyXyzTable]
