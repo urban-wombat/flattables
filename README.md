@@ -57,8 +57,8 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	
 	**Not supported** are
 	* `int` and `uint` (their size is machine-dependent, and FlatBuffers has only fixed-size)
-	* `complex`
-	* `rune`
+	* `complex` (not supported by gotables)
+	* `rune` (doesn't seem to be supported by FlatBuffers, perhaps because its size varies)
 
 ```
     [MyXyzTable]
