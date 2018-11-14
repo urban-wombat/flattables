@@ -53,7 +53,9 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	You can come up with your own tables of data, or can copy and paste the tables below into `tables.got`
 
-	The `gotables` syntax is self-evident and most Go types are supported. **Not supported** are `int` and `uint`
+	The `gotables` syntax is self-evident and most Go types are supported.
+	
+	**Not supported** are `int` and `uint`
 	(because their size is machine-dependent, and only fixed-size fields are accepted by FlatBuffers),
 	`complex` and `rune`.
 
