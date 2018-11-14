@@ -157,10 +157,10 @@ The generated code includes:
 * a main program with sample code
 
 * There is a [sample implementation](https://godoc.org/github.com/urban-wombat/flattables_sample)
-using a `gotables` file (tables.got)[https://github.com/urban-wombat/flattables_sample/blob/master/tables.got] as input to the `flattablesc` utility.
+using a `gotables` file
+[tables.got](https://github.com/urban-wombat/flattables_sample/blob/master/tables.got) as input to the `flattablesc` utility.
 The same way you would create your own implementation.
-It is called `flattables_sample`. It is an actual implementation, not just a
-toy sample.
+It is called `flattables_sample`. It is an actual implementation, and not just a toy sample.
 
 When you run `flattablesc` on your own `gotables` schema file, it will generate
 your raw Go struct tables, functions, examples and benchtests.
