@@ -988,6 +988,7 @@ func ExampleNewFlatBuffersFromSlice_roundtrip() {
 	// Output:
 	// bytes.Equal(flatBuffers1, flatBuffers2) = true
 }
+
 func ExampleNewFlatBuffersFromSlice() {
 
 	// Setup. Data to use.
@@ -1031,6 +1032,34 @@ func ExampleNewFlatBuffersFromSlice() {
 	_, flatBuffers2, err = NewFlatBuffersFromSlice(slices)
 	if err != nil { panic(err) }
 	_ = flatBuffers2	// For compiler
+}
+func BenchmarkNewFlatBuffersFromSlice(__b *testing.B) {
+
+	// Setup. Data to use.
+
+	var tableSetString = `
+{{.TableSetData -}}`
+
+	var tableSet1 *gotables.TableSet
+	var err error
+	tableSet1, err = gotables.NewTableSetFromString(tableSetString)
+	if err != nil { __b.Error(err) }
+
+	var flatBuffers1 []byte
+	_, flatBuffers1, err = NewFlatBuffersFromTableSet(tableSet1)
+	if err != nil { __b.Error(err) }
+
+	var slices RootTableSlice
+	slices, err = NewSliceFromFlatBuffers(flatBuffers1)
+	if err != nil { __b.Error(err) }
+
+	var flatBuffers2 []byte
+	// Begin benchmark ...
+	for i := 0; i < __b.N; i++ {
+		_, flatBuffers2, err = NewFlatBuffersFromSlice(slices)
+		if err != nil { __b.Error(err) }
+		_ = flatBuffers2	// For compiler
+	}
 }
 
 func BenchmarkNewSliceFromFlatBuffers(__b *testing.B) {
