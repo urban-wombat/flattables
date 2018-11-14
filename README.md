@@ -47,7 +47,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
     It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
 	and create it in your newly-created directory `my_flatbuffers`.
 
-	The table names, column names and types are used to generate the FlatBuffers schema file *.fbs
+	The table names, column names and types are used to generate the FlatBuffers schema file `*.fbs`
 
 	The data in the tables is used in the auto-generated bench tests. So add some dummy data for testing.
 
@@ -55,7 +55,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	The `gotables` syntax is self-evident and most Go types are supported.
 	
-	**Not supported** are
+	**Not** supported are
 	* `int` and `uint` (their size is machine-dependent, and FlatBuffers has only fixed-size)
 	* `complex` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by FlatBuffers, perhaps because its size varies)
@@ -115,13 +115,15 @@ type RootTableSlice struct {...}
 
 See a sample RootTableSlice definition in [flattables_sample_NewSliceFromFlatBuffers.go](https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go)
 
+`type RootTableSlice` is generated for you based on your `tables.got` schema file and the `*fbs` schema file.
+
 6. From within dir `my_flatbuffers` run the `FlatTables` utility `flattablesc`
 
     ```
     $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-name/my_flatbuffers
     ```
 
-    `flattablesc` creates a flatbuffers schema *.fbs file and a number of Go source files.
+    `flattablesc` creates a flatbuffers schema `*.fbs` file and a number of Go source files.
 
 7. Run the tests
 
@@ -134,7 +136,7 @@ See a sample RootTableSlice definition in [flattables_sample_NewSliceFromFlatBuf
 
 Have a look at the Google FlatBuffers official documentation to see
 why you should seriously consider FlatBuffers (and `FlatTables`)
-for VERY FAST binary data transfer:
+for **very fast** binary data transfer:
 * [Google FlatBuffers official documentation](https://google.github.io/flatbuffers)
 
 If your data is tabular (or can be easily normalised to tabular) then `FlatTables`
@@ -207,7 +209,7 @@ you can run the tests and benchtest and see the speed of FlatBuffers.
 
 * `FlatTables` generates Go code to test that data has been written to FlatBuffers correctly.
 
-* The read step is VERY FAST. There is no additional code between you and the auto-generated FlatBuffers code.
+* The read step is **very fast**. There is no additional code between you and the auto-generated FlatBuffers code.
   (Note: the read step at this stage is read-only. This may get better with the implementation of mutable tables)
 
 * You write only your own code to call these auto-generated methods, and denormalise the data from tables to
@@ -221,6 +223,6 @@ you can run the tests and benchtest and see the speed of FlatBuffers.
 
 * The Example functions in the `*.test.go` file will get you started coding data transfers.
 
-* You don't have to write the .fbs flatbuffers schema `flattables_sample.fbs`. It is done for you.
+* You don't have to write the `*.fbs` flatbuffers schema `flattables_sample.fbs`. It is done for you.
 
 * You don't have to write the glue code to get data from `tables.got` to a flatbuffers []byte array.
