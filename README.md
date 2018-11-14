@@ -161,8 +161,8 @@ The generated code includes:
 your `gotables` schema file.
 
 * There is a [sample implementation](https://godoc.org/github.com/urban-wombat/flattables_sample)
-(using a `gotables` file (tables.got)[https://github.com/urban-wombat/flattables_sample/blob/master/tables.got] as input to the `flattablesc` utility)
-the same way you would create your own implementation.
+using a `gotables` file (tables.got)[https://github.com/urban-wombat/flattables_sample/blob/master/tables.got] as input to the `flattablesc` utility.
+The same way you would create your own implementation.
 It is called `flattables_sample`. It is an actual implementation, not just a
 toy sample.
 
