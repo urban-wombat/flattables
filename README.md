@@ -55,9 +55,10 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	The `gotables` syntax is self-evident and most Go types are supported.
 	
-	**Not supported** are `int` and `uint`
-	(because their size is machine-dependent, and only fixed-size fields are accepted by FlatBuffers),
-	`complex` and `rune`.
+	**Not supported** are
+	* `int` and `uint` (their size is machine-dependent, and FlatBuffers has only fixed-size)
+	* `complex`
+	* `rune`
 
 ```
     [MyXyzTable]
@@ -88,7 +89,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 ```
 
 
-5. Check its validity with gotsyntax
+5. Check its validity with `gotsyntax`
 
     ```
     $ gotsyntax tables.got
@@ -100,7 +101,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 FlatTables is a little more strict than `gotables` syntax:
 * Table names must start with an uppercase character.
 * Column names must start with a lowercase character.
-* Table names or column names that so much as look like Go key words are not permitted. Table and column names end up as
+* Table names or column names that so much as **look* like Go key words are not permitted. Table and column names end up as
 variable names in generated Go code, and the compiler doesn't like key words used as variables.
 * Transfers between Go slices and FlatBuffers require the field names to be exported (hence uppercase) which is
 done by code generation. So there's a (managed) difference between the
@@ -111,6 +112,8 @@ used by `FlatTables`, namely:
 ```
 type RootTableSlice struct {...}
 ```
+
+See a sample RootTableSlice definition in [flattables_sample_NewSliceFromFlatBuffers.go](https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go)
 
 6. From within dir `my_flatbuffers` run the `FlatTables` utility `flattablesc`
 
