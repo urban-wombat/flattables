@@ -109,7 +109,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 * Table names must start with an uppercase character -- [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 * Column names must start with a lowercase character -- [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 * Table names or column names that so much as **look** like `Go` key words are not permitted. Table and column names end up as
-variable names in generated `Go` code, and the compiler doesn't like key words used as variables.
+function and variable names in generated `Go` code, and the compiler doesn't like key words as names. So we don't risk it.
 * Transfers between `Go` slices and `FlatBuffers` require the field names to be exported (hence uppercase) which is
 done by code generation. So there's a (managed) difference between the
 [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
