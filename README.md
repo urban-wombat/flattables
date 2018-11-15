@@ -60,7 +60,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	* `complex` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by `FlatBuffers`, perhaps because its size varies)
 
-	If you just want to get started and not deal with creating your own `gotables` schema, just copy
+	If you just want to get started and not deal with creating your own `gotables` schema right now, just copy
 	and paste the tables below into `tables.got` and proceed to the next step. You can go back later
 	and whip up data that looks like your own.
 
