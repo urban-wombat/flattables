@@ -101,9 +101,9 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	The `FlatTables` utility `flattablesc` will also do a syntax check, but you might as well get earlier feedback with `gotsyntax`.
 
-	`flattablesc` also invokes Google `FlatTables` `flatc` code generator. It doesn't seem to police the 
+	`flattablesc` also invokes the Google `FlatTables` `flatc` code generator. It doesn't seem to police the 
 	[FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
-	but `flattablesc` **does**. It also guards against some gotchas specific to generating `Go` code.
+	but `flattablesc` does. `flattablesc` also guards against some gotchas specific to generating `Go` code.
 
 `FlatTables` is a little more strict than `gotables` syntax:
 * Table names must start with an uppercase character.
