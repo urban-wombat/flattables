@@ -1,7 +1,7 @@
 # Your Generated Package: `{{.NameSpace}}`
 
-* [package {{.NameSpace}}](https://godoc.org/github.com/urban-wombat/{{.NameSpace}})
-* [Command {{.NameSpace}}_main](https://godoc.org/github.com/urban-wombat/{{.NameSpace}}_main)
+* [package {{.NameSpace}} godoc.org documentation](https://godoc.org/github.com/urban-wombat/{{.NameSpace}})
+* [Command {{.NameSpace}}_main} godoc.org documentation](https://godoc.org/github.com/urban-wombat/{{.NameSpace}}_main)
 * [All Go code and the FlatBuffers schema are generated from this gotables file](https://github.com/urban-wombat/{{.NameSpace}}/blob/master/tables.got)
 
 `$ flattablesc -v -f ../{{.NameSpace}}/{{.GotablesFileName}} -n {{.NameSpace}} -p github.com/urban-wombat/{{.NameSpace}}`
