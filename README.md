@@ -130,7 +130,7 @@ See a sample RootTableSlice definition in [flattables_sample_NewSliceFromFlatBuf
     $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-name/my_flatbuffers
     ```
 
-    `flattablesc` creates a flatbuffers schema `*.fbs` file and a number of `Go` source files.
+    `flattablesc` creates a flatbuffers schema `*.fbs` file and a number of `Go` source files in `../my_flatbuffers`.
 
 7. Run the tests
 
