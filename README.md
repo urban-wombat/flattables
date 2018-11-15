@@ -114,7 +114,7 @@ function and variable names in generated `Go` code, and the `Go` compiler doesn'
 done by code generation. So there's a (managed) difference between the
 [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 and the need to export `Go` fields. Languages such as Java convert field names to lowerCamelCase, which is what `FlatTables`
-requires here, consistent with `Go` unexported fields. They are exported as UpperCamelCase where needed in raw `Go` structs
+requires here, consistent with `Go` unexported fields. But they are exported as UpperCamelCase where needed in raw `Go` structs
 used by `FlatTables`, namely:
 ```
 type RootTableSlice struct {...}
