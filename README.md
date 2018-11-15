@@ -60,6 +60,10 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	* `complex` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by `FlatBuffers`, perhaps because its size varies)
 
+	If you just want to get started and not deal with creating your own `gotables` schema, just copy
+	and paste the tables below into `tables.got` and proceed to the next step. You can go back later
+	and whip up data that looks like your own.
+
 ```
     [MyXyzTable]
         x       y       z
@@ -97,8 +101,11 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	The `FlatTables` utility `flattablesc` will also do a syntax check, but you might as well get earlier feedback with `gotsyntax`.
 
+	`flattablesc` also invokes Google `FlatTables` `flatc` code generator. It doesn't seem to police the 
+	[FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
+	but `flattablesc` **does**. It also guards against some gotchas specific to generating `Go` code.
 
-FlatTables is a little more strict than `gotables` syntax:
+`FlatTables` is a little more strict than `gotables` syntax:
 * Table names must start with an uppercase character.
 * Column names must start with a lowercase character.
 * Table names or column names that so much as **look* like `Go` key words are not permitted. Table and column names end up as
