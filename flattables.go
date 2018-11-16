@@ -1,10 +1,8 @@
 package flattables
 
-/*
-This is a library of helper functions for utility: flattablesc
+// This is a library of helper functions for utility: flattablesc
 
-See: https://github.com/urban-wombat/flattables#flattables-is-a-simplified-tabular-subset-of-flatbuffers
-*/
+// See: https://github.com/urban-wombat/flattables#flattables-is-a-simplified-tabular-subset-of-flatbuffers
 
 import (
 	"bytes"
