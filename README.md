@@ -40,7 +40,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
     $ mkdir my_package
 	```
 
-	`my_package` (or whatever you decide to call it) will also be your namespace and package name.
+	`my_package` (or whatever you decide to call it) will be your namespace and package name.
 
 4. Create your `FlatTables` schema/data file
 
