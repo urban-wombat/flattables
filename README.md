@@ -51,11 +51,11 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	The data in the tables is used in the auto-generated bench tests. So add some dummy data for testing.
 
-	You can come up with your own tables of data, or can copy and paste the tables below into `tables.got`
+	You can come up with your own tables of data, or you may copy and paste the tables below into `tables.got`
 
 	The `gotables` syntax is self-evident and most `Go` types are supported.
 	
-	**Not** supported are
+	Types **Not** supported are:
 	* `int` and `uint` (their size is machine-dependent, and `FlatBuffers` has only fixed-size)
 	* `complex` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by `FlatBuffers`, perhaps because its size varies)
