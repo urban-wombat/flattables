@@ -56,7 +56,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	The `gotables` syntax is self-evident and most `Go` types are supported.
 	
 	Types **not** supported are:-
-	* `int` and `uint` (their size is machine-dependent, and `FlatBuffers` has only fixed-size)
+	* `int` and `uint` (their sizes is machine-dependent, and `FlatBuffers` allows fixed-sizes only)
 	* `complex` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by `FlatBuffers`, perhaps because its size varies)
 
