@@ -1,4 +1,4 @@
-# Get started with `Google FlatBuffers`
+# Getting started with `Google FlatBuffers` via `FlatTables`
 
 ## Install and Test
 
@@ -34,18 +34,18 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	* `flattables` uses `gotables`
 	* `flattablesc` uses `flattables` and `gotables`
 
-3. Create your directory `my_flatbuffers`
+3. Create your directory `my_package`
 
 	```
-    $ mkdir my_flatbuffers
+    $ mkdir my_package
 	```
 
-	`my_flatbuffers` (or whatever you decide to call it) will also be your namespace and package name.
+	`my_package` (or whatever you decide to call it) will also be your namespace and package name.
 
 4. Create your `FlatTables` schema/data file
 
     It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
-	and create it in your newly-created directory `my_flatbuffers`.
+	and create it in your newly-created directory `my_package`.
 
 	The table names, column names and types are used to generate the `FlatBuffers` schema file `*.fbs`
 
@@ -124,13 +124,13 @@ See a sample RootTableSlice definition in [flattables_sample_NewSliceFromFlatBuf
 
 `type RootTableSlice` is generated for you based on your `tables.got` schema file and the `*fbs` schema file.
 
-6. From within dir `my_flatbuffers` run the `FlatTables` utility `flattablesc`
+6. From within dir `my_package` run the `FlatTables` utility `flattablesc`
 
     ```
-    $ flattablesc -f ../my_flatbuffers/tables.got -n my_flatbuffers -p github.com/your-github-name/my_flatbuffers
+    $ flattablesc -f ../my_package/tables.got -n my_package -p github.com/your-github-name/my_package
     ```
 
-    `flattablesc` creates a flatbuffers schema `*.fbs` file and a number of `Go` source files in `../my_flatbuffers`.
+    `flattablesc` creates a flatbuffers schema `*.fbs` file and a number of `Go` source files in `../my_package`.
 
 7. Run the tests
 
