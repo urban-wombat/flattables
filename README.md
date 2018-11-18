@@ -120,9 +120,9 @@ used by `FlatTables`, namely:
 type RootTableSlice struct {...}
 ```
 
-See a sample RootTableSlice definition
+See a sample RootTableSlice definition in
 [flattables_sample_NewSliceFromFlatBuffers.go](https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go)
-(near line 70 in)
+(near line 70)
 
 `type RootTableSlice` is generated for you based on your `tables.got` schema file and the `*fbs` schema file.
 
