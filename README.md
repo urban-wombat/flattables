@@ -1,4 +1,4 @@
-# Getting started with `Google FlatBuffers` with `FlatTables`
+# Getting started with `Google FlatBuffers` and `FlatTables`
 
 ## Install and Test
 
