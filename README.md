@@ -110,11 +110,11 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 * Column names must be `lowerCamelCase` as per the [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 * Table names or column names that so much as **look** like `Go` key words are not permitted. Table and column names end up as
 function and variable names in generated `Go` code, and the `Go` compiler doesn't like key words as names. So we don't risk it.
-* Transfers between `Go` slices and `FlatBuffers` require the field names to be exported (hence uppercase) which is
+* Transfers between `Go` slices and `FlatBuffers` require the field names to be exported (hence `UpperCamelCase`) which is
 done by code generation. So there's a (managed) difference between the
 [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
-and the need to export `Go` fields. Languages such as Java convert field names to lowerCamelCase, which is what `FlatTables`
-requires here, consistent with `Go` unexported fields. But they are exported as UpperCamelCase where needed in raw `Go` structs
+and the need to export `Go` fields to user code. Languages such as Java convert field names to `lowerCamelCase`, which is what `FlatTables`
+requires here, consistent with `Go` unexported fields. But they are exported as `UpperCamelCase` where needed in raw `Go` structs
 used by `FlatTables`, namely:
 ```
 type RootTableSlice struct {...}
