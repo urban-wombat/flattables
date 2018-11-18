@@ -106,8 +106,8 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	but `flattablesc` does. `flattablesc` also guards against some gotchas specific to generating `Go` code.
 
 `FlatTables` is also a little more strict than `gotables` syntax:
-* Table names must start with an uppercase character -- [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
-* Column names must start with a lowercase character -- [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
+* Table names must start with an uppercase as per the [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
+* Column names must start with a lowercase as per the [FlatBuffers style guide](https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html)
 * Table names or column names that so much as **look** like `Go` key words are not permitted. Table and column names end up as
 function and variable names in generated `Go` code, and the `Go` compiler doesn't like key words as names. So we don't risk it.
 * Transfers between `Go` slices and `FlatBuffers` require the field names to be exported (hence uppercase) which is
