@@ -120,7 +120,7 @@ used by `FlatTables`, namely:
 type RootTableSlice struct {...}
 ```
 
-See a sample RootTableSlice definition in
+See a sample `RootTableSlice` definition in
 [flattables_sample_NewSliceFromFlatBuffers.go](https://github.com/urban-wombat/flattables_sample/blob/master/flattables_sample_NewSliceFromFlatBuffers.go)
 (near line 70)
 
