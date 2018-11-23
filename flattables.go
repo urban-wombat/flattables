@@ -78,7 +78,7 @@ var goToFlatBuffersTypes = map[string]string {
 //	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
-var goToPrismaTypes = map[string]string {
+var goToGraphQLTypes = map[string]string {
 	"string":  "String",
 	"bool":    "Boolean",
 	"int32":   "Int",
@@ -203,22 +203,22 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	return buf.String(), nil
 }
 
-func PrismaSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
+func GraphQLSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 
 	var err error
 
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 
-	const PrismaSchemaFromTableSetTemplateFile = "../flattables/PrismaSchema.template"
+	const GraphQLSchemaFromTableSetTemplateFile = "../flattables/GraphQLSchema.template"
 	// Use the file name as the template name so that file name appears in error output.
-	var tplate *template.Template = template.New(PrismaSchemaFromTableSetTemplateFile)
+	var tplate *template.Template = template.New(GraphQLSchemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(PrismaSchemaFromTableSetTemplateFile)
+	data, err := ioutil. ReadFile(GraphQLSchemaFromTableSetTemplateFile)
 	if err != nil { return "", err }
 
 	tplate, err = tplate.Parse(string(data))
