@@ -203,6 +203,33 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	return buf.String(), nil
 }
 
+func PrismaSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
+
+	var err error
+
+	var buf *bytes.Buffer = bytes.NewBufferString("")
+
+	const PrismaSchemaFromTableSetTemplateFile = "../flattables/PrismaSchema.template"
+	// Use the file name as the template name so that file name appears in error output.
+	var tplate *template.Template = template.New(PrismaSchemaFromTableSetTemplateFile)
+
+	// Add a user-defined function to schema tplate.
+	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
+	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
+
+	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+	data, err := ioutil. ReadFile(PrismaSchemaFromTableSetTemplateFile)
+	if err != nil { return "", err }
+
+	tplate, err = tplate.Parse(string(data))
+	if err != nil { return "", err }
+
+	err = tplate.Execute(buf, templateInfo)
+	if err != nil { return "", err }
+
+	return buf.String(), nil
+}
+
 func startsWithLowerCase(s string) bool {
 	if len(s) > 0 {
 		rune0 := rune(s[0])
@@ -492,6 +519,7 @@ type TemplateInfo struct {
 	GeneratedDateFromFile string
 	GeneratedFromFile string
 	UsingCommand string
+	UsingCommandMinusG string
 	NameSpace string	// Included in PackageName.
 	PackageName string	// Includes NameSpace
 	Year string
@@ -672,6 +700,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
 		GeneratedFromFile: generatedFromFile(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
+		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
 		GotablesFileName: tableSet.FileName(),
 		Year: copyrightYear(),
 		NameSpace: tableSet.Name(),
@@ -717,7 +746,7 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	var usingCommand string
 
 	// Sample:
-	// flattablesc -f ../flattables_sample/tables.got -n flattables_sample -p package_name
+	// flattablesc -v -f ../flattables_sample/tables.got -n flattables_sample -p package_name
 
 	nameSpace := tableSet.Name()
 	fileName := filepath.Base(tableSet.FileName())
@@ -726,6 +755,25 @@ func usingCommand(tableSet *gotables.TableSet, packageName string) string {
 	usingCommand = "using the following command:\n"
 	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", nameSpace, fileName))
 	usingCommand += indentText(indent, fmt.Sprintf("$ flattablesc -v -f ../%s/%s -n %s -p %s\n",
+		nameSpace, fileName, nameSpace, packageName))
+	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
+
+	return usingCommand
+}
+
+func usingCommandMinusG(tableSet *gotables.TableSet, packageName string) string {
+	var usingCommand string
+
+	// Sample:
+	// flattablesc -v -g -f ../flattables_sample/tables.got -n flattables_sample -p package_name
+
+	nameSpace := tableSet.Name()
+	fileName := filepath.Base(tableSet.FileName())
+
+	indent := "\t"
+	usingCommand = "using the following command:\n"
+	usingCommand += indentText(indent, fmt.Sprintf("$ cd %s\t# Where you defined your tables in file %s\n", nameSpace, fileName))
+	usingCommand += indentText(indent, fmt.Sprintf("$ flattablesc -v -g -f ../%s/%s -n %s -p %s\n",
 		nameSpace, fileName, nameSpace, packageName))
 	usingCommand += indentText(indent, "See instructions at: https://github.com/urban-wombat/flattables")
 

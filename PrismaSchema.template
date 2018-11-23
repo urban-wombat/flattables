@@ -2,8 +2,10 @@
 	{{.GeneratedFile}}
 	DO NOT MODIFY
 	{{.GeneratedDateFromFile}}
-	{{.UsingCommand -}}
+	{{.UsingCommandMinusG -}}
 */
+
+//	Note: the flattablesc -g flag turns on GraphQL (Prisma) schema generation.
 
 
 /*
