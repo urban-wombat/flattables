@@ -78,6 +78,27 @@ var goToFlatBuffersTypes = map[string]string {
 //	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
+var goToPrismaTypes = map[string]string {
+	"string":  "String",
+	"bool":    "Boolean",
+	"int32":   "Int",
+	"float64": "Float",
+//	"int64":   "long",	// 64‐bit numeric non‐fractional value. Currently not implemented by Prisma.
+/*
+	"int8":    "byte",	// Signed.
+	"int16":   "short",
+	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
+	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
+	"uint8":   "ubyte",
+	"uint16":  "ushort",
+	"uint32":  "uint",
+	"uint64":  "ulong",
+	"float32": "float",
+//	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+//	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+*/
+}
+
 var goFlatBuffersScalarTypes = map[string]string {
 	"bool":    "bool",	// Scalar from FlatBuffers point of view.
 	"int8":    "byte",	// Signed.
@@ -161,16 +182,16 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 
-	const schemaFromTableSetTemplateFile = "../flattables/schema.template"
+	const FlatBuffersSchemaFromTableSetTemplateFile = "../flattables/FlatBuffersSchema.template"
 	// Use the file name as the template name so that file name appears in error output.
-	var tplate *template.Template = template.New(schemaFromTableSetTemplateFile)
+	var tplate *template.Template = template.New(FlatBuffersSchemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(schemaFromTableSetTemplateFile)
+	data, err := ioutil. ReadFile(FlatBuffersSchemaFromTableSetTemplateFile)
 	if err != nil { return "", err }
 
 	tplate, err = tplate.Parse(string(data))
