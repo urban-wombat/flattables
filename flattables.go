@@ -584,7 +584,14 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 
 		if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
 			return emptyTemplateInfo,
-				fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]", table.Name())
+				fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
+					table.Name())
+		}
+
+		// I don't see documentation on this, but undescores in field names affect code generation.
+		if strings.ContainsRune(table.Name(), '_') {
+			return emptyTemplateInfo,
+				fmt.Errorf("Cannot use underscores '_' in table names. Rename [%s]", table.Name())
 		}
 
 		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
@@ -607,6 +614,12 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			if isFlatBuffersOrFlatTablesKeyWord(colName) {
 				return emptyTemplateInfo,
 					fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename [%s]", colName)
+			}
+
+			// I don't see documentation on this, but undescores in field names affect code generation.
+			if strings.ContainsRune(colName, '_') {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use underscores '_' in col names. Rename %s", colName)
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
