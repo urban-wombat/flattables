@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -427,7 +426,7 @@ fmt.Printf("\n")
 
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
-		goCode, err := FormatFileString(goCode)	// Run the gofmt command on input string goCode
+		goCode, err := gotables.GoFmtFileString(goCode)	// Run the gofmt command on input string goCode
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
@@ -870,34 +869,4 @@ func RemoveExcessTabsAndNewLines(code string) string {
 	}
 
 	return code
-}
-
-/*
-	Pipe a Go program file (as a string) through gofmt and return its output.
-
-	This is used to tidy up generated Go source code.
-
-	It is unusual to return an input string on error but we do that here
-	to not crunch it in the calling function.
-*/
-func FormatFileString(fileString string) (formattedFileString string, err error) {
-	// We return the input string even if error, so as to not crunch it in the calling function.
-	formattedFileString = fileString
-
-	var cmd *exec.Cmd
-	cmd = exec.Command("gofmt")
-
-	var fileBytes []byte
-	fileBytes = []byte(fileString)
-	cmd.Stdin = bytes.NewBuffer(fileBytes)
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	err = cmd.Run()
-	if err != nil { return }
-
-	formattedFileString = out.String()
-
-	return
 }
