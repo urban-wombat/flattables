@@ -426,7 +426,7 @@ fmt.Printf("\n")
 
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
-		goCode, err := gotables.GoFmtFileString(goCode)	// Run the gofmt command on input string goCode
+		goCode, err := gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
