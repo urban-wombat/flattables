@@ -209,7 +209,7 @@ func GraphQLSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 
 	var buf *bytes.Buffer = bytes.NewBufferString("")
 
-	const GraphQLSchemaFromTableSetTemplateFile = "../flattables/GraphQLSchema.template"
+	const GraphQLSchemaFromTableSetTemplateFile = "../graphql/GraphQLSchema.template"
 	// Use the file name as the template name so that file name appears in error output.
 	var tplate *template.Template = template.New(GraphQLSchemaFromTableSetTemplateFile)
 
