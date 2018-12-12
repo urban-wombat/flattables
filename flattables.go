@@ -154,13 +154,13 @@ func IsFlatBuffersScalar(colType string) bool {
 func isScalar(table *gotables.Table, colName string) bool {
 	colType, err := table.ColType(colName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
 		return false
 	}
 
 	isNumeric, err := gotables.IsNumericColType(colType)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
 		return false
 	}
 
@@ -445,22 +445,18 @@ fmt.Printf("\n")
 
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
-		goCode := RemoveExcessTabsAndNewLines(goCode)
-		goCodeChanged, err := gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
-		if goCodeChanged == goCode {
-			fmt.Println("What'th!")
-		}
-		goCode = goCodeChanged
+		goCode = RemoveExcessTabsAndNewLines(goCode)	// handwritten formatter
+		goCode, err = gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			// Just in case the gofmt command is unavailable or inaccessible on this system.
-			fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
+			_, _ = fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
 		}
 	}
 
 	err = ioutil.WriteFile(generatedFile, []byte(goCode), 0644)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(30)
 	}
 
@@ -601,7 +597,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 		if err != nil { return emptyTemplateInfo, err }
 
 		if table.ColCount() > 0 {
-			fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+			_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
 		} else {
 			// Skip tables with zero cols.
 			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
@@ -665,7 +661,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			if cols[colIndex].IsDeprecated {
 				// Restore the col name by removing _DEPRECATED_ indicator.
 				colName = strings.Replace(colName, deprecated, "", 1)
-				fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
+				_, _ = fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
 			}
 
 			cols[colIndex].ColName = colName
