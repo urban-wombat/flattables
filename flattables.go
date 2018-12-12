@@ -445,12 +445,16 @@ fmt.Printf("\n")
 
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
-		goCode, err := gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
+		goCode := RemoveExcessTabsAndNewLines(goCode)
+		goCodeChanged, err := gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
+		if goCodeChanged == goCode {
+			fmt.Println("What'th!")
+		}
+		goCode = goCodeChanged
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
-			fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
 			// Just in case the gofmt command is unavailable or inaccessible on this system.
-			goCode = RemoveExcessTabsAndNewLines(goCode)
+			fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
 		}
 	}
 
@@ -855,6 +859,8 @@ var rmstr = []removeStruct {
 	{ "\n    \n)",          "\n)",      "20", 0 },
 	{ "\t\t\t\t\t\t}",      "\t\t\t}",  "21", 0 },
 	{ "{\n\n",              "{\n",      "22", 0 },
+	{ "{\n\n",              "{\n",      "22", 0 },
+	{ "\t\n}",              "}",        "23", 0 },	// Why doesn't this do anything?
 }
 
 func RemoveExcessTabsAndNewLines(code string) string {
