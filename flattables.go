@@ -280,22 +280,26 @@ func rowCount(table *gotables.Table) int {
 
 // Information specific to each generated function.
 type GenerationInfo struct {
-	FuncName   string	// Used as basename of *.template and *.go files. Not always a function name.
-	Imports  []string	// Imports for this template.
+	TemplateType string	// Distinguish between "flattables" and "graphql".
+	FuncName     string	// Used as basename of *.template and *.go files. Not always a function name.
+	Imports    []string	// imports for this template.
 }
 var generations = []GenerationInfo {
-	{	FuncName: "README",
+	{	TemplateType:	"flattables",
+		FuncName: "README",
 		Imports:  []string {
 		},
 	},
-	{	FuncName: "main",	// Not really a function name.
+	{	TemplateType:	"flattables",
+		FuncName: "main",	// Not really a function name.
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	FuncName: "test",	// Not really a function name.
+	{	TemplateType:	"flattables",
+		FuncName: "test",	// Not really a function name.
 		Imports:  []string {
 			`"bytes"`,
 			`"fmt"`,
@@ -304,7 +308,8 @@ var generations = []GenerationInfo {
 			`"testing"`,
 		},
 	},
-	{	FuncName: "helpers",
+	{	TemplateType:	"flattables",
+		FuncName: "helpers",
 		Imports:  []string {
 //			`"log"`,
 			`"path/filepath"`,
@@ -312,44 +317,59 @@ var generations = []GenerationInfo {
 			`"strings"`,
 		},
 	},
-	{	FuncName: "NewFlatBuffersFromTableSet",
+	{	TemplateType:	"flattables",
+		FuncName: "NewFlatBuffersFromTableSet",
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 		},
 	},
-	{	FuncName: "NewTableSetFromFlatBuffers",
+	{	TemplateType:	"flattables",
+		FuncName: "NewTableSetFromFlatBuffers",
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	FuncName: "NewSliceFromFlatBuffers",
+	{	TemplateType:	"flattables",
+		FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	FuncName: "OldSliceFromFlatBuffers",
+	{	TemplateType:	"flattables",
+		FuncName: "OldSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	FuncName: "NewFlatBuffersFromSlice",
+	{	TemplateType:	"flattables",
+		FuncName: "NewFlatBuffersFromSlice",
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"fmt"`,
+		},
+	},
+	{	TemplateType:	"graphql",
+		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
+		Imports:  []string {
+			`"fmt"`,
+			`// "encoding/json"`,
+			`// "net/http"`,
+//			`"github.com/urban-wombat/gotables"`,
+//			`"fmt"`,
 		},
 	},
 }
 
 func GenerateAll(nameSpace string, verbose bool) error {
-	for _, genInfo := range generations {
+	for _, generation := range generations {
 		// templateInfo is global.
-		err := generateGoCodeFromTemplate(genInfo, templateInfo, nameSpace, verbose)
+		err := generateGoCodeFromTemplate(generation, templateInfo, nameSpace, verbose)
 		if err != nil { return err }
 	}
 
@@ -364,14 +384,13 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 	var generatedFile string
 
 	// Calculate input template file name.
-	templateFile = "../flattables/" + generationInfo.FuncName + ".template"
+	templateFile = fmt.Sprintf("../%s/%s.template", generationInfo.TemplateType, generationInfo.FuncName)
 
 	// Calculate output dir name.
-	switch generationInfo.FuncName {
-		case "main":	// main is in its own directory
-			outDir = "../" + nameSpace + "_main"
-		default:		// the typical case
-			outDir = "../" + nameSpace
+	if strings.Contains(generationInfo.FuncName, "main") {
+		outDir = "../" + nameSpace + "_main"	// main is in its own directory
+	} else {
+		outDir = "../" + nameSpace
 	}
 
 	// Calculate output file name.
