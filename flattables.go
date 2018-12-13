@@ -354,14 +354,40 @@ var generations = []GenerationInfo {
 			`"fmt"`,
 		},
 	},
+/*
 	{	TemplateType:	"graphql",
 		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
 		Imports:  []string {
+			`"encoding/json"`,
 			`"fmt"`,
-			`// "encoding/json"`,
-			`// "net/http"`,
+			`"net/http"`,
 //			`"github.com/urban-wombat/gotables"`,
+			`"github.com/graphql-go/graphql"`,
+		},
+	},
+*/
+/*
+	{	TemplateType:	"graphql",
+		FuncName: "hafiz_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
+		Imports:  []string {
+//			`"encoding/json"`,
 //			`"fmt"`,
+			`"net/http"`,
+//			`"github.com/urban-wombat/gotables"`,
+			`"github.com/graphql-go/graphql"`,
+			`"github.com/graphql-go/graphql-go-handler"`,
+		},
+	},
+*/
+	{	TemplateType:	"graphql",
+		FuncName: "raboy_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
+		Imports:  []string {
+			`"encoding/json"`,
+			`"fmt"`,
+//			`"log"`,
+			`"net/http"`,
+			`"github.com/graphql-go/graphql"`,
+//			`"github.com/urban-wombat/gotables"`,
 		},
 	},
 }
@@ -603,11 +629,13 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
 		}
 
+/*		RELAX CASE REQUIREMENTS TO ADD GraphQL
 		if startsWithLowerCase(table.Name()) {
 			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 			return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
 				table.Name(), firstCharToUpper(table.Name()))
 		}
+*/
 
 		if isGoKeyWord(table.Name()) {
 			return emptyTemplateInfo,
@@ -633,11 +661,13 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			colName, err := table.ColNameByColIndex(colIndex)
 			if err != nil { return emptyTemplateInfo, err }
 
+/*		RELAX CASE REQUIREMENTS TO ADD GraphQL
 			if startsWithUpperCase(colName) {
 				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 				return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 					table.Name(), colName, firstCharToLower(colName))
 			}
+*/
 
 			if isGoKeyWord(colName) {
 				return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
