@@ -516,7 +516,7 @@ fmt.Printf("\n")
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			// Just in case the gofmt command is unavailable or inaccessible on this system.
-			_, _ = fmt.Fprintln(os.Stderr, "Cannot access gofmt utility. Using handwritten formatter instead.")
+			_, _ = fmt.Fprintln(os.Stderr, "     Cannot access gofmt utility right now. Using handwritten formatter instead.")
 		}
 	}
 
