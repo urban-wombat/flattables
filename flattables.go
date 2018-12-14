@@ -285,17 +285,20 @@ type GenerationInfo struct {
 	isGraphQL bool
 	FuncName     string	// Used as basename of *.template and *.go files. Not always a function name.
 	Imports    []string	// imports for this template.
+	Template []byte
 }
 var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "README",
+		Template:  README_template,
 		Imports:  []string {
 		},
 	},
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "main",	// Not really a function name.
+		Template:  main_template,
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
@@ -305,6 +308,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "test",	// Not really a function name.
+		Template:  test_template,
 		Imports:  []string {
 			`"bytes"`,
 			`"fmt"`,
@@ -316,6 +320,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "helpers",
+		Template:  helpers_template,
 		Imports:  []string {
 //			`"log"`,
 			`"path/filepath"`,
@@ -326,6 +331,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromTableSet",
+		Template:  NewFlatBuffersFromTableSet_template,
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"github.com/urban-wombat/gotables"`,
@@ -335,6 +341,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "NewTableSetFromFlatBuffers",
+		Template:  NewTableSetFromFlatBuffers_template,
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
@@ -344,6 +351,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "NewSliceFromFlatBuffers",
+		Template:  NewSliceFromFlatBuffers_template,
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
@@ -352,6 +360,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "OldSliceFromFlatBuffers",
+		Template:  OldSliceFromFlatBuffers_template,
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
@@ -360,6 +369,7 @@ var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
 		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromSlice",
+		Template:  NewFlatBuffersFromSlice_template,
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"fmt"`,
@@ -426,6 +436,7 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 	var generatedFile string
 
 	// Calculate input template file name.
+	// Although no longer used to OPEN the file, it is still used in err to locate the original (non-embedded) file source.
 	templateFile = fmt.Sprintf("../%s/%s.template", generationInfo.TemplateType, generationInfo.FuncName)
 
 	// Calculate output dir name.
@@ -469,9 +480,14 @@ fmt.Printf("\n")
 	tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
+/*
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	templateText, err := ioutil.ReadFile(templateFile)
 	if err != nil { return }
+*/
+
+	// Template from embedded templates in flattables_templates.go
+	var templateText []byte = generationInfo.Template
 
 	tplate, err = tplate.Parse(string(templateText))
 	if err != nil { return }
