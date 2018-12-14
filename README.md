@@ -7,7 +7,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 1. Install FlatBuffers
 
 	```
-    go get -u github.com/google/flatbuffers/go
+    go get -u github.com/google/flatbuffers
 	```
 
 	For more information:
