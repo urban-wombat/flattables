@@ -184,15 +184,20 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 
 	const FlatBuffersSchemaFromTableSetTemplateFile = "../flattables/FlatBuffersSchema.template"
 	// Use the file name as the template name so that file name appears in error output.
+	// We still use the file name for diagnostics, even though the template is now embedded in flattables_templates.go
 	var tplate *template.Template = template.New(FlatBuffersSchemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
+/*
 	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
 	data, err := ioutil. ReadFile(FlatBuffersSchemaFromTableSetTemplateFile)
 	if err != nil { return "", err }
+*/
+	// From embedded template in flattables_templates.go
+	var data []byte = FlatBuffersSchema_template
 
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { return "", err }
@@ -472,6 +477,7 @@ fmt.Printf("\n")
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	// Use the file name as the template name so that file name appears in error output.
+	// We still use the file name for diagnostics, even though the template is now embedded in flattables_templates.go
 	var tplate *template.Template = template.New(templateFile)
 
 	// Add functions.
