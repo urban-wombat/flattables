@@ -683,6 +683,8 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBu
 			colName, err := table.ColNameByColIndex(colIndex)
 			if err != nil { return emptyTemplateInfo, err }
 
+			// Relax FlatBuffers requirements when generating GraphQL, which has a conflicting naming style.
+			// i.e. if generating FlatBuffers and NOT GraphQL, enforce FlatBuffers style guide.
 			if genFlatBuffers && !genGraphQL {
 				if startsWithUpperCase(colName) {
 					// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
