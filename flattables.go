@@ -639,7 +639,13 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBu
 		if err != nil { return emptyTemplateInfo, err }
 
 		if table.ColCount() > 0 {
-			_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+			if genFlatBuffers && genGraphQL {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n",  tableIndex, table.Name())
+			} else if genFlatBuffers {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+			} else if genGraphQL {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n",  tableIndex, table.Name())
+			}
 		} else {
 			// Skip tables with zero cols.
 			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
