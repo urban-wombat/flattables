@@ -280,12 +280,12 @@ func rowCount(table *gotables.Table) int {
 
 // Information specific to each generated function.
 type GenerationInfo struct {
-	TemplateType string
+	TemplateType  string
 	isFlatBuffers bool
-	isGraphQL bool
-	FuncName     string	// Used as basename of *.template and *.go files. Not always a function name.
-	Imports    []string	// imports for this template.
-	Template []byte
+	isGraphQL     bool
+	FuncName      string	// Used as basename of *.template and *.go files. Not always a function name.
+	Imports     []string	// imports for this template.
+	Template    []byte
 }
 var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
