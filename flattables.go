@@ -185,6 +185,7 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	const FlatBuffersSchemaFromTableSetTemplateFile = "../flattables/FlatBuffersSchema.template"
 	// Use the file name as the template name so that file name appears in error output.
 	// We still use the file name for diagnostics, even though the template is now embedded in flattables_templates.go
+	// Although no longer used to OPEN the file, it is still used in err to locate the original (non-embedded) file source.
 	var tplate *template.Template = template.New(FlatBuffersSchemaFromTableSetTemplateFile)
 
 	// Add a user-defined function to schema tplate.
@@ -478,6 +479,7 @@ fmt.Printf("\n")
 
 	// Use the file name as the template name so that file name appears in error output.
 	// We still use the file name for diagnostics, even though the template is now embedded in flattables_templates.go
+	// Although no longer used to OPEN the file, it is still used in err to locate the original (non-embedded) file source.
 	var tplate *template.Template = template.New(templateFile)
 
 	// Add functions.
