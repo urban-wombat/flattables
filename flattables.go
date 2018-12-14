@@ -280,17 +280,21 @@ func rowCount(table *gotables.Table) int {
 
 // Information specific to each generated function.
 type GenerationInfo struct {
-	TemplateType string	// Distinguish between "flattables" and "graphql".
+	TemplateType string
+	isFlatBuffers bool
+	isGraphQL bool
 	FuncName     string	// Used as basename of *.template and *.go files. Not always a function name.
 	Imports    []string	// imports for this template.
 }
 var generations = []GenerationInfo {
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "README",
 		Imports:  []string {
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "main",	// Not really a function name.
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
@@ -298,7 +302,8 @@ var generations = []GenerationInfo {
 //			`"log"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "test",	// Not really a function name.
 		Imports:  []string {
 			`"bytes"`,
@@ -308,7 +313,8 @@ var generations = []GenerationInfo {
 			`"testing"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "helpers",
 		Imports:  []string {
 //			`"log"`,
@@ -317,7 +323,8 @@ var generations = []GenerationInfo {
 			`"strings"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromTableSet",
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
@@ -325,7 +332,8 @@ var generations = []GenerationInfo {
 			`"fmt"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "NewTableSetFromFlatBuffers",
 		Imports:  []string {
 			`"github.com/urban-wombat/gotables"`,
@@ -333,21 +341,24 @@ var generations = []GenerationInfo {
 //			`"log"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "NewSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "OldSliceFromFlatBuffers",
 		Imports:  []string {
 			`"fmt"`,
 //			`"log"`,
 		},
 	},
-	{	TemplateType:	"flattables",
+	{	TemplateType: "flattables",
+		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromSlice",
 		Imports:  []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
@@ -355,7 +366,8 @@ var generations = []GenerationInfo {
 		},
 	},
 /*
-	{	TemplateType:	"graphql",
+	{	TemplateType: "graphql",
+		isGraphQL: true,
 		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
 		Imports:  []string {
 			`"encoding/json"`,
@@ -367,7 +379,8 @@ var generations = []GenerationInfo {
 	},
 */
 /*
-	{	TemplateType:	"graphql",
+	{	TemplateType: "graphql",
+		isGraphQL: true,
 		FuncName: "hafiz_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
 		Imports:  []string {
 //			`"encoding/json"`,
@@ -379,7 +392,8 @@ var generations = []GenerationInfo {
 		},
 	},
 */
-	{	TemplateType:	"graphql",
+	{	TemplateType: "graphql",
+		isGraphQL: true,
 		FuncName: "raboy_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
 		Imports:  []string {
 			`"encoding/json"`,
@@ -392,11 +406,13 @@ var generations = []GenerationInfo {
 	},
 }
 
-func GenerateAll(nameSpace string, verbose bool) error {
+func GenerateAll(nameSpace string, verbose bool, genFlatBuffers bool, genGraphQL bool) error {
 	for _, generation := range generations {
-		// templateInfo is global.
-		err := generateGoCodeFromTemplate(generation, templateInfo, nameSpace, verbose)
-		if err != nil { return err }
+		if (generation.isFlatBuffers && genFlatBuffers) || (generation.isGraphQL && genGraphQL) {
+			// templateInfo is global.
+			err := generateGoCodeFromTemplate(generation, templateInfo, nameSpace, verbose)
+			if err != nil { return err }
+		}
 	}
 
 	return nil
@@ -613,7 +629,7 @@ func DeleteEmptyTables(tableSet *gotables.TableSet) error {
 }
 
 // Assumes flattables.RemoveEmptyTables() has been called first.
-func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (TemplateInfo, error) {
+func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TemplateInfo, error) {
 
 	var emptyTemplateInfo TemplateInfo
 
@@ -629,29 +645,29 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
 		}
 
-/*		RELAX CASE REQUIREMENTS TO ADD GraphQL
-		if startsWithLowerCase(table.Name()) {
-			// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-			return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
-				table.Name(), firstCharToUpper(table.Name()))
-		}
-*/
+		if genFlatBuffers && !genGraphQL {
+			if startsWithLowerCase(table.Name()) {
+				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+				return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
+					table.Name(), firstCharToUpper(table.Name()))
+			}
 
-		if isGoKeyWord(table.Name()) {
-			return emptyTemplateInfo,
-				fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
-		}
-
-		if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
-			return emptyTemplateInfo,
-				fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
-					table.Name())
-		}
-
-		// I don't see documentation on this, but undescores in field names affect code generation.
-		if strings.ContainsRune(table.Name(), '_') {
-			return emptyTemplateInfo,
-				fmt.Errorf("Cannot use underscores '_' in table names. Rename [%s]", table.Name())
+			if isGoKeyWord(table.Name()) {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
+			}
+	
+			if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
+						table.Name())
+			}
+	
+			// I don't see documentation on this, but undescores in field names affect code generation.
+			if strings.ContainsRune(table.Name(), '_') {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use underscores '_' in table names. Rename [%s]", table.Name())
+			}
 		}
 
 		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
@@ -661,27 +677,27 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string) (Template
 			colName, err := table.ColNameByColIndex(colIndex)
 			if err != nil { return emptyTemplateInfo, err }
 
-/*		RELAX CASE REQUIREMENTS TO ADD GraphQL
-			if startsWithUpperCase(colName) {
-				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-				return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
-					table.Name(), colName, firstCharToLower(colName))
-			}
-*/
-
-			if isGoKeyWord(colName) {
-				return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename [%s]", colName)
-			}
-
-			if isFlatBuffersOrFlatTablesKeyWord(colName) {
-				return emptyTemplateInfo,
-					fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename [%s]", colName)
-			}
-
-			// I don't see documentation on this, but undescores in field names affect code generation.
-			if strings.ContainsRune(colName, '_') {
-				return emptyTemplateInfo,
-					fmt.Errorf("Cannot use underscores '_' in col names. Rename %s", colName)
+			if genFlatBuffers && !genGraphQL {
+				if startsWithUpperCase(colName) {
+					// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+					return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+						table.Name(), colName, firstCharToLower(colName))
+				}
+	
+				if isGoKeyWord(colName) {
+					return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
+				}
+	
+				if isFlatBuffersOrFlatTablesKeyWord(colName) {
+					return emptyTemplateInfo,
+						fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename: %s", colName)
+				}
+	
+				// I don't see documentation on this, but undescores in field names affect code generation.
+				if strings.ContainsRune(colName, '_') {
+					return emptyTemplateInfo,
+						fmt.Errorf("Cannot use underscores '_' in col names. Rename %s", colName)
+				}
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
