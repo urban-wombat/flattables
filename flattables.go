@@ -47,7 +47,11 @@ func init() {
 }
 var where = log.Print
 
-const GenerateStruct bool = true
+/*
+	Note: the following are synonyms:-
+	synonyms: graphql GraphQL
+	synonyms: flattables FlatTables flatbuffers FlatBuffers
+*/
 
 // FlatBuffers schema types: bool | byte | ubyte | short | ushort | int | uint | float | long | ulong | double | string
 // From: https://google.github.io/flatbuffers/flatbuffers_grammar.html
@@ -176,7 +180,7 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
+func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfo) (string, error) {
 
 	var err error
 
@@ -192,24 +196,19 @@ func FlatBuffersSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
-/*
-	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(FlatBuffersSchemaFromTableSetTemplateFile)
-	if err != nil { return "", err }
-*/
 	// From embedded template in flattables_templates.go
 	var data []byte = FlatBuffersSchema_template
 
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { return "", err }
 
-	err = tplate.Execute(buf, templateInfo)
+	err = tplate.Execute(buf, tablesTemplateInfo)
 	if err != nil { return "", err }
 
 	return buf.String(), nil
 }
 
-func GraphQLSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
+func GraphQLSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfo) (string, error) {
 
 	var err error
 
@@ -223,14 +222,13 @@ func GraphQLSchemaFromTableSet(templateInfo TemplateInfo) (string, error) {
 	tplate.Funcs(template.FuncMap{"firstCharToUpper": firstCharToUpper})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
-	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	data, err := ioutil. ReadFile(GraphQLSchemaFromTableSetTemplateFile)
-	if err != nil { return "", err }
+	// From embedded template in flattables_templates.go
+	var data []byte = GraphQLSchema_template
 
 	tplate, err = tplate.Parse(string(data))
 	if err != nil { return "", err }
 
-	err = tplate.Execute(buf, templateInfo)
+	err = tplate.Execute(buf, tablesTemplateInfo)
 	if err != nil { return "", err }
 
 	return buf.String(), nil
@@ -286,36 +284,30 @@ func rowCount(table *gotables.Table) int {
 
 // Information specific to each generated function.
 type GenerationInfo struct {
-	TemplateType  string
-	isFlatBuffers bool
-	isGraphQL     bool
-	FuncName      string	// Used as basename of *.template and *.go files. Not always a function name.
-	Imports     []string	// imports for this template.
-	Template    []byte
+	TemplateType string
+	FuncName string	// Used as basename of *.template and *.go files. Not always a function name.
+	Imports []string	// imports for this template.
+	TemplateText []byte
 }
 var generations = []GenerationInfo {
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "README",
-		Template:  README_template,
-		Imports:  []string {
+		TemplateText: README_template,
+		Imports: []string {
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "main",	// Not really a function name.
-		Template:  main_template,
-		Imports:  []string {
+		TemplateText: main_template,
+		Imports: []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
-//			`"log"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "test",	// Not really a function name.
-		Template:  test_template,
-		Imports:  []string {
+		TemplateText: test_template,
+		Imports: []string {
 			`"bytes"`,
 			`"fmt"`,
 			`"github.com/urban-wombat/gotables"`,
@@ -324,68 +316,57 @@ var generations = []GenerationInfo {
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "helpers",
-		Template:  helpers_template,
-		Imports:  []string {
-//			`"log"`,
+		TemplateText: helpers_template,
+		Imports: []string {
 			`"path/filepath"`,
 			`"runtime"`,
 			`"strings"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromSlice",
-		Template:  NewFlatBuffersFromSlice_template,
-		Imports:  []string {
+		TemplateText: NewFlatBuffersFromSlice_template,
+		Imports: []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"fmt"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "NewFlatBuffersFromTableSet",
-		Template:  NewFlatBuffersFromTableSet_template,
-		Imports:  []string {
+		TemplateText: NewFlatBuffersFromTableSet_template,
+		Imports: []string {
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "NewSliceFromFlatBuffers",
-		Template:  NewSliceFromFlatBuffers_template,
-		Imports:  []string {
+		TemplateText: NewSliceFromFlatBuffers_template,
+		Imports: []string {
 			`"fmt"`,
-//			`"log"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "NewTableSetFromFlatBuffers",
-		Template:  NewTableSetFromFlatBuffers_template,
-		Imports:  []string {
+		TemplateText: NewTableSetFromFlatBuffers_template,
+		Imports: []string {
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
-//			`"log"`,
 		},
 	},
 	{	TemplateType: "flattables",
-		isFlatBuffers: true,
 		FuncName: "OldSliceFromFlatBuffers",
-		Template:  OldSliceFromFlatBuffers_template,
-		Imports:  []string {
+		TemplateText: OldSliceFromFlatBuffers_template,
+		Imports: []string {
 			`"fmt"`,
-//			`"log"`,
 		},
 	},
 /*
 	{	TemplateType: "graphql",
-		isGraphQL: true,
 		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
-		Imports:  []string {
+		Imports: []string {
 			`"encoding/json"`,
 			`"fmt"`,
 			`"net/http"`,
@@ -396,9 +377,8 @@ var generations = []GenerationInfo {
 */
 /*
 	{	TemplateType: "graphql",
-		isGraphQL: true,
 		FuncName: "hafiz_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
-		Imports:  []string {
+		Imports: []string {
 //			`"encoding/json"`,
 //			`"fmt"`,
 			`"net/http"`,
@@ -408,10 +388,24 @@ var generations = []GenerationInfo {
 		},
 	},
 */
+/*
 	{	TemplateType: "graphql",
-		isGraphQL: true,
 		FuncName: "raboy_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
-		Imports:  []string {
+		TemplateText: raboy_main_template,
+		Imports: []string {
+			`"encoding/json"`,
+			`"fmt"`,
+//			`"log"`,
+			`"net/http"`,
+			`"github.com/graphql-go/graphql"`,
+//			`"github.com/urban-wombat/gotables"`,
+		},
+	},
+*/
+	{	TemplateType: "graphql",
+		FuncName: "gqlgen_main",	// From: https://github.com/99designs/gqlgen
+		TemplateText: gglgen_main_template,
+		Imports: []string {
 			`"encoding/json"`,
 			`"fmt"`,
 //			`"log"`,
@@ -424,9 +418,9 @@ var generations = []GenerationInfo {
 
 func GenerateAll(nameSpace string, verbose bool, genFlatBuffers bool, genGraphQL bool) error {
 	for _, generation := range generations {
-		if (generation.isFlatBuffers && genFlatBuffers) || (generation.isGraphQL && genGraphQL) {
-			// templateInfo is global.
-			err := generateGoCodeFromTemplate(generation, templateInfo, nameSpace, verbose)
+		if (generation.TemplateType == "flattables" && genFlatBuffers) || (generation.TemplateType == "graphql" && genGraphQL) {
+			// tablesTemplateInfo is global.
+			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, nameSpace, verbose)
 			if err != nil { return err }
 		}
 	}
@@ -434,7 +428,7 @@ func GenerateAll(nameSpace string, verbose bool, genFlatBuffers bool, genGraphQL
 	return nil
 }
 
-func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo TemplateInfo, nameSpace string, verbose bool) (err error) {
+func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfo, nameSpace string, verbose bool) (err error) {
 //gotables.PrintCaller()
 
 	var templateFile string
@@ -449,7 +443,7 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 	if strings.Contains(generationInfo.FuncName, "main") {
 		outDir = "../" + nameSpace + "_main"	// main is in its own directory
 	} else {
-		outDir = "../" + nameSpace
+		outDir = "../" + nameSpace				// put it in with all the rest
 	}
 
 	// Calculate output file name.
@@ -459,12 +453,12 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, templateInfo Temp
 		default:		// the typical case
 			generatedFile = outDir + "/" + nameSpace + "_" + generationInfo.FuncName + ".go"
 	}
-	if verbose { fmt.Printf("     Generating: %s\n", generatedFile) }
+	if verbose { fmt.Printf("     Generating: %-12s %s\n", fmt.Sprintf("(%s)", generationInfo.TemplateType), generatedFile) }
 
-	templateInfo.SchemaFileName = outDir + "/" + nameSpace + ".fbs"
-	templateInfo.GeneratedFile = generatedFile
-	templateInfo.FuncName = generationInfo.FuncName
-	templateInfo.Imports = generationInfo.Imports
+	tablesTemplateInfo.SchemaFileName = outDir + "/" + nameSpace + ".fbs"
+	tablesTemplateInfo.GeneratedFile = generatedFile
+	tablesTemplateInfo.FuncName = generationInfo.FuncName
+	tablesTemplateInfo.Imports = generationInfo.Imports
 
 /*
 fmt.Printf("\n")
@@ -495,12 +489,12 @@ fmt.Printf("\n")
 */
 
 	// Template from embedded templates in flattables_templates.go
-	var templateText []byte = generationInfo.Template
+	var templateText []byte = generationInfo.TemplateText
 
 	tplate, err = tplate.Parse(string(templateText))
 	if err != nil { return }
 
-	err = tplate.Execute(stringBuffer, templateInfo)
+	err = tplate.Execute(stringBuffer, tablesTemplateInfo)
 	if err != nil { return }
 
 	var goCode string
@@ -611,9 +605,15 @@ type TableInfo struct {
 	Rows []Row
 	ColNames []string
 	ColTypes []string
+	// These are for GraphQL:
+	ObjectType string	// e.g. "type", "input"
+	ColTypeGQL string
+	FieldName []string
+	FieldType []string	// e.g. "String", "Int" (Go int32), "Float" (Go float64), "Boolean", "ID" (string), and user defined types.
+	NonNullable []bool
 }
 
-type TemplateInfo struct {
+type TablesTemplateInfo struct {
 	GeneratedDateFromFile string
 	GeneratedFromFile string
 	UsingCommand string
@@ -630,10 +630,10 @@ type TemplateInfo struct {
 	TableSetData string
 	Tables []TableInfo
 }
-var templateInfo TemplateInfo
+var tablesTemplateInfo TablesTemplateInfo
 
-func (templateInfo TemplateInfo) Name(tableIndex int) string {
-	return templateInfo.Tables[0].Table.Name()
+func (tablesTemplateInfo TablesTemplateInfo) Name(tableIndex int) string {
+	return tablesTemplateInfo.Tables[0].Table.Name()
 }
 
 func DeleteEmptyTables(tableSet *gotables.TableSet) error {
@@ -653,9 +653,9 @@ func DeleteEmptyTables(tableSet *gotables.TableSet) error {
 }
 
 // Assumes flattables.RemoveEmptyTables() has been called first.
-func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TemplateInfo, error) {
+func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfo, error) {
 
-	var emptyTemplateInfo TemplateInfo
+	var emptyTemplateInfo TablesTemplateInfo
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
@@ -819,7 +819,7 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBu
 	tableSetData := tableSet.String()
 //	tableSetData = indentText("\t", tableSetData)
 
-	templateInfo = TemplateInfo {
+	tablesTemplateInfo = TablesTemplateInfo {
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
 		GeneratedFromFile: generatedFromFile(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
@@ -833,7 +833,191 @@ func InitTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBu
 		Tables: tables,
 	}
 
-	return templateInfo, nil
+	return tablesTemplateInfo, nil
+}
+
+// Assumes flattables.RemoveEmptyTables() has been called first.
+func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfo, error) {
+
+	var emptyTemplateInfo TablesTemplateInfo
+
+	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
+	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
+		table, err := tableSet.TableByTableIndex(tableIndex)
+		if err != nil { return emptyTemplateInfo, err }
+
+		if table.ColCount() > 0 {
+			if genFlatBuffers && genGraphQL {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n",  tableIndex, table.Name())
+			} else if genFlatBuffers {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+			} else if genGraphQL {
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n",  tableIndex, table.Name())
+			}
+		} else {
+			// Skip tables with zero cols.
+			return emptyTemplateInfo, fmt.Errorf("--- FlatTables: table [%s] has no col\n", table.Name())
+		}
+
+		if genFlatBuffers && !genGraphQL {
+			if startsWithLowerCase(table.Name()) {
+				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+				return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires UpperCamelCase table names. Rename [%s] to [%s]",
+					table.Name(), firstCharToUpper(table.Name()))
+			}
+
+			if isGoKeyWord(table.Name()) {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
+			}
+	
+			if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
+						table.Name())
+			}
+	
+			// I don't see documentation on this, but undescores in field names affect code generation.
+			if strings.ContainsRune(table.Name(), '_') {
+				return emptyTemplateInfo,
+					fmt.Errorf("Cannot use underscores '_' in table names. Rename [%s]", table.Name())
+			}
+		}
+
+		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
+
+		var cols []ColInfo = make([]ColInfo, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColNameByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+
+			// Relax FlatBuffers requirements when generating GraphQL, which has a conflicting naming style.
+			// i.e. if generating FlatBuffers and NOT GraphQL, enforce FlatBuffers style guide.
+			if genFlatBuffers && !genGraphQL {
+				if startsWithUpperCase(colName) {
+					// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
+					return emptyTemplateInfo, fmt.Errorf("FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+						table.Name(), colName, firstCharToLower(colName))
+				}
+	
+				if isGoKeyWord(colName) {
+					return emptyTemplateInfo, fmt.Errorf("Cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
+				}
+	
+				if isFlatBuffersOrFlatTablesKeyWord(colName) {
+					return emptyTemplateInfo,
+						fmt.Errorf("Cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename: %s", colName)
+				}
+	
+				// I don't see documentation on this, but undescores in field names affect code generation.
+				if strings.ContainsRune(colName, '_') {
+					return emptyTemplateInfo,
+						fmt.Errorf("Cannot use underscores '_' in col names. Rename %s", colName)
+				}
+			}
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+
+			cols[colIndex].IsDeprecated = isDeprecated(colName)
+			if cols[colIndex].IsDeprecated {
+				// Restore the col name by removing _DEPRECATED_ indicator.
+				colName = strings.Replace(colName, deprecated, "", 1)
+				_, _ = fmt.Fprintf(os.Stderr, "*** FlatTables: Tagged table [%s] column %q is deprecated\n", table.Name(), colName)
+			}
+
+			cols[colIndex].ColName = colName
+			cols[colIndex].ColType = colType
+			cols[colIndex].FbsType, err = schemaType(colType)
+			if err != nil { return emptyTemplateInfo, err }
+			cols[colIndex].ColIndex = colIndex
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)	// FlatBuffers Scalar includes bool
+			cols[colIndex].IsString = colType == "string"
+			cols[colIndex].IsBool = colType == "bool"
+		}
+
+		// Populate Rows with a string representation of each table cell.
+		var rows []Row = make([]Row, table.RowCount())
+// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
+		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
+			var row []string = make([]string, table.ColCount())
+			for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+				var cell string
+				cell, err = table.GetValAsStringByColIndex(colIndex, rowIndex)
+				if err != nil { return emptyTemplateInfo, err }
+				var isStringType bool
+				isStringType, err = table.IsColTypeByColIndex(colIndex, "string")
+				if err != nil { return emptyTemplateInfo, err }
+				if isStringType {
+					cell = fmt.Sprintf("%q", cell)	// Add delimiters.
+				}
+				row[colIndex] = cell
+			}
+			rows[rowIndex] = row
+// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
+		}
+
+		var colNames []string = make([]string, table.ColCount())
+		var colTypes []string = make([]string, table.ColCount())
+		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
+			colName, err := table.ColName(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+			colNames[colIndex] = colName
+
+			colType, err := table.ColTypeByColIndex(colIndex)
+			if err != nil { return emptyTemplateInfo, err }
+			colTypes[colIndex] = colType
+		}
+
+		tables[tableIndex].Cols = cols
+		tables[tableIndex].TableIndex = tableIndex
+		tables[tableIndex].TableName = table.Name()
+		tables[tableIndex].RowCount = table.RowCount()
+		tables[tableIndex].ColCount = table.ColCount()
+		tables[tableIndex].Rows = rows
+		tables[tableIndex].ColNames = colNames
+		tables[tableIndex].ColTypes = colTypes
+	}
+
+	// Get tableset metadata.
+	// Make a copy of the tables and use them as metadata-only.
+	// We end up with 2 instances of TableSet:-
+	// (1) tableSet which contains data.            Is accessible in templates as: .Tables           (an array of Table)
+	// (2) metadataTableSet which contains NO data. Is accessible in templates as: .TableSetMetadata (a TableSet)
+
+	const copyRows = false	// i.e., don't copy rows.
+	metadataTableSet, err := tableSet.Copy(copyRows)	// Accessible as 
+	if err != nil { return emptyTemplateInfo, err }
+
+	for tableIndex := 0; tableIndex < metadataTableSet.TableCount(); tableIndex++ {
+		table, err := metadataTableSet.TableByTableIndex(tableIndex)
+		if err != nil { return emptyTemplateInfo, err }
+
+		err = table.SetStructShape(true)
+		if err != nil { return emptyTemplateInfo, err }
+	}
+
+	tableSetMetadata := metadataTableSet.String()
+	tableSetMetadata = indentText("\t\t", tableSetMetadata)
+
+	tableSetData := tableSet.String()
+//	tableSetData = indentText("\t", tableSetData)
+
+	tablesTemplateInfo = TablesTemplateInfo {
+		GeneratedDateFromFile: generatedDateFromFile(tableSet),
+		GeneratedFromFile: generatedFromFile(tableSet),
+		UsingCommand: usingCommand(tableSet, packageName),
+		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
+		GotablesFileName: tableSet.FileName(),
+		Year: copyrightYear(),
+		NameSpace: tableSet.Name(),
+		PackageName: packageName,
+		TableSetMetadata: tableSetMetadata,
+		TableSetData: tableSetData,
+		Tables: tables,
+	}
+
+	return tablesTemplateInfo, nil
 }
 
 func copyrightYear() (copyrightYear string) {
