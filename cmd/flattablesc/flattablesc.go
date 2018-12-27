@@ -304,7 +304,7 @@ func printUsage() {
 		"        [-s] <out-dir-main> Where to put generated sample main Go code file. Default is <out-dir>/cmd/<package-name>",
 //		"         -m  Mutable  Tells flatc to add mutable methods to its Go code generation: Mutate...()",
 		"types:       Architecture-dependent Go types int and uint are not used. Instead use e.g. int64, uint32, etc.",
-		"             Go types not implemented: complex.",
+		"             Go types not implemented: complex32 complex64.",
 //		"names:       Table names are UpperCamelCase, column names are lowerCamelCase, as per the FlatBuffers style guide.",
 //		"deprecation: To deprecate a column, append its name with _DEPRECATED_ (warning: deprecation may break tests and old code).",
 		"        [-v] Verbose",
@@ -317,6 +317,8 @@ func printUsage() {
 		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
 //		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
 		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
+		"             $ cd ../flattables_sample; go test -bench=.",
+		"             $ cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample.go",
 	}
 
 	var usageString string
@@ -332,17 +334,6 @@ func printUsage() {
 		usageString += "             $ go run ${globalUtilName}.go -v -G -f ../graphql_sample/tables.gt -n graphql_sample -p github.com/urban-wombat/graphql_sample\n"
 		usageString += "             $ go install ${globalUtilName}.go\n"
 		usageString += "             $ ${globalUtilName}           -v -G -f ../graphql_sample/tables.gt -n graphql_sample -p github.com/urban-wombat/graphql_sample\n"
-/*
-		stat, err := os.Stat(os.Args[0])
-		if err == nil {
-			ago := time.Now().Sub(stat.ModTime()).Truncate(time.Second)
-			// Can also use ago := time.Now().Sub(stat.ModTime()).Truncate(time.Second)
-			executableName := os.Args[0]
-			executableName = strings.Replace(executableName, ".exe", "", 1)
-			executableName = filepath.Base(executableName)
-			usageString += fmt.Sprintf("%s.go built %s (%v ago) installed %s\n", executableName, stat.ModTime().Format(time.UnixDate), ago, os.Args[0])
-		}
-*/
 		usageString += buildTime()
 	}
 
@@ -582,6 +573,8 @@ func main() {
 		fmt.Println(" *** -d DRY-RUN *** (Didn't do anything!)")
 	} else {
 		fmt.Println(" DONE")
+		fmt.Printf(" cd %s; go test -bench=.\n", globalOutDirAbsolute)
+		fmt.Printf(" cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
