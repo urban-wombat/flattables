@@ -24,6 +24,7 @@ type Flags struct {
 	n string	// <namespace> (also sets TableSet name)
 	p string	// <package-name>
 	o string	// <out-dir-package>
+	O string	// <out-dir-package>
 	s string	// <out-dir-main>	defaults to <out-dir-package>/cmd/<package-name>.go
 	m bool		// mutable	// Note: mutable (non-const) FlatBuffers apparently unavailable in Go
 	b bool		// generate FlatBuffers"	// The b is for buffers because f and t are already, at least cognitively, taken.
@@ -40,7 +41,8 @@ var globalGotablesFileNameAbsolute string	// from flags.f via filepath.Abs()
 var globalRelationsFileName string			// from flags.r
 var globalNameSpace string					// from flags.n
 var globalPackageName string				// from flags.p
-var globalOutDirAbsolute string				// from (optional) flags.o via filepath.Abs()
+var globalOutDirAbsolute string				// from (optional) flags.o or flags.O via filepath.Abs()
+var globalFlagOWarnOnly bool				// if flags.O (capital O) is set
 var globalOutDirMainAbsolute string			// from (optional) flags.s via filepath.Abs()
 var globalMutableFlag string				// Pass to flatc. Note: mutable (non-const) FlatBuffers apparently unavailable in Go.
 var globalUtilName string					// "flattablesc" or "graphqlc"
@@ -86,6 +88,7 @@ func initFlags() {
 	flag.StringVar(&flags.n, "n", "",    fmt.Sprintf("Sets schema file <namespace>.fbs,  schema root_type, FlatBuffers namespace, TableSet name"))
 	flag.StringVar(&flags.p, "p", "",    fmt.Sprintf("<package-name> Sets package name"))
 	flag.StringVar(&flags.o, "o", "",    fmt.Sprintf("<out-dir> Default is ../<namespace>"))
+	flag.StringVar(&flags.O, "O", "",    fmt.Sprintf("<out-dir> Default is ../<namespace>"))
 	flag.StringVar(&flags.s, "s", "",    fmt.Sprintf("<sample-main-out-dir> Default is ../<out-dir>/cmd/<namespace>"))
 	flag.BoolVar(  &flags.b, "b", false, fmt.Sprintf("generate FlatBuffers"))	// flatbuffers
 	flag.BoolVar(  &flags.B, "B", false, fmt.Sprintf("generate FlatBuffers"))	// flatbuffers ONLY
@@ -200,15 +203,17 @@ func initFlags() {
 
 	// Set default outDir. May be provided (optionally) with -o <out-dir>
 	var outDir string = "../" + globalNameSpace	// Package level, where globalNameSpace is package name.
-//where(fmt.Sprintf("outDir = %s", outDir))
 	flagExists = checkStringFlag("o", flags.o, optionalFlag)
 	if flagExists { // Has been set explicitly with -o
 		outDir = flags.o
-//where(fmt.Sprintf("outDir = %s", outDir))
 	}
-//where(fmt.Sprintf("outDir = %s", outDir))
+	// Capital -O means warnOnly.
+	flagExists = checkStringFlag("O", flags.O, optionalFlag)
+	if flagExists { // Has been set explicitly with -O
+		outDir = flags.O
+		globalFlagOWarnOnly = true
+	}
 	globalOutDirAbsolute, err = filepath.Abs(outDir)
-//where(fmt.Sprintf("globalOutDirAbsolute = %s", globalOutDirAbsolute))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		printUsage()
@@ -216,11 +221,15 @@ func initFlags() {
 	}
 	// Change backslashes to forward slashes. Otherwise strings interpret them as escape chars.
 	globalOutDirAbsolute = filepath.ToSlash(globalOutDirAbsolute)
-//where(fmt.Sprintf("globalOutDirAbsolute = %s", globalOutDirAbsolute))
 	if inconsistent, err := inconsistentPackageAndOutDir(globalPackageName, globalOutDirAbsolute); inconsistent {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		printUsage()
-		os.Exit(12)
+		if globalFlagOWarnOnly {
+			fmt.Fprintf(os.Stderr, "WARNING: %v\n", err)
+			fmt.Fprintf(os.Stderr, "         go test will work, but main will not be able to find its package\n")
+		} else {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			printUsage()
+			os.Exit(12)
+		}
 	}
 
 	// Set default globalOutDirMainAbsolute. May be provided (optionally) with -s <out-dir-main>
@@ -444,11 +453,8 @@ func main() {
 
 	// Make these assignments AFTER calling flattables.InitTablesTemplateInfo()
 	tablesTemplateInfo.NameSpace = globalNameSpace
-//  tablesTemplateInfo.GotablesFileName = globalGotablesFileName
 	tablesTemplateInfo.GotablesFileNameAbsolute = globalGotablesFileNameAbsolute
 
-//	tablesTemplateInfo.OutDir = outDir
-//	tablesTemplateInfo.OutDirMain = globalOutDirMain
 	tablesTemplateInfo.OutDirAbsolute = globalOutDirAbsolute
 	tablesTemplateInfo.OutDirMainAbsolute = globalOutDirMainAbsolute
 
@@ -578,8 +584,8 @@ func main() {
 		fmt.Println(" *** -d DRY-RUN *** (Didn't do anything!)")
 	} else {
 		fmt.Println(" DONE")
-		fmt.Printf(" test: cd %s; go test -bench=.\n", globalOutDirAbsolute)
-		fmt.Printf(" test: cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
+		fmt.Printf("     test: cd %s; go test -bench=.\n", globalOutDirAbsolute)
+		fmt.Printf("     test: cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
@@ -617,7 +623,7 @@ func buildTime() (buildTime string) {
 		executableName := os.Args[0]
 		executableName = strings.Replace(executableName, ".exe", "", 1)
 		executableName = filepath.Base(executableName)
-		buildTime = fmt.Sprintf("%s.go built %s (%v ago) installed %s\n", executableName, stat.ModTime().Format(time.UnixDate), ago, os.Args[0])
+		buildTime = fmt.Sprintf("    %s.go built %s (%v ago) installed %s\n", executableName, stat.ModTime().Format(time.UnixDate), ago, os.Args[0])
 	}
 	return
 }
