@@ -57,7 +57,7 @@ var where = log.Print
 // From: https://google.github.io/flatbuffers/flatbuffers_grammar.html
 
 // Built-in scalar types are:
-// 8 bit: byte, ubyte, bool
+//  8 bit: byte, ubyte, bool
 // 16 bit: short, ushort
 // 32 bit: int, uint, float
 // 64 bit: long, ulong, double
@@ -180,7 +180,7 @@ func indentText(indent string, text string) string {
 	return indentedText
 }
 
-func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfo) (string, error) {
+func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfoType) (string, error) {
 
 	var err error
 
@@ -208,7 +208,7 @@ func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfo) (strin
 	return buf.String(), nil
 }
 
-func GraphQLSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfo) (string, error) {
+func GraphQLSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfoType) (string, error) {
 
 	var err error
 
@@ -294,14 +294,6 @@ var generations = []GenerationInfo {
 		FuncName: "README",
 		TemplateText: README_template,
 		Imports: []string {
-		},
-	},
-	{	TemplateType: "flattables",
-		FuncName: "main",	// Not really a function name.
-		TemplateText: main_template,
-		Imports: []string {
-			`"github.com/urban-wombat/gotables"`,
-			`"fmt"`,
 		},
 	},
 	{	TemplateType: "flattables",
@@ -414,48 +406,75 @@ var generations = []GenerationInfo {
 //			`"github.com/urban-wombat/gotables"`,
 		},
 	},
+	{	TemplateType: "flattables",
+		FuncName: "main",	// Not really a function name.
+		TemplateText: main_template,
+		Imports: []string {
+			`"github.com/urban-wombat/gotables"`,
+			`"fmt"`,
+		},
+	},
 }
 
-func GenerateAll(nameSpace string, verbose bool, genFlatBuffers bool, genGraphQL bool) error {
+// func GenerateAll(tablesTemplateInfo TablesTemplateInfoType, nameSpace string, verbose bool, dryRun bool, genFlatBuffers bool, genGraphQL bool) error {
+func GenerateAll(tablesTemplateInfo TablesTemplateInfoType, verbose bool, dryRun bool, genFlatBuffers bool, genGraphQL bool) error {
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	for _, generation := range generations {
 		if (generation.TemplateType == "flattables" && genFlatBuffers) || (generation.TemplateType == "graphql" && genGraphQL) {
 			// tablesTemplateInfo is global.
-			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, nameSpace, verbose)
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+//			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, nameSpace, verbose, dryRun)
+			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, verbose, dryRun)
 			if err != nil { return err }
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 		}
 	}
 
 	return nil
 }
 
-func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfo, nameSpace string, verbose bool) (err error) {
+// func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfoType, nameSpace string, verbose bool, dryRun bool) (err error) {
+func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfoType, verbose bool, dryRun bool) (err error) {
 //gotables.PrintCaller()
 
 	var templateFile string
 	var outDir  string
 	var generatedFile string
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Calculate input template file name.
 	// Although no longer used to OPEN the file, it is still used in err to locate the original (non-embedded) file source.
 	templateFile = fmt.Sprintf("../%s/%s.template", generationInfo.TemplateType, generationInfo.FuncName)
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+/*
+where("USING")
+where(tablesTemplateInfo.OutDirMainAbsolute)
+where(tablesTemplateInfo.OutDir)
+*/
 	// Calculate output dir name.
 	if strings.Contains(generationInfo.FuncName, "main") {
-		outDir = "../" + nameSpace + "_main"	// main is in its own directory
+//		outDir = "../" + nameSpace + "_main"	// main is in its own directory
+		outDir = tablesTemplateInfo.OutDirMainAbsolute	// main is in its own directory
+//where(fmt.Sprintf("outDir = %s", outDir))
 	} else {
-		outDir = "../" + nameSpace				// put it in with all the rest
+//		outDir = "../" + nameSpace				// put it in with all the rest
+		outDir = tablesTemplateInfo.OutDirAbsolute		// put it in with all the rest
+//where(fmt.Sprintf("outDir = %s", outDir))
 	}
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Calculate output file name.
 	switch generationInfo.FuncName {
 		case "README":	// README is a markdown .md file
 			generatedFile = outDir + "/" + generationInfo.FuncName + ".md"
-		default:		// the typical case
-			generatedFile = outDir + "/" + nameSpace + "_" + generationInfo.FuncName + ".go"
+		default:		// For both function files and main files. Retain FuncName for main functions to differentiate multiple mains.
+			generatedFile = outDir + "/" + tablesTemplateInfo.NameSpace + "_" + generationInfo.FuncName + ".go"
 	}
 	if verbose { fmt.Printf("     Generating: %-12s %s\n", fmt.Sprintf("(%s)", generationInfo.TemplateType), generatedFile) }
 
-	tablesTemplateInfo.SchemaFileName = outDir + "/" + nameSpace + ".fbs"
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	tablesTemplateInfo.SchemaFileName = outDir + "/" + tablesTemplateInfo.NameSpace + ".fbs"
 	tablesTemplateInfo.GeneratedFile = generatedFile
 	tablesTemplateInfo.FuncName = generationInfo.FuncName
 	tablesTemplateInfo.Imports = generationInfo.Imports
@@ -469,6 +488,7 @@ fmt.Printf("generatedFile = %s\n", generatedFile)
 fmt.Printf("\n")
 */
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	// Use the file name as the template name so that file name appears in error output.
@@ -488,6 +508,7 @@ fmt.Printf("\n")
 	if err != nil { return }
 */
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Template from embedded templates in flattables_templates.go
 	var templateText []byte = generationInfo.TemplateText
 
@@ -500,6 +521,7 @@ fmt.Printf("\n")
 	var goCode string
 	goCode = stringBuffer.String()
 
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// The code generator has a lot of quirks (such as extra lines and tabs) which are hard to
 	// eliminate within the templates themselves. Use gofmt to tidy up Go code.
 
@@ -514,11 +536,17 @@ fmt.Printf("\n")
 		}
 	}
 
-	err = ioutil.WriteFile(generatedFile, []byte(goCode), 0644)
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(30)
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	if dryRun {
+		fmt.Printf(" *** -d dry-run: Would have written file: %s\n", generatedFile)
+	} else {
+		err = ioutil.WriteFile(generatedFile, []byte(goCode), 0644)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(30)
+		}
 	}
+//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 
 	return
 }
@@ -613,7 +641,7 @@ type TableInfo struct {
 	NonNullable []bool
 }
 
-type TablesTemplateInfo struct {
+type TablesTemplateInfoType struct {
 	GeneratedDateFromFile string
 	GeneratedFromFile string
 	UsingCommand string
@@ -621,18 +649,21 @@ type TablesTemplateInfo struct {
 	NameSpace string	// Included in PackageName.
 	PackageName string	// Includes NameSpace
 	Year string
+	OutDirAbsolute string
+	OutDirMainAbsolute string
 	SchemaFileName string
 	GeneratedFile string
 	FuncName string
 	Imports []string
-	GotablesFileName string	// We want to replace this with the following TWO file names.
+//	GotablesFileName string	// We want to replace this with the following TWO file names.
+	GotablesFileNameAbsolute string
 	TableSetMetadata string
 	TableSetData string
 	Tables []TableInfo
 }
-var tablesTemplateInfo TablesTemplateInfo
+var TablesTemplateInfo TablesTemplateInfoType
 
-func (tablesTemplateInfo TablesTemplateInfo) Name(tableIndex int) string {
+func (tablesTemplateInfo TablesTemplateInfoType) Name(tableIndex int) string {
 	return tablesTemplateInfo.Tables[0].Table.Name()
 }
 
@@ -653,9 +684,10 @@ func DeleteEmptyTables(tableSet *gotables.TableSet) error {
 }
 
 // Assumes flattables.RemoveEmptyTables() has been called first.
-func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfo, error) {
+func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfoType, error) {
 
-	var emptyTemplateInfo TablesTemplateInfo
+	var emptyTemplateInfo TablesTemplateInfoType
+	var tablesTemplateInfo TablesTemplateInfoType
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
@@ -819,12 +851,12 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 	tableSetData := tableSet.String()
 //	tableSetData = indentText("\t", tableSetData)
 
-	tablesTemplateInfo = TablesTemplateInfo {
+	tablesTemplateInfo = TablesTemplateInfoType {
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
 		GeneratedFromFile: generatedFromFile(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
 		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
-		GotablesFileName: tableSet.FileName(),
+		GotablesFileNameAbsolute: tableSet.FileName(),
 		Year: copyrightYear(),
 		NameSpace: tableSet.Name(),
 		PackageName: packageName,
@@ -837,9 +869,11 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 }
 
 // Assumes flattables.RemoveEmptyTables() has been called first.
-func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfo, error) {
+// THIS NEEDS TO ADD TO, NOT REPLACE, EXISTING TEMPLATE INFORMATION.
+func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, genFlatBuffers bool, genGraphQL bool) (TablesTemplateInfoType, error) {
 
-	var emptyTemplateInfo TablesTemplateInfo
+	var emptyTemplateInfo TablesTemplateInfoType
+	var tablesTemplateInfo TablesTemplateInfoType
 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
@@ -1003,12 +1037,12 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 	tableSetData := tableSet.String()
 //	tableSetData = indentText("\t", tableSetData)
 
-	tablesTemplateInfo = TablesTemplateInfo {
+	tablesTemplateInfo = TablesTemplateInfoType {
 		GeneratedDateFromFile: generatedDateFromFile(tableSet),
 		GeneratedFromFile: generatedFromFile(tableSet),
 		UsingCommand: usingCommand(tableSet, packageName),
 		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
-		GotablesFileName: tableSet.FileName(),
+		GotablesFileNameAbsolute: tableSet.FileName(),
 		Year: copyrightYear(),
 		NameSpace: tableSet.Name(),
 		PackageName: packageName,
