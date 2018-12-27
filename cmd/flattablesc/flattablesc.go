@@ -200,11 +200,15 @@ func initFlags() {
 
 	// Set default outDir. May be provided (optionally) with -o <out-dir>
 	var outDir string = "../" + globalNameSpace	// Package level, where globalNameSpace is package name.
+//where(fmt.Sprintf("outDir = %s", outDir))
 	flagExists = checkStringFlag("o", flags.o, optionalFlag)
 	if flagExists { // Has been set explicitly with -o
 		outDir = flags.o
+//where(fmt.Sprintf("outDir = %s", outDir))
 	}
+//where(fmt.Sprintf("outDir = %s", outDir))
 	globalOutDirAbsolute, err = filepath.Abs(outDir)
+//where(fmt.Sprintf("globalOutDirAbsolute = %s", globalOutDirAbsolute))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		printUsage()
@@ -212,6 +216,7 @@ func initFlags() {
 	}
 	// Change backslashes to forward slashes. Otherwise strings interpret them as escape chars.
 	globalOutDirAbsolute = filepath.ToSlash(globalOutDirAbsolute)
+//where(fmt.Sprintf("globalOutDirAbsolute = %s", globalOutDirAbsolute))
 	if inconsistent, err := inconsistentPackageAndOutDir(globalPackageName, globalOutDirAbsolute); inconsistent {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		printUsage()
@@ -317,8 +322,8 @@ func printUsage() {
 		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
 //		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
 		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
-		"             $ cd ../flattables_sample; go test -bench=.",
-		"             $ cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample.go",
+		"             $ test: cd ../flattables_sample; go test -bench=.",
+		"             $ test: cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample_main.go",
 	}
 
 	var usageString string
@@ -573,8 +578,8 @@ func main() {
 		fmt.Println(" *** -d DRY-RUN *** (Didn't do anything!)")
 	} else {
 		fmt.Println(" DONE")
-		fmt.Printf(" cd %s; go test -bench=.\n", globalOutDirAbsolute)
-		fmt.Printf(" cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
+		fmt.Printf(" test: cd %s; go test -bench=.\n", globalOutDirAbsolute)
+		fmt.Printf(" test: cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
@@ -637,6 +642,16 @@ func inconsistentPackageAndOutDir(packageName string, outDir string) (consistent
 	absolute = absolute[index:]
 	if absolute != packageName {
 		err := fmt.Errorf("-p <package-name> does not match END OF -o <out-dir>: -p %s -o %s (end of)", packageName, absolute)
+		lenOutDir := len(absolute)
+		lenPackageName := len(packageName)
+		var length int
+		if lenOutDir > lenPackageName {
+			length = lenOutDir
+		} else {
+			length = lenPackageName
+		}
+		where(fmt.Sprintf("%-*s\n", length, packageName))
+		where(fmt.Sprintf("%-*s\n", length, absolute))
 		return true, err
 	}
 
