@@ -154,7 +154,6 @@ func initFlags() {
 	// Input file of gotables tables to be used as a schema, and possibly data.
 	checkStringFlag("f", flags.f, compulsoryFlag)
 	var globalGotablesFileName string = flags.f
-//	globalGotablesFileNameAbsolute, err = filepath.Abs(globalGotablesFileName)
 	globalGotablesFileNameAbsolute, err = util.FilepathAbs(globalGotablesFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
