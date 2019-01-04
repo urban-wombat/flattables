@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"bufio"
 	"fmt"
-	"github.com/urban-wombat/gotables"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,6 +17,9 @@ import (
 	"text/template"
 	"time"
 	"unicode"
+
+	"github.com/urban-wombat/gotables"
+	"github.com/urban-wombat/util"
 )
 
 /*
@@ -528,7 +530,7 @@ fmt.Printf("\n")
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
 		goCode = RemoveExcessTabsAndNewLines(goCode)	// handwritten formatter
-		goCode, err = gotables.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
+		goCode, err = util.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			// Just in case the gofmt command is unavailable or inaccessible on this system.
