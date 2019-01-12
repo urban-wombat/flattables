@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"text/template"
 	"time"
@@ -47,7 +46,7 @@ SOFTWARE.
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
 }
-var where = log.Print
+// var where = log.Print
 
 /*
 	Note: the following are synonyms:-
@@ -118,14 +117,6 @@ var goFlatBuffersScalarTypes = map[string]string {
 	"uint64":  "ulong",
 	"float32": "float",
 	"float64": "double",
-}
-
-func funcName() string {
-    pc, _, _, _ := runtime.Caller(1)
-    nameFull := runtime.FuncForPC(pc).Name() // main.foo
-    nameEnd := filepath.Ext(nameFull)        // .foo
-    name := strings.TrimPrefix(nameEnd, ".") // foo
-    return name
 }
 
 const deprecated = "_deprecated_"

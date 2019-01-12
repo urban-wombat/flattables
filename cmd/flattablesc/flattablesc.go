@@ -16,7 +16,6 @@ import (
 
 	"github.com/urban-wombat/flattables"
 	"github.com/urban-wombat/gotables"
-	"github.com/urban-wombat/util"
 )
 //	import "github.com/davecgh/go-spew/spew"
 
@@ -48,6 +47,7 @@ var globalFlagOWarnOnly bool				// if flags.O (capital O) is set
 var globalOutDirMainAbsolute string			// from (optional) flags.s via filepath.Abs()
 var globalMutableFlag string				// Pass to flatc. Note: mutable (non-const) FlatBuffers apparently unavailable in Go.
 var globalUtilName string					// "flattablesc" or "graphqlc"
+var globalUtilDir string					// "flattablesc" or "graphqlc"
 
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
@@ -118,10 +118,12 @@ func initFlags() {
 	*/
 	if strings.Contains(os.Args[0], "flattablesc") {
 		flags.b = true	// As good as -b
+		globalUtilDir  = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/flattablesc"
 		globalUtilName = "flattablesc"
 	}
 	if strings.Contains(os.Args[0], "graphqlc") {
 		flags.g = true	// As good as -g
+		globalUtilDir  = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/graphql"
 		globalUtilName = "graphqlc"
 	}
 	if flags.B {	// flattables ONLY
@@ -154,7 +156,7 @@ func initFlags() {
 	// Input file of gotables tables to be used as a schema, and possibly data.
 	checkStringFlag("f", flags.f, compulsoryFlag)
 	var globalGotablesFileName string = flags.f
-	globalGotablesFileNameAbsolute, err = util.FilepathAbs(globalGotablesFileName)
+	globalGotablesFileNameAbsolute, err = gotables.FilepathAbs(globalGotablesFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		printUsage()
@@ -330,9 +332,9 @@ func printUsage() {
 		"             Make a Go package dir: $ mkdir flattables_sample",
 		"             $ cd flattables_sample",
 		"             Create a gotables file: tables.got",
-		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
-//		"             $ ${globalUtilName}           -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
-		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
+		"             $ ${globalUtilName} -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
+//		"             $ ${globalUtilName} -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
+//		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
 		"             $ test: cd ../flattables_sample; go test -bench=.",
 		"             $ test: cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample_main.go",
 	}
@@ -346,14 +348,15 @@ func printUsage() {
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
 		// We are testing. Provide a useful sample. Does not appear in final product.
 		usageString += "additional commands in development mode:\n"
-		usageString += "             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample\n"
-		usageString += "             $ go run ${globalUtilName}.go -v -G -f ../graphql_sample/tables.gt -n graphql_sample -p github.com/urban-wombat/graphql_sample\n"
-		usageString += "             $ go install ${globalUtilName}.go\n"
+		usageString += "             $ go run ${globalUtilDir}/${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample\n"
+		usageString += "             $ go run ${globalUtilDir}/${globalUtilName}.go -v -G -f ../graphql_sample/tables.gt -n graphql_sample -p github.com/urban-wombat/graphql_sample\n"
+		usageString += "             $ go install ${globalUtilDir}/${globalUtilName}.go\n"
 		usageString += "             $ ${globalUtilName}           -v -G -f ../graphql_sample/tables.gt -n graphql_sample -p github.com/urban-wombat/graphql_sample\n"
 		usageString += buildTime()
 	}
 
 	usageString = strings.Replace(usageString, "${globalUtilName}", globalUtilName, -1)
+	usageString = strings.Replace(usageString, "${globalUtilDir}", globalUtilDir, -1)
 
 	fmt.Fprintf(os.Stderr, "%s\n", usageString)
 }
