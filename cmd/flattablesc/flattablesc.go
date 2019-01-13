@@ -16,6 +16,7 @@ import (
 
 	"github.com/urban-wombat/flattables"
 	"github.com/urban-wombat/gotables"
+	"github.com/urban-wombat/util"
 )
 //	import "github.com/davecgh/go-spew/spew"
 
@@ -154,9 +155,9 @@ func initFlags() {
 	var flagExists bool
 
 	// Input file of gotables tables to be used as a schema, and possibly data.
-	checkStringFlag("f", flags.f, compulsoryFlag)
+	checkStringFlagReplaceWithUtilVersion("f", flags.f, compulsoryFlag)
 	var globalGotablesFileName string = flags.f
-	globalGotablesFileNameAbsolute, err = gotables.FilepathAbs(globalGotablesFileName)
+	globalGotablesFileNameAbsolute, err = util.FilepathAbs(globalGotablesFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		printUsage()
@@ -168,13 +169,13 @@ func initFlags() {
 	if flags.g {
 		// Input file of relations tables to be used as a GraphQL schema.
 	    // Compulsory flag.
-		checkStringFlag("r", flags.r, compulsoryFlag)
+		checkStringFlagReplaceWithUtilVersion("r", flags.r, compulsoryFlag)
 		globalRelationsFileName = flags.r
 	}
 
 	// Namespace
     // Compulsory flag.
-	checkStringFlag("n", flags.n, compulsoryFlag)
+	checkStringFlagReplaceWithUtilVersion("n", flags.n, compulsoryFlag)
 	globalNameSpace = flags.n
 	// globalNameSpace has the same validity criteria as gotables col names and table names.
 	isValid, _ := gotables.IsValidColName(globalNameSpace)
@@ -190,7 +191,7 @@ func initFlags() {
 	}
 
 	// Package
-	checkStringFlag("p", flags.p, compulsoryFlag)
+	checkStringFlagReplaceWithUtilVersion("p", flags.p, compulsoryFlag)
 	globalPackageName = flags.p
 	// Package name must include namespace.
 	if !strings.HasSuffix(globalPackageName, globalNameSpace) {
@@ -207,12 +208,12 @@ func initFlags() {
 
 	// Set default outDir. May be provided (optionally) with -o <out-dir>
 	var outDir string = "../" + globalNameSpace	// Package level, where globalNameSpace is package name.
-	flagExists = checkStringFlag("o", flags.o, optionalFlag)
+	flagExists = checkStringFlagReplaceWithUtilVersion("o", flags.o, optionalFlag)
 	if flagExists { // Has been set explicitly with -o
 		outDir = flags.o
 	}
 	// Capital -O means warnOnly.
-	flagExists = checkStringFlag("O", flags.O, optionalFlag)
+	flagExists = checkStringFlagReplaceWithUtilVersion("O", flags.O, optionalFlag)
 	if flagExists { // Has been set explicitly with -O
 		outDir = flags.O
 		globalFlagOWarnOnly = true
@@ -239,7 +240,7 @@ func initFlags() {
 	// Set default globalOutDirMainAbsolute. May be provided (optionally) with -s <out-dir-main>
 	// <out-dir-main>  defaults to <out-dir>/cmd/<package-name>
 	globalOutDirMainAbsolute = fmt.Sprintf("%s/cmd/%s", globalOutDirAbsolute, globalNameSpace)
-	flagExists = checkStringFlag("s", flags.s, optionalFlag)
+	flagExists = checkStringFlagReplaceWithUtilVersion("s", flags.s, optionalFlag)
 	if flagExists {	// Has been set explicitly with -s
 		globalOutDirMainAbsolute = flags.s
 	}
@@ -267,7 +268,7 @@ func progName() string {
 		- Optional flags can test exists.
 	The flag library itself does some global stuff: bails out if a flag does not have an argument.
 */
-func checkStringFlag(name string, arg string, compulsory bool) (exists bool) {
+func checkStringFlagReplaceWithUtilVersion(name string, arg string, compulsory bool) (exists bool) {
 	var hasArg bool
 
     if arg != "" {

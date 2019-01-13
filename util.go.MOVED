@@ -114,7 +114,7 @@ const (
 	FlagRequired = true
 	FlagOptional = false
 )
-func checkStringFlag(name string, arg string, required bool) (exists bool, err error) {
+func CheckStringFlag(name string, arg string, required bool) (exists bool, err error) {
     var hasValidLookingArg bool
 
     if arg != "" {
@@ -241,7 +241,7 @@ func GoFmtProgramString(goProgramString string) (formattedGoProgramString string
 	This is intentionally a print-only function because calling it from another function (other than the one being
 	tracked) will change the calling information by nesting to an additional level.
 */
-func printCaller() {
+func PrintCaller() {
 	var calledName string
 	var callerFile string
 	var callerName string

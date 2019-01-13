@@ -151,13 +151,13 @@ func IsFlatBuffersScalar(colType string) bool {
 func isScalar(table *gotables.Table, colName string) bool {
 	colType, err := table.ColType(colName)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", util.FuncName(), table.Name(), colName, err)
 		return false
 	}
 
 	isNumeric, err := gotables.IsNumericColType(colType)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", funcName(), table.Name(), colName, err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s [%s].%s ERROR: %v\n", util.FuncName(), table.Name(), colName, err)
 		return false
 	}
 
