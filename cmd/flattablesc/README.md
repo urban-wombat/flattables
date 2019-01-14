@@ -1,4 +1,4 @@
-# flattablesc
+# flattablesc - FlatBuffers code generator
 
 `flattablesc [-h] [-v] [-d] -f <gotables-file> -n <namespace> -p <package> [-o <out-dir>] [-s <out-dir-main>]`
 
