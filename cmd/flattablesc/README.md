@@ -4,7 +4,7 @@
 
 Run `flattablesc -h` to see usage.
 
-Try especially `-d` Dry run (also turns on verbose) to find out ahead of time what and where generated code will be written.
+Try especially `-d` dry-run (also turns on verbose) to find out ahead of time what and where generated code will be written.
 
 Generates `FlatBuffers` and `FlatTables` code (to call from your programs) to write and read `FlatBuffers []byte` arrays.
 
