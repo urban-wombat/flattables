@@ -5,9 +5,10 @@ package flattables
 // See: https://github.com/urban-wombat/flattables#flattables-is-a-simplified-tabular-subset-of-flatbuffers
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"log"
 	"os"
@@ -46,6 +47,7 @@ SOFTWARE.
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
 }
+
 // var where = log.Print
 
 /*
@@ -64,14 +66,14 @@ func init() {
 // 64 bit: long, ulong, double
 // From: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
 
-var goToFlatBuffersTypes = map[string]string {
+var goToFlatBuffersTypes = map[string]string{
 	"bool":    "bool",
-	"int8":    "byte",	// Signed.
+	"int8":    "byte", // Signed.
 	"int16":   "short",
-	"int32":   "int",	// (Go rune is an alias for Go int32. For future reference.)
+	"int32":   "int", // (Go rune is an alias for Go int32. For future reference.)
 	"int64":   "long",
-	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
-	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
+	"byte":    "ubyte",   // Unsigned. Go byte is an alias for Go uint8.
+	"[]byte":  "[ubyte]", // Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
 	"uint8":   "ubyte",
 	"uint16":  "ushort",
 	"uint32":  "uint",
@@ -79,38 +81,38 @@ var goToFlatBuffersTypes = map[string]string {
 	"float32": "float",
 	"float64": "double",
 	"string":  "string",
-//	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
-//	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+	//	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+	//	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
 }
 
-var goToGraphQLTypes = map[string]string {
+var goToGraphQLTypes = map[string]string{
 	"string":  "String",
 	"bool":    "Boolean",
 	"int32":   "Int",
 	"float64": "Float",
-//	"int64":   "long",	// 64‐bit numeric non‐fractional value. Currently not implemented by Prisma.
-/*
-	"int8":    "byte",	// Signed.
-	"int16":   "short",
-	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
-	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
-	"uint8":   "ubyte",
-	"uint16":  "ushort",
-	"uint32":  "uint",
-	"uint64":  "ulong",
-	"float32": "float",
-//	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
-//	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
-*/
+	//	"int64":   "long",	// 64‐bit numeric non‐fractional value. Currently not implemented by Prisma.
+	/*
+	   	"int8":    "byte",	// Signed.
+	   	"int16":   "short",
+	   	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
+	   	"[]byte":  "[ubyte]",	// Unsigned. Go byte is an alias for Go uint8. NOTE: This [ubyte] IS NOT IMPLEMENTED IN FLATTABLES!
+	   	"uint8":   "ubyte",
+	   	"uint16":  "ushort",
+	   	"uint32":  "uint",
+	   	"uint64":  "ulong",
+	   	"float32": "float",
+	   //	"int":     "long",	// Assume largest int size:  64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+	   //	"uint":    "ulong",	// Assume largest uint size: 64 bit. NO, DON'T DO THIS AUTOMATICALLY. REQUIRE USER DECISION.
+	*/
 }
 
-var goFlatBuffersScalarTypes = map[string]string {
-	"bool":    "bool",	// Scalar from FlatBuffers point of view.
-	"int8":    "byte",	// Signed.
+var goFlatBuffersScalarTypes = map[string]string{
+	"bool":    "bool", // Scalar from FlatBuffers point of view.
+	"int8":    "byte", // Signed.
 	"int16":   "short",
-	"int32":   "int",	// (Go rune is an alias for Go int32. For future reference.)
+	"int32":   "int", // (Go rune is an alias for Go int32. For future reference.)
 	"int64":   "long",
-	"byte":    "ubyte",	// Unsigned. Go byte is an alias for Go uint8.
+	"byte":    "ubyte", // Unsigned. Go byte is an alias for Go uint8.
 	"uint8":   "ubyte",
 	"uint16":  "ushort",
 	"uint32":  "uint",
@@ -129,9 +131,12 @@ func schemaType(colType string) (string, error) {
 		// Build a useful error message.
 		var suggestChangeTypeTo string
 		switch colType {
-			case "int": suggestChangeTypeTo = "int32 or int64"
-			case "uint": suggestChangeTypeTo = "uint32 or uint64"
-			default: return "", fmt.Errorf("no FlatBuffers-compatible Go type suggestion for Go type: %s", colType)
+		case "int":
+			suggestChangeTypeTo = "int32 or int64"
+		case "uint":
+			suggestChangeTypeTo = "uint32 or uint64"
+		default:
+			return "", fmt.Errorf("no FlatBuffers-compatible Go type suggestion for Go type: %s", colType)
 		}
 		return "", fmt.Errorf("no FlatBuffers type available for Go type: %s (suggest change it to Go type: %s)",
 			colType, suggestChangeTypeTo)
@@ -193,10 +198,14 @@ func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfoType) (s
 	var data []byte = FlatBuffersSchema_template
 
 	tplate, err = tplate.Parse(string(data))
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	err = tplate.Execute(buf, tablesTemplateInfo)
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	return buf.String(), nil
 }
@@ -219,10 +228,14 @@ func GraphQLSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfoType) (strin
 	var data []byte = GraphQLSchema_template
 
 	tplate, err = tplate.Parse(string(data))
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	err = tplate.Execute(buf, tablesTemplateInfo)
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	return buf.String(), nil
 }
@@ -278,21 +291,21 @@ func rowCount(table *gotables.Table) int {
 // Information specific to each generated function.
 type GenerationInfo struct {
 	TemplateType string
-	FuncName string	// Used as basename of *.template and *.go files. Not always a function name.
-	Imports []string	// imports for this template.
+	FuncName     string   // Used as basename of *.template and *.go files. Not always a function name.
+	Imports      []string // imports for this template.
 	TemplateText []byte
 }
-var generations = []GenerationInfo {
-	{	TemplateType: "flattables",
-		FuncName: "README",
+
+var generations = []GenerationInfo{
+	{TemplateType: "flattables",
+		FuncName:     "README",
 		TemplateText: README_template,
-		Imports: []string {
-		},
+		Imports:      []string{},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "test",	// Not really a function name.
+	{TemplateType: "flattables",
+		FuncName:     "test", // Not really a function name.
 		TemplateText: test_template,
-		Imports: []string {
+		Imports: []string{
 			`"bytes"`,
 			`"fmt"`,
 			`"github.com/urban-wombat/gotables"`,
@@ -300,109 +313,109 @@ var generations = []GenerationInfo {
 			`"testing"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "helpers",
+	{TemplateType: "flattables",
+		FuncName:     "helpers",
 		TemplateText: helpers_template,
-		Imports: []string {
+		Imports: []string{
 			`"path/filepath"`,
 			`"runtime"`,
 			`"strings"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "NewFlatBuffersFromSlice",
+	{TemplateType: "flattables",
+		FuncName:     "NewFlatBuffersFromSlice",
 		TemplateText: NewFlatBuffersFromSlice_template,
-		Imports: []string {
+		Imports: []string{
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"fmt"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "NewFlatBuffersFromTableSet",
+	{TemplateType: "flattables",
+		FuncName:     "NewFlatBuffersFromTableSet",
 		TemplateText: NewFlatBuffersFromTableSet_template,
-		Imports: []string {
+		Imports: []string{
 			`flatbuffers "github.com/google/flatbuffers/go"`,
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "NewSliceFromFlatBuffers",
+	{TemplateType: "flattables",
+		FuncName:     "NewSliceFromFlatBuffers",
 		TemplateText: NewSliceFromFlatBuffers_template,
-		Imports: []string {
+		Imports: []string{
 			`"fmt"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "NewTableSetFromFlatBuffers",
+	{TemplateType: "flattables",
+		FuncName:     "NewTableSetFromFlatBuffers",
 		TemplateText: NewTableSetFromFlatBuffers_template,
-		Imports: []string {
+		Imports: []string{
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "OldSliceFromFlatBuffers",
+	{TemplateType: "flattables",
+		FuncName:     "OldSliceFromFlatBuffers",
 		TemplateText: OldSliceFromFlatBuffers_template,
-		Imports: []string {
+		Imports: []string{
 			`"fmt"`,
 		},
 	},
-/*
-	{	TemplateType: "graphql",
-		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
-		Imports: []string {
-			`"encoding/json"`,
-			`"fmt"`,
-			`"net/http"`,
-//			`"github.com/urban-wombat/gotables"`,
-			`"github.com/graphql-go/graphql"`,
-		},
-	},
-*/
-/*
-	{	TemplateType: "graphql",
-		FuncName: "hafiz_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
-		Imports: []string {
-//			`"encoding/json"`,
-//			`"fmt"`,
-			`"net/http"`,
-//			`"github.com/urban-wombat/gotables"`,
-			`"github.com/graphql-go/graphql"`,
-			`"github.com/graphql-go/graphql-go-handler"`,
-		},
-	},
-*/
-/*
-	{	TemplateType: "graphql",
-		FuncName: "raboy_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
-		TemplateText: raboy_main_template,
-		Imports: []string {
-			`"encoding/json"`,
-			`"fmt"`,
-//			`"log"`,
-			`"net/http"`,
-			`"github.com/graphql-go/graphql"`,
-//			`"github.com/urban-wombat/gotables"`,
-		},
-	},
-*/
-	{	TemplateType: "graphql",
-		FuncName: "gqlgen_main",	// From: https://github.com/99designs/gqlgen
+	/*
+	   	{	TemplateType: "graphql",
+	   		FuncName: "polyglot_main",	// From: https://www.thepolyglotdeveloper.com/2018/05/getting-started-graphql-golang
+	   		Imports: []string {
+	   			`"encoding/json"`,
+	   			`"fmt"`,
+	   			`"net/http"`,
+	   //			`"github.com/urban-wombat/gotables"`,
+	   			`"github.com/graphql-go/graphql"`,
+	   		},
+	   	},
+	*/
+	/*
+	   	{	TemplateType: "graphql",
+	   		FuncName: "hafiz_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
+	   		Imports: []string {
+	   //			`"encoding/json"`,
+	   //			`"fmt"`,
+	   			`"net/http"`,
+	   //			`"github.com/urban-wombat/gotables"`,
+	   			`"github.com/graphql-go/graphql"`,
+	   			`"github.com/graphql-go/graphql-go-handler"`,
+	   		},
+	   	},
+	*/
+	/*
+	   	{	TemplateType: "graphql",
+	   		FuncName: "raboy_main",	// From: https://wehavefaces.net/learn-golang-graphql-relay-1-e59ea174a902
+	   		TemplateText: raboy_main_template,
+	   		Imports: []string {
+	   			`"encoding/json"`,
+	   			`"fmt"`,
+	   //			`"log"`,
+	   			`"net/http"`,
+	   			`"github.com/graphql-go/graphql"`,
+	   //			`"github.com/urban-wombat/gotables"`,
+	   		},
+	   	},
+	*/
+	{TemplateType: "graphql",
+		FuncName:     "gqlgen_main", // From: https://github.com/99designs/gqlgen
 		TemplateText: gglgen_main_template,
-		Imports: []string {
+		Imports: []string{
 			`"encoding/json"`,
 			`"fmt"`,
-//			`"log"`,
+			//			`"log"`,
 			`"net/http"`,
 			`"github.com/graphql-go/graphql"`,
-//			`"github.com/urban-wombat/gotables"`,
+			//			`"github.com/urban-wombat/gotables"`,
 		},
 	},
-	{	TemplateType: "flattables",
-		FuncName: "main",	// Not really a function name.
+	{TemplateType: "flattables",
+		FuncName:     "main", // Not really a function name.
 		TemplateText: main_template,
-		Imports: []string {
+		Imports: []string{
 			`"github.com/urban-wombat/gotables"`,
 			`"fmt"`,
 		},
@@ -411,15 +424,17 @@ var generations = []GenerationInfo {
 
 // func GenerateAll(tablesTemplateInfo TablesTemplateInfoType, nameSpace string, verbose bool, dryRun bool, genFlatBuffers bool, genGraphQL bool) error {
 func GenerateAll(tablesTemplateInfo TablesTemplateInfoType, verbose bool, dryRun bool, genFlatBuffers bool, genGraphQL bool) error {
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	for _, generation := range generations {
 		if (generation.TemplateType == "flattables" && genFlatBuffers) || (generation.TemplateType == "graphql" && genGraphQL) {
 			// tablesTemplateInfo is global.
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
-//			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, nameSpace, verbose, dryRun)
+			//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+			//			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, nameSpace, verbose, dryRun)
 			err := generateGoCodeFromTemplate(generation, tablesTemplateInfo, verbose, dryRun)
-			if err != nil { return err }
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+			if err != nil {
+				return err
+			}
+			//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 		}
 	}
 
@@ -428,60 +443,62 @@ func GenerateAll(tablesTemplateInfo TablesTemplateInfoType, verbose bool, dryRun
 
 // func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfoType, nameSpace string, verbose bool, dryRun bool) (err error) {
 func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInfo TablesTemplateInfoType, verbose bool, dryRun bool) (err error) {
-//gotables.PrintCaller()
+	//gotables.PrintCaller()
 
 	var templateFile string
-	var outDir  string
+	var outDir string
 	var generatedFile string
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Calculate input template file name.
 	// Although no longer used to OPEN the file, it is still used in err to locate the original (non-embedded) file source.
 	templateFile = fmt.Sprintf("../%s/%s.template", generationInfo.TemplateType, generationInfo.FuncName)
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
-/*
-where("USING")
-where(tablesTemplateInfo.OutDirMainAbsolute)
-where(tablesTemplateInfo.OutDir)
-*/
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	/*
+	   where("USING")
+	   where(tablesTemplateInfo.OutDirMainAbsolute)
+	   where(tablesTemplateInfo.OutDir)
+	*/
 	// Calculate output dir name.
 	if strings.Contains(generationInfo.FuncName, "main") {
-//		outDir = "../" + nameSpace + "_main"	// main is in its own directory
-		outDir = tablesTemplateInfo.OutDirMainAbsolute	// main is in its own directory
-//where(fmt.Sprintf("outDir = %s", outDir))
+		//		outDir = "../" + nameSpace + "_main"	// main is in its own directory
+		outDir = tablesTemplateInfo.OutDirMainAbsolute // main is in its own directory
+		//where(fmt.Sprintf("outDir = %s", outDir))
 	} else {
-//		outDir = "../" + nameSpace				// put it in with all the rest
-		outDir = tablesTemplateInfo.OutDirAbsolute		// put it in with all the rest
-//where(fmt.Sprintf("outDir = %s", outDir))
+		//		outDir = "../" + nameSpace				// put it in with all the rest
+		outDir = tablesTemplateInfo.OutDirAbsolute // put it in with all the rest
+		//where(fmt.Sprintf("outDir = %s", outDir))
 	}
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Calculate output file name.
 	switch generationInfo.FuncName {
-		case "README":	// README is a markdown .md file
-			generatedFile = outDir + "/" + generationInfo.FuncName + ".md"
-		default:		// For both function files and main files. Retain FuncName for main functions to differentiate multiple mains.
-			generatedFile = outDir + "/" + tablesTemplateInfo.NameSpace + "_" + generationInfo.FuncName + ".go"
+	case "README": // README is a markdown .md file
+		generatedFile = outDir + "/" + generationInfo.FuncName + ".md"
+	default: // For both function files and main files. Retain FuncName for main functions to differentiate multiple mains.
+		generatedFile = outDir + "/" + tablesTemplateInfo.NameSpace + "_" + generationInfo.FuncName + ".go"
 	}
-	if verbose { fmt.Printf("     Generating: %-12s %s\n", fmt.Sprintf("(%s)", generationInfo.TemplateType), generatedFile) }
+	if verbose {
+		fmt.Printf("     Generating: %-12s %s\n", fmt.Sprintf("(%s)", generationInfo.TemplateType), generatedFile)
+	}
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	tablesTemplateInfo.SchemaFileName = outDir + "/" + tablesTemplateInfo.NameSpace + ".fbs"
 	tablesTemplateInfo.GeneratedFile = generatedFile
 	tablesTemplateInfo.FuncName = generationInfo.FuncName
 	tablesTemplateInfo.Imports = generationInfo.Imports
 
-/*
-fmt.Printf("\n")
-fmt.Printf("%#v\n", generationInfo)
-fmt.Printf("templateFile = %s\n", templateFile)
-fmt.Printf("outDir = %s\n", outDir)
-fmt.Printf("generatedFile = %s\n", generatedFile)
-fmt.Printf("\n")
-*/
+	/*
+	   fmt.Printf("\n")
+	   fmt.Printf("%#v\n", generationInfo)
+	   fmt.Printf("templateFile = %s\n", templateFile)
+	   fmt.Printf("outDir = %s\n", outDir)
+	   fmt.Printf("generatedFile = %s\n", generatedFile)
+	   fmt.Printf("\n")
+	*/
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	var stringBuffer *bytes.Buffer = bytes.NewBufferString("")
 
 	// Use the file name as the template name so that file name appears in error output.
@@ -495,40 +512,47 @@ fmt.Printf("\n")
 	tplate.Funcs(template.FuncMap{"rowCount": rowCount})
 	tplate.Funcs(template.FuncMap{"yearRangeFromFirstYear": yearRangeFromFirstYear})
 
-/*
-	// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
-	templateText, err := ioutil.ReadFile(templateFile)
-	if err != nil { return }
-*/
+	/*
+		// Open and read file explicitly to avoid calling tplate.ParseFile() which has problems.
+		templateText, err := ioutil.ReadFile(templateFile)
+		if err != nil { return }
+	*/
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// Template from embedded templates in flattables_templates.go
 	var templateText []byte = generationInfo.TemplateText
 
 	tplate, err = tplate.Parse(string(templateText))
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 
 	err = tplate.Execute(stringBuffer, tablesTemplateInfo)
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 
 	var goCode string = stringBuffer.String()
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	// The code generator has a lot of quirks (such as extra lines and tabs) which are hard to
 	// eliminate within the templates themselves. Use gofmt to tidy up Go code.
 
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
-		goCode = RemoveExcessTabsAndNewLines(goCode)	// handwritten formatter
-		goCode, err = util.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
+		goCode = RemoveExcessTabsAndNewLines(goCode) // handwritten formatter
+		//		goCode, err = util.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
+		var goCodeBytes []byte
+		goCodeBytes, err = format.Source([]byte(goCode))
 		if err != nil {
 			// gofmt is better, but make do with my handwritten formatter if gofmt is unavailable.
 			// Just in case the gofmt command is unavailable or inaccessible on this system.
 			_, _ = fmt.Fprintln(os.Stderr, "     Cannot access gofmt utility right now. Using handwritten formatter instead.")
 		}
+		goCode = string(goCodeBytes)
 	}
 
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	if dryRun {
 		fmt.Printf(" *** -d dry-run: Would have written file: %s\n", generatedFile)
 	} else {
@@ -538,38 +562,38 @@ fmt.Printf("\n")
 			os.Exit(30)
 		}
 	}
-//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
+	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 
 	return
 }
 
 // Compilation will fail if a user inadvertently uses a Go key word as a name.
-var goKeyWords = map[string]string {
-	"break":		"break",
-	"default":		"default",
-	"func":			"func",
-	"interface":	"interface",
-	"select":		"select",
-	"case":			"case",
-	"defer":		"defer",
-	"go":			"go",
-	"map":			"map",
-	"struct":		"struct",
-	"chan":			"chan",
-	"else":			"else",
-	"goto":			"goto",
-	"package":		"package",
-	"switch":		"switch",
-	"const":		"const",
-	"fallthrough":	"fallthrough",
-	"if":			"if",
-	"range":		"range",
-	"type":			"type",
-	"continue":		"continue",
-	"for":			"for",
-	"import":		"import",
-	"return":		"return",
-	"var":			"var",
+var goKeyWords = map[string]string{
+	"break":       "break",
+	"default":     "default",
+	"func":        "func",
+	"interface":   "interface",
+	"select":      "select",
+	"case":        "case",
+	"defer":       "defer",
+	"go":          "go",
+	"map":         "map",
+	"struct":      "struct",
+	"chan":        "chan",
+	"else":        "else",
+	"goto":        "goto",
+	"package":     "package",
+	"switch":      "switch",
+	"const":       "const",
+	"fallthrough": "fallthrough",
+	"if":          "if",
+	"range":       "range",
+	"type":        "type",
+	"continue":    "continue",
+	"for":         "for",
+	"import":      "import",
+	"return":      "return",
+	"var":         "var",
 }
 
 func isGoKeyWord(name string) bool {
@@ -579,21 +603,21 @@ func isGoKeyWord(name string) bool {
 }
 
 // Could be tricky if a user inadvertently uses a word used in FlatBuffers schemas.
-var flatBuffersOrFlatTablesKeyWords = map[string]string {
-	"flattables":	"flattables",	// FlatTables is used as the root table name and root_type.
-	"table":		"table",
-	"namespace":	"namespace",
-	"root_type":	"root_type",
-	"ubyte":		"ubyte",
-	"float":		"float",
-	"long":			"long",
-	"ulong":		"ulong",
-	"short":		"short",
-	"ushort":		"ushort",
-	"double":		"double",
-	"enum":			"enum",
-	"union":		"union",
-	"include":		"include",
+var flatBuffersOrFlatTablesKeyWords = map[string]string{
+	"flattables": "flattables", // FlatTables is used as the root table name and root_type.
+	"table":      "table",
+	"namespace":  "namespace",
+	"root_type":  "root_type",
+	"ubyte":      "ubyte",
+	"float":      "float",
+	"long":       "long",
+	"ulong":      "ulong",
+	"short":      "short",
+	"ushort":     "ushort",
+	"double":     "double",
+	"enum":       "enum",
+	"union":      "union",
+	"include":    "include",
 }
 
 func isFlatBuffersOrFlatTablesKeyWord(name string) bool {
@@ -603,56 +627,57 @@ func isFlatBuffersOrFlatTablesKeyWord(name string) bool {
 }
 
 type ColInfo struct {
-	ColName string
-	ColType string
-	FbsType string
-	ColIndex int
-	IsScalar bool	// FlatBuffers Scalar includes bool
-	IsString bool
-	IsBool bool
+	ColName      string
+	ColType      string
+	FbsType      string
+	ColIndex     int
+	IsScalar     bool // FlatBuffers Scalar includes bool
+	IsString     bool
+	IsBool       bool
 	IsDeprecated bool
 }
 
 type Row []string
 
 type TableInfo struct {
-	Table *gotables.Table
+	Table      *gotables.Table
 	TableIndex int
-	TableName string
-	RowCount int
-	ColCount int
-	Cols []ColInfo
-	Rows []Row
-	ColNames []string
-	ColTypes []string
+	TableName  string
+	RowCount   int
+	ColCount   int
+	Cols       []ColInfo
+	Rows       []Row
+	ColNames   []string
+	ColTypes   []string
 	// These are for GraphQL:
-	ObjectType string	// e.g. "type", "input"
-	ColTypeGQL string
-	FieldName []string
-	FieldType []string	// e.g. "String", "Int" (Go int32), "Float" (Go float64), "Boolean", "ID" (string), and user defined types.
+	ObjectType  string // e.g. "type", "input"
+	ColTypeGQL  string
+	FieldName   []string
+	FieldType   []string // e.g. "String", "Int" (Go int32), "Float" (Go float64), "Boolean", "ID" (string), and user defined types.
 	NonNullable []bool
 }
 
 type TablesTemplateInfoType struct {
 	GeneratedDateFromFile string
-	GeneratedFromFile string
-	UsingCommand string
-	UsingCommandMinusG string
-	NameSpace string	// Included in PackageName.
-	PackageName string	// Includes NameSpace
-	Year string
-	OutDirAbsolute string
-	OutDirMainAbsolute string
-	SchemaFileName string
-	GeneratedFile string
-	FuncName string
-	Imports []string
-//	GotablesFileName string	// We want to replace this with the following TWO file names.
+	GeneratedFromFile     string
+	UsingCommand          string
+	UsingCommandMinusG    string
+	NameSpace             string // Included in PackageName.
+	PackageName           string // Includes NameSpace
+	Year                  string
+	OutDirAbsolute        string
+	OutDirMainAbsolute    string
+	SchemaFileName        string
+	GeneratedFile         string
+	FuncName              string
+	Imports               []string
+	//	GotablesFileName string	// We want to replace this with the following TWO file names.
 	GotablesFileNameAbsolute string
-	TableSetMetadata string
-	TableSetData string
-	Tables []TableInfo
+	TableSetMetadata         string
+	TableSetData             string
+	Tables                   []TableInfo
 }
+
 var TablesTemplateInfo TablesTemplateInfoType
 
 func (tablesTemplateInfo TablesTemplateInfoType) Name(tableIndex int) string {
@@ -661,13 +686,17 @@ func (tablesTemplateInfo TablesTemplateInfoType) Name(tableIndex int) string {
 
 func DeleteEmptyTables(tableSet *gotables.TableSet) error {
 
-	for tableIndex := tableSet.TableCount()-1; tableIndex >= 0; tableIndex-- {
+	for tableIndex := tableSet.TableCount() - 1; tableIndex >= 0; tableIndex-- {
 		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		if table.ColCount() == 0 {
 			err = tableSet.DeleteTableByTableIndex(tableIndex)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return fmt.Errorf("table has zero cols: [%s] (remove or populate)", table.Name())
 		}
 	}
@@ -684,15 +713,17 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 
 		if table.ColCount() > 0 {
 			if genFlatBuffers && genGraphQL {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n", tableIndex, table.Name())
 			} else if genFlatBuffers {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n", tableIndex, table.Name())
 			} else if genGraphQL {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n", tableIndex, table.Name())
 			}
 		} else {
 			// Skip tables with zero cols.
@@ -710,13 +741,13 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 			}
-	
+
 			if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
 						table.Name())
 			}
-	
+
 			// I don't see documentation on this, but undescores in field names affect code generation.
 			if strings.ContainsRune(table.Name(), '_') {
 				return emptyTemplateInfo,
@@ -724,12 +755,14 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 			}
 		}
 
-		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
+		tables[tableIndex].Table = table // An array of Table accessible as .Tables
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 			colName, err := table.ColNameByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 
 			// Relax FlatBuffers requirements when generating GraphQL, which has a conflicting naming style.
 			// i.e. if generating FlatBuffers and NOT GraphQL, enforce FlatBuffers style guide.
@@ -739,16 +772,16 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 					return emptyTemplateInfo, fmt.Errorf("the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 						table.Name(), colName, firstCharToLower(colName))
 				}
-	
+
 				if isGoKeyWord(colName) {
 					return emptyTemplateInfo, fmt.Errorf("cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
 				}
-	
+
 				if isFlatBuffersOrFlatTablesKeyWord(colName) {
 					return emptyTemplateInfo,
 						fmt.Errorf("cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename: %s", colName)
 				}
-	
+
 				// I don't see documentation on this, but undescores in field names affect code generation.
 				if strings.ContainsRune(colName, '_') {
 					return emptyTemplateInfo,
@@ -757,7 +790,9 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 
 			cols[colIndex].IsDeprecated = isDeprecated(colName)
 			if cols[colIndex].IsDeprecated {
@@ -769,43 +804,53 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
 			cols[colIndex].FbsType, err = schemaType(colType)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			cols[colIndex].ColIndex = colIndex
-			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)	// FlatBuffers Scalar includes bool
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType) // FlatBuffers Scalar includes bool
 			cols[colIndex].IsString = colType == "string"
 			cols[colIndex].IsBool = colType == "bool"
 		}
 
 		// Populate Rows with a string representation of each table cell.
 		var rows []Row = make([]Row, table.RowCount())
-// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
+		// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
 		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 			var row []string = make([]string, table.ColCount())
 			for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 				var cell string
 				cell, err = table.GetValAsStringByColIndex(colIndex, rowIndex)
-				if err != nil { return emptyTemplateInfo, err }
+				if err != nil {
+					return emptyTemplateInfo, err
+				}
 				var isStringType bool
 				isStringType, err = table.IsColTypeByColIndex(colIndex, "string")
-				if err != nil { return emptyTemplateInfo, err }
+				if err != nil {
+					return emptyTemplateInfo, err
+				}
 				if isStringType {
-					cell = fmt.Sprintf("%q", cell)	// Add delimiters.
+					cell = fmt.Sprintf("%q", cell) // Add delimiters.
 				}
 				row[colIndex] = cell
 			}
 			rows[rowIndex] = row
-// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
+			// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
 		}
 
 		var colNames []string = make([]string, table.ColCount())
 		var colTypes []string = make([]string, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 			colName, err := table.ColName(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			colNames[colIndex] = colName
 
 			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			colTypes[colIndex] = colType
 		}
 
@@ -825,36 +870,42 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 	// (1) tableSet which contains data.            Is accessible in templates as: .Tables           (an array of Table)
 	// (2) metadataTableSet which contains NO data. Is accessible in templates as: .TableSetMetadata (a TableSet)
 
-	const copyRows = false	// i.e., don't copy rows.
-	metadataTableSet, err := tableSet.Copy(copyRows)	// Accessible as 
-	if err != nil { return emptyTemplateInfo, err }
+	const copyRows = false                           // i.e., don't copy rows.
+	metadataTableSet, err := tableSet.Copy(copyRows) // Accessible as
+	if err != nil {
+		return emptyTemplateInfo, err
+	}
 
 	for tableIndex := 0; tableIndex < metadataTableSet.TableCount(); tableIndex++ {
 		table, err := metadataTableSet.TableByTableIndex(tableIndex)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 
 		err = table.SetStructShape(true)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 	}
 
 	tableSetMetadata := metadataTableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
 	tableSetData := tableSet.String()
-//	tableSetData = indentText("\t", tableSetData)
+	//	tableSetData = indentText("\t", tableSetData)
 
-	tablesTemplateInfo = TablesTemplateInfoType {
-		GeneratedDateFromFile: generatedDateFromFile(tableSet),
-		GeneratedFromFile: generatedFromFile(tableSet),
-		UsingCommand: usingCommand(tableSet, packageName),
-		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
+	tablesTemplateInfo = TablesTemplateInfoType{
+		GeneratedDateFromFile:    generatedDateFromFile(tableSet),
+		GeneratedFromFile:        generatedFromFile(tableSet),
+		UsingCommand:             usingCommand(tableSet, packageName),
+		UsingCommandMinusG:       usingCommandMinusG(tableSet, packageName),
 		GotablesFileNameAbsolute: tableSet.FileName(),
-		Year: copyrightYear(),
-		NameSpace: tableSet.Name(),
-		PackageName: packageName,
-		TableSetMetadata: tableSetMetadata,
-		TableSetData: tableSetData,
-		Tables: tables,
+		Year:                     copyrightYear(),
+		NameSpace:                tableSet.Name(),
+		PackageName:              packageName,
+		TableSetMetadata:         tableSetMetadata,
+		TableSetData:             tableSetData,
+		Tables:                   tables,
 	}
 
 	return tablesTemplateInfo, nil
@@ -870,15 +921,17 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 	var tables []TableInfo = make([]TableInfo, tableSet.TableCount())
 	for tableIndex := 0; tableIndex < tableSet.TableCount(); tableIndex++ {
 		table, err := tableSet.TableByTableIndex(tableIndex)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 
 		if table.ColCount() > 0 {
 			if genFlatBuffers && genGraphQL {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers and GraphQL schema: [%s] \n", tableIndex, table.Name())
 			} else if genFlatBuffers {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to FlatBuffers schema: [%s] \n", tableIndex, table.Name())
 			} else if genGraphQL {
-				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n",  tableIndex, table.Name())
+				_, _ = fmt.Fprintf(os.Stderr, "     Adding gotables table %d to GraphQL schema: [%s] \n", tableIndex, table.Name())
 			}
 		} else {
 			// Skip tables with zero cols.
@@ -896,13 +949,13 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 			}
-	
+
 			if isFlatBuffersOrFlatTablesKeyWord(table.Name()) {
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a FlatBuffers or FlatTables key word as a table name, even if it's merely similar. Rename [%s]",
 						table.Name())
 			}
-	
+
 			// I don't see documentation on this, but undescores in field names affect code generation.
 			if strings.ContainsRune(table.Name(), '_') {
 				return emptyTemplateInfo,
@@ -910,12 +963,14 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 			}
 		}
 
-		tables[tableIndex].Table = table	// An array of Table accessible as .Tables
+		tables[tableIndex].Table = table // An array of Table accessible as .Tables
 
 		var cols []ColInfo = make([]ColInfo, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 			colName, err := table.ColNameByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 
 			// Relax FlatBuffers requirements when generating GraphQL, which has a conflicting naming style.
 			// i.e. if generating FlatBuffers and NOT GraphQL, enforce FlatBuffers style guide.
@@ -925,16 +980,16 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 					return emptyTemplateInfo, fmt.Errorf("the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 						table.Name(), colName, firstCharToLower(colName))
 				}
-	
+
 				if isGoKeyWord(colName) {
 					return emptyTemplateInfo, fmt.Errorf("cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
 				}
-	
+
 				if isFlatBuffersOrFlatTablesKeyWord(colName) {
 					return emptyTemplateInfo,
 						fmt.Errorf("cannot use a FlatBuffers or FlatTables key word as a col name, even if it's merely similar. Rename: %s", colName)
 				}
-	
+
 				// I don't see documentation on this, but undescores in field names affect code generation.
 				if strings.ContainsRune(colName, '_') {
 					return emptyTemplateInfo,
@@ -943,7 +998,9 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 			}
 
 			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 
 			cols[colIndex].IsDeprecated = isDeprecated(colName)
 			if cols[colIndex].IsDeprecated {
@@ -955,43 +1012,53 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 			cols[colIndex].ColName = colName
 			cols[colIndex].ColType = colType
 			cols[colIndex].FbsType, err = schemaType(colType)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			cols[colIndex].ColIndex = colIndex
-			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType)	// FlatBuffers Scalar includes bool
+			cols[colIndex].IsScalar = IsFlatBuffersScalar(colType) // FlatBuffers Scalar includes bool
 			cols[colIndex].IsString = colType == "string"
 			cols[colIndex].IsBool = colType == "bool"
 		}
 
 		// Populate Rows with a string representation of each table cell.
 		var rows []Row = make([]Row, table.RowCount())
-// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
+		// where(fmt.Sprintf("RowCount = %d", table.RowCount()))
 		for rowIndex := 0; rowIndex < table.RowCount(); rowIndex++ {
 			var row []string = make([]string, table.ColCount())
 			for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 				var cell string
 				cell, err = table.GetValAsStringByColIndex(colIndex, rowIndex)
-				if err != nil { return emptyTemplateInfo, err }
+				if err != nil {
+					return emptyTemplateInfo, err
+				}
 				var isStringType bool
 				isStringType, err = table.IsColTypeByColIndex(colIndex, "string")
-				if err != nil { return emptyTemplateInfo, err }
+				if err != nil {
+					return emptyTemplateInfo, err
+				}
 				if isStringType {
-					cell = fmt.Sprintf("%q", cell)	// Add delimiters.
+					cell = fmt.Sprintf("%q", cell) // Add delimiters.
 				}
 				row[colIndex] = cell
 			}
 			rows[rowIndex] = row
-// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
+			// where(fmt.Sprintf("row[%d] = %v", rowIndex, rows[rowIndex]))
 		}
 
 		var colNames []string = make([]string, table.ColCount())
 		var colTypes []string = make([]string, table.ColCount())
 		for colIndex := 0; colIndex < table.ColCount(); colIndex++ {
 			colName, err := table.ColName(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			colNames[colIndex] = colName
 
 			colType, err := table.ColTypeByColIndex(colIndex)
-			if err != nil { return emptyTemplateInfo, err }
+			if err != nil {
+				return emptyTemplateInfo, err
+			}
 			colTypes[colIndex] = colType
 		}
 
@@ -1011,43 +1078,49 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 	// (1) tableSet which contains data.            Is accessible in templates as: .Tables           (an array of Table)
 	// (2) metadataTableSet which contains NO data. Is accessible in templates as: .TableSetMetadata (a TableSet)
 
-	const copyRows = false	// i.e., don't copy rows.
-	metadataTableSet, err := tableSet.Copy(copyRows)	// Accessible as 
-	if err != nil { return emptyTemplateInfo, err }
+	const copyRows = false                           // i.e., don't copy rows.
+	metadataTableSet, err := tableSet.Copy(copyRows) // Accessible as
+	if err != nil {
+		return emptyTemplateInfo, err
+	}
 
 	for tableIndex := 0; tableIndex < metadataTableSet.TableCount(); tableIndex++ {
 		table, err := metadataTableSet.TableByTableIndex(tableIndex)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 
 		err = table.SetStructShape(true)
-		if err != nil { return emptyTemplateInfo, err }
+		if err != nil {
+			return emptyTemplateInfo, err
+		}
 	}
 
 	tableSetMetadata := metadataTableSet.String()
 	tableSetMetadata = indentText("\t\t", tableSetMetadata)
 
 	tableSetData := tableSet.String()
-//	tableSetData = indentText("\t", tableSetData)
+	//	tableSetData = indentText("\t", tableSetData)
 
-	tablesTemplateInfo = TablesTemplateInfoType {
-		GeneratedDateFromFile: generatedDateFromFile(tableSet),
-		GeneratedFromFile: generatedFromFile(tableSet),
-		UsingCommand: usingCommand(tableSet, packageName),
-		UsingCommandMinusG: usingCommandMinusG(tableSet, packageName),
+	tablesTemplateInfo = TablesTemplateInfoType{
+		GeneratedDateFromFile:    generatedDateFromFile(tableSet),
+		GeneratedFromFile:        generatedFromFile(tableSet),
+		UsingCommand:             usingCommand(tableSet, packageName),
+		UsingCommandMinusG:       usingCommandMinusG(tableSet, packageName),
 		GotablesFileNameAbsolute: tableSet.FileName(),
-		Year: copyrightYear(),
-		NameSpace: tableSet.Name(),
-		PackageName: packageName,
-		TableSetMetadata: tableSetMetadata,
-		TableSetData: tableSetData,
-		Tables: tables,
+		Year:                     copyrightYear(),
+		NameSpace:                tableSet.Name(),
+		PackageName:              packageName,
+		TableSetMetadata:         tableSetMetadata,
+		TableSetData:             tableSetData,
+		Tables:                   tables,
 	}
 
 	return tablesTemplateInfo, nil
 }
 
 func copyrightYear() (copyrightYear string) {
-	firstYear := "2017"	// See github dates.
+	firstYear := "2017" // See github dates.
 	copyrightYear = fmt.Sprintf("%s-%s", firstYear, thisYear())
 	return
 }
@@ -1115,36 +1188,37 @@ func usingCommandMinusG(tableSet *gotables.TableSet, packageName string) string 
 
 type removeStruct struct {
 	replace string
-	with string
-	id string
-	count int
+	with    string
+	id      string
+	count   int
 }
-var rmstr = []removeStruct {
-	{ "\r\n",               "\n",       "rn", 0 },	// Remove ^M
-//	{ "\r",                 "",         "r",  0 },	// Maybe replace by rn
-	{ "\n\n\n",             "\n\n",     "02", 0 },
-	{ "\n\n\n",             "\n\n",     "03", 0 },
-	{ "\n\t\n",             "\n\n",     "04", 0 },
-	{ "\n\n}",              "\n}",      "05", 0 },
-	{ "\n\n)",              "\n)",      "06", 0 },
-	{ "\n\n\n\n",           "\n\n",     "07", 0 },
-	{ "\n\n\n",             "\n\n",     "08", 0 },
-	{ "\n\t\t\n",           "\n\n",     "09", 0 },
-	{ "\n\t\t\t\n",         "\n",       "10", 0 },
-	{ "\n\t\t\t\n",         "\n",       "11", 0 },
-	{ "\t\n",               "",         "12", 0 },
-	{ "\t\n",               "",         "13", 0 },
-	{ "\n\n\n\n",           "\n\n",     "14", 0 },
-	{ "\n\n\n\n",           "\n\n",     "15", 0 },
-	{ "\n\n\n",             "\n\n",     "16", 0 },
-	{ "\n\n}",              "\n}",      "17", 0 },
-	{ "\n\n\t\t}",          "\n\t}",    "18", 0 },
-	{ "\n\n\t}",            "\n\t}",    "19", 0 },
-	{ "\n    \n)",          "\n)",      "20", 0 },
-	{ "\t\t\t\t\t\t}",      "\t\t\t}",  "21", 0 },
-	{ "{\n\n",              "{\n",      "22", 0 },
-	{ "{\n\n",              "{\n",      "22", 0 },
-	{ "\t\n}",              "}",        "23", 0 },	// Why doesn't this do anything?
+
+var rmstr = []removeStruct{
+	{"\r\n", "\n", "rn", 0}, // Remove ^M
+	//	{ "\r",                 "",         "r",  0 },	// Maybe replace by rn
+	{"\n\n\n", "\n\n", "02", 0},
+	{"\n\n\n", "\n\n", "03", 0},
+	{"\n\t\n", "\n\n", "04", 0},
+	{"\n\n}", "\n}", "05", 0},
+	{"\n\n)", "\n)", "06", 0},
+	{"\n\n\n\n", "\n\n", "07", 0},
+	{"\n\n\n", "\n\n", "08", 0},
+	{"\n\t\t\n", "\n\n", "09", 0},
+	{"\n\t\t\t\n", "\n", "10", 0},
+	{"\n\t\t\t\n", "\n", "11", 0},
+	{"\t\n", "", "12", 0},
+	{"\t\n", "", "13", 0},
+	{"\n\n\n\n", "\n\n", "14", 0},
+	{"\n\n\n\n", "\n\n", "15", 0},
+	{"\n\n\n", "\n\n", "16", 0},
+	{"\n\n}", "\n}", "17", 0},
+	{"\n\n\t\t}", "\n\t}", "18", 0},
+	{"\n\n\t}", "\n\t}", "19", 0},
+	{"\n    \n)", "\n)", "20", 0},
+	{"\t\t\t\t\t\t}", "\t\t\t}", "21", 0},
+	{"{\n\n", "{\n", "22", 0},
+	{"{\n\n", "{\n", "22", 0},
+	{"\t\n}", "}", "23", 0}, // Why doesn't this do anything?
 }
 
 func RemoveExcessTabsAndNewLines(code string) string {
