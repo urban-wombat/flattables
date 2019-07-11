@@ -596,10 +596,18 @@ var goKeyWords = map[string]string{
 	"var":         "var",
 }
 
-func isGoKeyWord(name string) bool {
+func isGoKeywordDEPRECATED(name string) bool {
 	nameLower := strings.ToLower(name)
 	_, exists := goKeyWords[nameLower]
 	return exists
+}
+
+// See https://www.reddit.com/r/golang/comments/9umtp2/beta_release_of_flattables_go_flatbuffers/e95iffn/?context=3
+// This avoids manually providing a lookup map.
+func isGoKeyword(name string) bool {
+	nameLower := strings.ToLower(name)
+	var isKeyword bool = token.Lookup(name).IsKeyword()
+	return isKeyword
 }
 
 // Could be tricky if a user inadvertently uses a word used in FlatBuffers schemas.
@@ -737,7 +745,7 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 					table.Name(), firstCharToUpper(table.Name()))
 			}
 
-			if isGoKeyWord(table.Name()) {
+			if isGoKeyword(table.Name()) {
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 			}
@@ -773,7 +781,7 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string, gen
 						table.Name(), colName, firstCharToLower(colName))
 				}
 
-				if isGoKeyWord(colName) {
+				if isGoKeyword(colName) {
 					return emptyTemplateInfo, fmt.Errorf("cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
 				}
 
@@ -945,7 +953,7 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 					table.Name(), firstCharToUpper(table.Name()))
 			}
 
-			if isGoKeyWord(table.Name()) {
+			if isGoKeyword(table.Name()) {
 				return emptyTemplateInfo,
 					fmt.Errorf("cannot use a Go key word as a table name, even if it's upper case. Rename [%s]", table.Name())
 			}
@@ -981,7 +989,7 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string, 
 						table.Name(), colName, firstCharToLower(colName))
 				}
 
-				if isGoKeyWord(colName) {
+				if isGoKeyword(colName) {
 					return emptyTemplateInfo, fmt.Errorf("cannot use a Go key word as a col name, even if it's upper case. Rename: %s", colName)
 				}
 
