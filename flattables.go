@@ -196,6 +196,10 @@ func FlatBuffersSchemaFromTableSet(tablesTemplateInfo TablesTemplateInfoType) (s
 
 	// From embedded template in flattables_templates.go
 	var data []byte = FlatBuffersSchema_template
+	/*
+		NOTE: This []byte slice may be what egonelbre is referring to when he says:
+		This https://github.com/urban-wombat/flattables/blob/master/flattables.go#L202 breaks with unicode.
+	*/
 
 	tplate, err = tplate.Parse(string(data))
 	if err != nil {
@@ -568,7 +572,7 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInf
 }
 
 // Compilation will fail if a user inadvertently uses a Go key word as a name.
-var goKeyWords = map[string]string{
+var goKeyWordsDEPRECATED = map[string]string{
 	"break":       "break",
 	"default":     "default",
 	"func":        "func",
@@ -598,7 +602,7 @@ var goKeyWords = map[string]string{
 
 func isGoKeywordDEPRECATED(name string) bool {
 	nameLower := strings.ToLower(name)
-	_, exists := goKeyWords[nameLower]
+	_, exists := goKeyWordsDEPRECATED[nameLower]
 	return exists
 }
 
