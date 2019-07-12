@@ -34,7 +34,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 
 	`my_package` (or whatever you decide to call it) will be your namespace and tail-end of your package name.
 
-4. Create your `FlatTables` schema/data-file
+4. Create your `FlatTables` schema/data-file - this is a set of `gotables` tables, not a flatbuffers `.fbs` file
 
     It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
 	and create it in your newly-created directory `my_package`.
@@ -48,7 +48,7 @@ If you hit a wall or feel that something is missing or unclear, email to: `urban
 	The `gotables` syntax is self-evident and most `Go` types are supported.
 	
 	Types **not** supported are:-
-	* `int` and `uint` (their sizes is machine-dependent, and `FlatBuffers` allows fixed-sizes only)
+	* `int` and `uint` (their sizes are machine-dependent, and `FlatBuffers` allows fixed-sizes only)
 	* `complex32` `complex64` (not supported by gotables)
 	* `rune` (doesn't seem to be supported by `FlatBuffers`, perhaps because its size varies)
 
