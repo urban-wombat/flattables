@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"go/token"
 	"io/ioutil"
 	"log"
 	"os"
@@ -610,7 +611,7 @@ func isGoKeywordDEPRECATED(name string) bool {
 // This avoids manually providing a lookup map.
 func isGoKeyword(name string) bool {
 	nameLower := strings.ToLower(name)
-	var isKeyword bool = token.Lookup(name).IsKeyword()
+	var isKeyword bool = token.Lookup(nameLower).IsKeyword()
 	return isKeyword
 }
 

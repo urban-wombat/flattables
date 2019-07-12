@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-//	"path"
-	"path/filepath"
+	//	"path"
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -18,41 +18,44 @@ import (
 	"github.com/urban-wombat/gotables"
 	"github.com/urban-wombat/util"
 )
+
 //	import "github.com/davecgh/go-spew/spew"
 
 type Flags struct {
-	f string	// BOTH schema AND data file name
-	r string	// relations file name for generating GraphQL schema
-	n string	// <namespace> (also sets TableSet name)
-	p string	// <package-name>
-	o string	// <out-dir-package>
-	O string	// <out-dir-package>
-	s string	// <out-dir-main>	defaults to <out-dir-package>/cmd/<package-name>.go
-	m bool		// mutable	// Note: mutable (non-const) FlatBuffers apparently unavailable in Go
-	b bool		// generate FlatBuffers"	// The b is for buffers because f and t are already, at least cognitively, taken.
-	B bool		// generate FlatBuffers and NOT GraphQL"
-	g bool		// generate GraphQL"
-	G bool		// generate GraphQL and NOT FlatBuffers"
-	v bool		// verbose
-	d bool	    // Dry Run
-	h bool		// help
+	f string // BOTH schema AND data file name
+	r string // relations file name for generating GraphQL schema
+	n string // <namespace> (also sets TableSet name)
+	p string // <package-name>
+	o string // <out-dir-package>
+	O string // <out-dir-package>
+	s string // <out-dir-main>	defaults to <out-dir-package>/cmd/<package-name>.go
+	m bool   // mutable	// Note: mutable (non-const) FlatBuffers apparently unavailable in Go
+	b bool   // generate FlatBuffers"	// The b is for buffers because f and t are already, at least cognitively, taken.
+	B bool   // generate FlatBuffers and NOT GraphQL"
+	g bool   // generate GraphQL"
+	G bool   // generate GraphQL and NOT FlatBuffers"
+	v bool   // verbose
+	d bool   // Dry Run
+	h bool   // help
 }
+
 var flags Flags
 
-var globalGotablesFileNameAbsolute string	// from flags.f via filepath.Abs()
-var globalRelationsFileName string			// from flags.r
-var globalNameSpace string					// from flags.n
-var globalPackageName string				// from flags.p
-var globalOutDirAbsolute string				// from (optional) flags.o or flags.O via filepath.Abs()
-var globalFlagOWarnOnly bool				// if flags.O (capital O) is set
-var globalOutDirMainAbsolute string			// from (optional) flags.s via filepath.Abs()
-var globalMutableFlag string				// Pass to flatc. Note: mutable (non-const) FlatBuffers apparently unavailable in Go.
-var globalUtilName string					// "flattablesc" or "graphqlc"
-var globalUtilDir string					// "flattablesc" or "graphqlc"
+var globalGotablesFileNameAbsolute string // from flags.f via filepath.Abs()
+var globalRelationsFileName string        // from flags.r
+var globalNameSpace string                // from flags.n
+var globalPackageName string              // from flags.p
+var globalOutDirAbsolute string           // from (optional) flags.o or flags.O via filepath.Abs()
+var globalFlagOWarnOnly bool              // if flags.O (capital O) is set
+var globalOutDirMainAbsolute string       // from (optional) flags.s via filepath.Abs()
+var globalMutableFlag string              // Pass to flatc. Note: mutable (non-const) FlatBuffers apparently unavailable in Go.
+var globalUtilName string                 // "flattablesc" or "graphqlc"
+var globalUtilDir string                  // "flattablesc" or "graphqlc"
 
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
 }
+
 var where = log.Print
 
 // Custom flag.
@@ -78,29 +81,29 @@ func (sf *stringFlag) String() string {
 var tablesTemplateInfo flattables.TablesTemplateInfoType
 
 func initFlags() {
-/*
-	1. variable pointer
-	2. -flagname
-	3. default value (except for custom flags that satisfy the Value interface, which default to the initial value of the variable)
-	4. help message for flagname
-*/
+	/*
+		1. variable pointer
+		2. -flagname
+		3. default value (except for custom flags that satisfy the Value interface, which default to the initial value of the variable)
+		4. help message for flagname
+	*/
 	var err error
 
-	flag.StringVar(&flags.r, "r", "",    fmt.Sprintf("<infile> of GraphQL schema tables"))
-	flag.StringVar(&flags.f, "f", "",    fmt.Sprintf("<infile> of schema/data tables"))
-	flag.StringVar(&flags.n, "n", "",    fmt.Sprintf("Sets schema file <namespace>.fbs,  schema root_type, FlatBuffers namespace, TableSet name"))
-	flag.StringVar(&flags.p, "p", "",    fmt.Sprintf("<package-name> Sets package name"))
-	flag.StringVar(&flags.o, "o", "",    fmt.Sprintf("<out-dir> Default is ../<namespace>"))
-	flag.StringVar(&flags.O, "O", "",    fmt.Sprintf("<out-dir> Default is ../<namespace>"))
-	flag.StringVar(&flags.s, "s", "",    fmt.Sprintf("<sample-main-out-dir> Default is ../<out-dir>/cmd/<namespace>"))
-	flag.BoolVar(  &flags.b, "b", false, fmt.Sprintf("generate FlatBuffers"))	// flatbuffers
-	flag.BoolVar(  &flags.B, "B", false, fmt.Sprintf("generate FlatBuffers"))	// flatbuffers ONLY
-	flag.BoolVar(  &flags.g, "g", false, fmt.Sprintf("generate GraphQL"))		// graphql
-	flag.BoolVar(  &flags.G, "G", false, fmt.Sprintf("generate GraphQL"))		// graphql ONLY
-	flag.BoolVar(  &flags.m, "m", false, fmt.Sprintf("generate additional non-const accessors for mutating FlatBuffers in-place"))
-	flag.BoolVar(  &flags.v, "v", false, fmt.Sprintf("verbose"))
-	flag.BoolVar(  &flags.d, "d", false, fmt.Sprintf("dry run"))
-	flag.BoolVar(  &flags.h, "h", false, fmt.Sprintf("print flattables usage"))
+	flag.StringVar(&flags.r, "r", "", fmt.Sprintf("<infile> of GraphQL schema tables"))
+	flag.StringVar(&flags.f, "f", "", fmt.Sprintf("<infile> of schema/data tables"))
+	flag.StringVar(&flags.n, "n", "", fmt.Sprintf("Sets schema file <namespace>.fbs, schema root_type, FlatBuffers namespace, TableSet name"))
+	flag.StringVar(&flags.p, "p", "", fmt.Sprintf("<package-name> Sets package name"))
+	flag.StringVar(&flags.o, "o", "", fmt.Sprintf("<out-dir> Default is ../<namespace>"))
+	flag.StringVar(&flags.O, "O", "", fmt.Sprintf("<out-dir> Default is ../<namespace>"))
+	flag.StringVar(&flags.s, "s", "", fmt.Sprintf("<sample-main-out-dir> Default is ../<out-dir>/cmd/<namespace>"))
+	flag.BoolVar(&flags.b, "b", false, fmt.Sprintf("generate FlatBuffers")) // flatbuffers
+	flag.BoolVar(&flags.B, "B", false, fmt.Sprintf("generate FlatBuffers")) // flatbuffers ONLY
+	flag.BoolVar(&flags.g, "g", false, fmt.Sprintf("generate GraphQL"))     // graphql
+	flag.BoolVar(&flags.G, "G", false, fmt.Sprintf("generate GraphQL"))     // graphql ONLY
+	flag.BoolVar(&flags.m, "m", false, fmt.Sprintf("generate additional non-const accessors for mutating FlatBuffers in-place"))
+	flag.BoolVar(&flags.v, "v", false, fmt.Sprintf("verbose"))
+	flag.BoolVar(&flags.d, "d", false, fmt.Sprintf("dry run"))
+	flag.BoolVar(&flags.h, "h", false, fmt.Sprintf("print flattables usage"))
 
 	flag.Parse()
 
@@ -118,20 +121,20 @@ func initFlags() {
 		if -G (graphql-only)     is set then -b is turned Off.
 	*/
 	if strings.Contains(os.Args[0], "flattablesc") {
-		flags.b = true	// As good as -b
-		globalUtilDir  = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/flattablesc"
+		flags.b = true // As good as -b
+		globalUtilDir = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/flattablesc"
 		globalUtilName = "flattablesc"
 	}
 	if strings.Contains(os.Args[0], "graphqlc") {
-		flags.g = true	// As good as -g
-		globalUtilDir  = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/graphql"
+		flags.g = true // As good as -g
+		globalUtilDir = "/cygdrive/f/Dropbox/golang/src/github.com/urban-wombat/gotables/cmd/graphql"
 		globalUtilName = "graphqlc"
 	}
-	if flags.B {	// flattables ONLY
+	if flags.B { // flattables ONLY
 		flags.b = true
 		flags.g = false
 	}
-	if flags.G {	// graphql ONLY
+	if flags.G { // graphql ONLY
 		flags.g = true
 		flags.b = false
 	}
@@ -149,7 +152,7 @@ func initFlags() {
 
 	const (
 		compulsoryFlag = true
-		optionalFlag = false
+		optionalFlag   = false
 	)
 
 	var flagExists bool
@@ -168,26 +171,26 @@ func initFlags() {
 
 	if flags.g {
 		// Input file of relations tables to be used as a GraphQL schema.
-	    // Compulsory flag.
+		// Compulsory flag.
 		checkStringFlagReplaceWithUtilVersion("r", flags.r, compulsoryFlag)
 		globalRelationsFileName = flags.r
 	}
 
 	// Namespace
-    // Compulsory flag.
+	// Compulsory flag.
 	checkStringFlagReplaceWithUtilVersion("n", flags.n, compulsoryFlag)
 	globalNameSpace = flags.n
 	// globalNameSpace has the same validity criteria as gotables col names and table names.
 	isValid, _ := gotables.IsValidColName(globalNameSpace)
 	if !isValid {
-        fmt.Fprintf(os.Stderr, "Error: non-alpha-numeric-underscore chars in -n <namespace>: %q\n", flags.n)
-        fmt.Fprintf(os.Stderr, "Note:  <namespace> is not a file or dir name. Though it is used in file and dir names.\n")
-        printUsage()
-        os.Exit(9)
+		fmt.Fprintf(os.Stderr, "Error: non-alpha-numeric-underscore chars in -n <namespace>: %q\n", flags.n)
+		fmt.Fprintf(os.Stderr, "Note:  <namespace> is not a file or dir name. Though it is used in file and dir names.\n")
+		printUsage()
+		os.Exit(9)
 	}
 
 	if flags.m {
-		globalMutableFlag = "--gen-mutable"	// Generate additional non-const accessors to mutate FlatBuffers in-place.
+		globalMutableFlag = "--gen-mutable" // Generate additional non-const accessors to mutate FlatBuffers in-place.
 	}
 
 	// Package
@@ -195,19 +198,19 @@ func initFlags() {
 	globalPackageName = flags.p
 	// Package name must include namespace.
 	if !strings.HasSuffix(globalPackageName, globalNameSpace) {
-        fmt.Fprintf(os.Stderr, "tail end of <package-name> -p %q must match <namespace> -n %q\n", globalPackageName, globalNameSpace)
-        printUsage()
-        os.Exit(12)
+		fmt.Fprintf(os.Stderr, "tail end of <package-name> -p %q must match <namespace> -n %q\n", globalPackageName, globalNameSpace)
+		printUsage()
+		os.Exit(12)
 	}
 	// Detect an easy package name error (looks like relative path name).
 	if strings.HasPrefix(globalPackageName, ".") {
-        fmt.Fprintf(os.Stderr, "invalid <package-name> -p %s (leading '.')\n", globalPackageName)
-        printUsage()
-        os.Exit(12)
+		fmt.Fprintf(os.Stderr, "invalid <package-name> -p %s (leading '.')\n", globalPackageName)
+		printUsage()
+		os.Exit(12)
 	}
 
 	// Set default outDir. May be provided (optionally) with -o <out-dir>
-	var outDir string = "../" + globalNameSpace	// Package level, where globalNameSpace is package name.
+	var outDir string = "../" + globalNameSpace // Package level, where globalNameSpace is package name.
 	flagExists = checkStringFlagReplaceWithUtilVersion("o", flags.o, optionalFlag)
 	if flagExists { // Has been set explicitly with -o
 		outDir = flags.o
@@ -241,7 +244,7 @@ func initFlags() {
 	// <out-dir-main>  defaults to <out-dir>/cmd/<package-name>
 	globalOutDirMainAbsolute = fmt.Sprintf("%s/cmd/%s", globalOutDirAbsolute, globalNameSpace)
 	flagExists = checkStringFlagReplaceWithUtilVersion("s", flags.s, optionalFlag)
-	if flagExists {	// Has been set explicitly with -s
+	if flagExists { // Has been set explicitly with -s
 		globalOutDirMainAbsolute = flags.s
 	}
 	globalOutDirMainAbsolute, err = filepath.Abs(globalOutDirMainAbsolute)
@@ -271,22 +274,22 @@ func progName() string {
 func checkStringFlagReplaceWithUtilVersion(name string, arg string, compulsory bool) (exists bool) {
 	var hasArg bool
 
-    if arg != "" {
-        exists = true
-    }
+	if arg != "" {
+		exists = true
+	}
 
-    // Try to detect missing flag argument.
-    // If an argument is another flag, argument has not been provided.
-    if exists && !strings.HasPrefix(arg, "-") {
-        // Option expecting an argument but has been followed by another flag.
+	// Try to detect missing flag argument.
+	// If an argument is another flag, argument has not been provided.
+	if exists && !strings.HasPrefix(arg, "-") {
+		// Option expecting an argument but has been followed by another flag.
 		hasArg = true
-    }
-/*
-	where(fmt.Sprintf("-%s compulsory = %t", name, compulsory))
-	where(fmt.Sprintf("-%s exists     = %t", name, exists))
-	where(fmt.Sprintf("-%s hasArg     = %t", name, hasArg))
-	where(fmt.Sprintf("-%s value      = %s", name, arg))
-*/
+	}
+	/*
+		where(fmt.Sprintf("-%s compulsory = %t", name, compulsory))
+		where(fmt.Sprintf("-%s exists     = %t", name, exists))
+		where(fmt.Sprintf("-%s hasArg     = %t", name, hasArg))
+		where(fmt.Sprintf("-%s value      = %s", name, arg))
+	*/
 
 	if compulsory && !exists {
 		fmt.Fprintf(os.Stderr, "compulsory flag: -%s\n", name)
@@ -313,31 +316,31 @@ func printUsage() {
 		"             See flattables_sample: https://github.com/urban-wombat/flattables_sample/blob/master/tables.got",
 		"             Note: The file need not contain data. Only metadata (names and types) will be used for Go code generation.",
 		"                   If there is data in the input file, it will be used for running benchmarks.",
-		"         -n  Namespace  Sets schema file <namespace>.fbs,  schema root_type, FlatBuffers namespace, TableSet name.",
-		"             Note: Generated Go Go code will be placed adjacently at Go package level.",
+		"         -n  Namespace  Sets schema file <namespace>.fbs, schema root_type, FlatBuffers namespace, TableSet name.",
+		"             Note: Generated Go code will be placed adjacently at Go package level.",
 		"                   This assumes you are running ${globalUtilName} at package level.",
 		"                   You may override this with -o <out-dir>",
 		"         -p  Package  Sets Go package name. Needs to include Namespace.",
 		"        [-o] <out-dir> Where to put generated Go code files. Default is ../<namespace>",
 		"             Note: The tail end of <out-dir> must match -p <package-name>",
 		"        [-s] <out-dir-main> Where to put generated sample main Go code file. Default is <out-dir>/cmd/<package-name>",
-//		"         -m  Mutable  Tells flatc to add mutable methods to its Go code generation: Mutate...()",
+		//		"         -m  Mutable  Tells flatc to add mutable methods to its Go code generation: Mutate...()",
 		"types:       Architecture-dependent Go types int and uint are not used. Instead use e.g. int64, uint32, etc.",
 		"             Go types not implemented: complex32 complex64.",
-//		"names:       Table names are UpperCamelCase, column names are lowerCamelCase, as per the FlatBuffers style guide.",
-//		"deprecation: To deprecate a column, append its name with _DEPRECATED_ (warning: deprecation may break tests and old code).",
+		//		"names:       Table names are UpperCamelCase, column names are lowerCamelCase, as per the FlatBuffers style guide.",
+		//		"deprecation: To deprecate a column, append its name with _DEPRECATED_ (warning: deprecation may break tests and old code).",
 		"        [-v] Verbose",
-		"        [-d] Dry run (also turns on verbose)",
+		"        [-d] Dry run (also turns on Verbose)",
 		"        [-h] Help",
 		"sample:      This sample assumes package name \"github.com/urban-wombat/flattables_sample\".",
 		"             Make a Go package dir: $ mkdir flattables_sample",
 		"             $ cd flattables_sample",
 		"             Create a gotables file: tables.got",
 		"             $ ${globalUtilName} -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
-//		"             $ ${globalUtilName} -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
-//		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
-		"             $ test: cd ../flattables_sample; go test -bench=.",
-		"             $ test: cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample_main.go",
+		//		"             $ ${globalUtilName} -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample -m",
+		//		"             $ go run ${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample",
+		"             $ Test: cd ../flattables_sample; go test -bench=.",
+		"             $ Test: cd ../flattables_sample/cmd/flattables_sample; go run flattables_sample_main.go",
 	}
 
 	var usageString string
@@ -386,15 +389,17 @@ func main() {
 		os.Exit(13)
 	}
 
-	flag.Usage = printUsage	// Override the default flag.Usage variable.
+	flag.Usage = printUsage // Override the default flag.Usage variable.
 	initFlags()
 
-	if flags.d {	// dry run, turn on verbose
+	if flags.d { // dry run, turn on verbose
 		flags.v = true
 		fmt.Printf(" *** -d DRY-RUN ***\n")
 	}
 
-	if flags.v { fmt.Printf(" (1) Reading gotables file: %s\n", globalGotablesFileNameAbsolute) }
+	if flags.v {
+		fmt.Printf(" (1) Reading gotables file: %s\n", globalGotablesFileNameAbsolute)
+	}
 	tableSet, err := gotables.NewTableSetFromFile(globalGotablesFileNameAbsolute)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -402,14 +407,20 @@ func main() {
 		os.Exit(14)
 	}
 
-	if flags.v { fmt.Printf(" (2) Setting gotables.TableSet name to %q (from -n %s)\n", globalNameSpace, globalNameSpace) }
+	if flags.v {
+		fmt.Printf(" (2) Setting gotables.TableSet name to %q (from -n %s)\n", globalNameSpace, globalNameSpace)
+	}
 	tableSet.SetName(globalNameSpace)
 	tableSet.SetFileName(globalGotablesFileNameAbsolute)
 
-	if flags.v { fmt.Printf(" (3) Setting package name to %q (from -p %s)\n", globalPackageName, globalPackageName) }
+	if flags.v {
+		fmt.Printf(" (3) Setting package name to %q (from -p %s)\n", globalPackageName, globalPackageName)
+	}
 
 	if !pathExists(globalOutDirAbsolute) {
-		if flags.v { fmt.Printf(" (4) Creating dir <out-dir>      %s\n", globalOutDirAbsolute) }
+		if flags.v {
+			fmt.Printf(" (4) Creating dir <out-dir>      %s\n", globalOutDirAbsolute)
+		}
 		permissions := 0777
 		if flags.d {
 			fmt.Printf(" *** -d dry-run: Would have created <out-dir> %s\n", globalOutDirAbsolute)
@@ -421,11 +432,15 @@ func main() {
 			}
 		}
 	} else {
-		if flags.v { fmt.Printf(" (4) Dir <out-dir>      already exists (okay) %s\n", globalOutDirAbsolute) }
+		if flags.v {
+			fmt.Printf(" (4) Dir <out-dir>      already exists (okay) %s\n", globalOutDirAbsolute)
+		}
 	}
 
 	if !pathExists(globalOutDirMainAbsolute) {
-		if flags.v { fmt.Printf(" (5) Creating dir <out-dir-main> %s\n", globalOutDirMainAbsolute) }
+		if flags.v {
+			fmt.Printf(" (5) Creating dir <out-dir-main> %s\n", globalOutDirMainAbsolute)
+		}
 		permissions := 0777
 		if flags.d {
 			fmt.Printf(" *** -d dry-run: Would have created <out-dir-main> %s\n", globalOutDirMainAbsolute)
@@ -437,7 +452,9 @@ func main() {
 			}
 		}
 	} else {
-		if flags.v { fmt.Printf(" (5) Dir <out-dir-main> already exists (okay) %s\n", globalOutDirMainAbsolute) }
+		if flags.v {
+			fmt.Printf(" (5) Dir <out-dir-main> already exists (okay) %s\n", globalOutDirMainAbsolute)
+		}
 	}
 
 	// Must be called before flattables.InitTablesTemplateInfo()
@@ -447,10 +464,12 @@ func main() {
 		os.Exit(17)
 	}
 
-//	spew.Dump(tablesTemplateInfo)
+	//	spew.Dump(tablesTemplateInfo)
 
 	// Template info for ALL the templates.
-	if flags.v { fmt.Printf(" (6) Preparing tables for schema generation ...\n")  }
+	if flags.v {
+		fmt.Printf(" (6) Preparing tables for schema generation ...\n")
+	}
 	tablesTemplateInfo, err = flattables.InitTablesTemplateInfo(tableSet, globalPackageName, flags.b, flags.g)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -464,25 +483,27 @@ func main() {
 	tablesTemplateInfo.OutDirAbsolute = globalOutDirAbsolute
 	tablesTemplateInfo.OutDirMainAbsolute = globalOutDirMainAbsolute
 
-//	spew.Dump(tablesTemplateInfo)
+	//	spew.Dump(tablesTemplateInfo)
 
-/*
-	if flags.g {
-		// Template info for GraphQL the templates.
-		if flags.v { fmt.Printf(" (6) Preparing tables for GraphQL schema generation ...\n")  }
-		var relationsTemplateInfo flattables.RelationsTemplateInfo
-// THIS NEEDS TO ADD TO, NOT REPLACE, EXISTING TEMPLATE INFORMATION.
-		relationsTemplateInfo, err = flattables.InitRelationsTemplateInfo(tableSet, globalPackageName, flags.b, flags.g)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(18)
-		}
-	}
-*/
+	/*
+	   	if flags.g {
+	   		// Template info for GraphQL the templates.
+	   		if flags.v { fmt.Printf(" (6) Preparing tables for GraphQL schema generation ...\n")  }
+	   		var relationsTemplateInfo flattables.RelationsTemplateInfo
+	   // THIS NEEDS TO ADD TO, NOT REPLACE, EXISTING TEMPLATE INFORMATION.
+	   		relationsTemplateInfo, err = flattables.InitRelationsTemplateInfo(tableSet, globalPackageName, flags.b, flags.g)
+	   		if err != nil {
+	   			fmt.Fprintf(os.Stderr, "%s\n", err)
+	   			os.Exit(18)
+	   		}
+	   	}
+	*/
 
 	if flags.b {
 		var tableCount int = tableSet.TableCount()
-		if flags.v { fmt.Printf("     Adding gotables tables  to FlatBuffers schema: (%d table%s):-\n", tableCount, plural(tableCount)) }
+		if flags.v {
+			fmt.Printf("     Adding gotables tables  to FlatBuffers schema: (%d table%s):-\n", tableCount, plural(tableCount))
+		}
 
 		flatBuffersSchemaFileName := globalOutDirAbsolute + "/" + globalNameSpace + ".fbs"
 		tablesTemplateInfo.GeneratedFile = filepath.Base(flatBuffersSchemaFileName)
@@ -495,9 +516,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 			os.Exit(19)
 		}
-	
+
 		flatBuffersSchema = flattables.RemoveExcessTabsAndNewLines(flatBuffersSchema)
-	
+
 		if flags.d {
 			fmt.Printf(" *** -d dry-run: Would have written file: %s\n", flatBuffersSchemaFileName)
 		} else {
@@ -511,28 +532,38 @@ func main() {
 		// Note: each arg part needs to be passed to exec.Command separately.
 		executable := "flatc"
 		goFlag := "--go"
-		outFlag := "-o"		// for flatc
-//		outDirFlatC := ".."	// flatc creates a subdir under this.
+		outFlag := "-o" // for flatc
+		//		outDirFlatC := ".."	// flatc creates a subdir under this.
 		// flatc appends nameSpace to its outDirFlatC. So we need to snip nameSpace from end of outDirFlatC
-		outDirFlatC := globalOutDirAbsolute[:len(globalOutDirAbsolute)-len(globalNameSpace)]	// Snip off globalNameSpace
+		outDirFlatC := globalOutDirAbsolute[:len(globalOutDirAbsolute)-len(globalNameSpace)] // Snip off globalNameSpace
 
-		// flatc creates subdir <namespace> under outDirFlatC 
-		if flags.v { fmt.Printf(" (8) From FlatBuffers schema %s\n", flatBuffersSchemaFileName) }
-		if flags.v { fmt.Printf("         generating standard generic Google FlatBuffers Go code:\n") }
-		if flags.v { fmt.Printf("         %s\n", flatBuffersSchemaFileName) }
+		// flatc creates subdir <namespace> under outDirFlatC
+		if flags.v {
+			fmt.Printf(" (8) From FlatBuffers schema %s\n", flatBuffersSchemaFileName)
+		}
+		if flags.v {
+			fmt.Printf("         generating standard generic Google FlatBuffers Go code:\n")
+		}
+		if flags.v {
+			fmt.Printf("         %s\n", flatBuffersSchemaFileName)
+		}
 		fmtString := "     $ %s %s %s %s %s\n         %s\n"
-		if flags.m {	// Mutable
-//			if flags.v { fmt.Printf("     $ %s %s %s %s %s %s\n", executable, goFlag, globalMutableFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName) }
-			if flags.v { fmt.Printf(fmtString, executable, goFlag, globalMutableFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName) }
+		if flags.m { // Mutable
+			//			if flags.v { fmt.Printf("     $ %s %s %s %s %s %s\n", executable, goFlag, globalMutableFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName) }
+			if flags.v {
+				fmt.Printf(fmtString, executable, goFlag, globalMutableFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName)
+			}
 		} else {
-//			if flags.v { fmt.Printf("     $ %s %s %s %s %s\n",    executable, goFlag,              outFlag, outDirFlatC, flatBuffersSchemaFileName) }
-			if flags.v { fmt.Printf(fmtString, executable, goFlag, "", outFlag, outDirFlatC, flatBuffersSchemaFileName) }
+			//			if flags.v { fmt.Printf("     $ %s %s %s %s %s\n",    executable, goFlag,              outFlag, outDirFlatC, flatBuffersSchemaFileName) }
+			if flags.v {
+				fmt.Printf(fmtString, executable, goFlag, "", outFlag, outDirFlatC, flatBuffersSchemaFileName)
+			}
 		}
 		var cmd *exec.Cmd
-		if flags.m {	// Mutable
+		if flags.m { // Mutable
 			cmd = exec.Command(executable, goFlag, globalMutableFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName)
 		} else {
-			cmd = exec.Command(executable, goFlag,              outFlag, outDirFlatC, flatBuffersSchemaFileName)
+			cmd = exec.Command(executable, goFlag, outFlag, outDirFlatC, flatBuffersSchemaFileName)
 		}
 		var out bytes.Buffer
 		cmd.Stdout = &out
@@ -577,9 +608,11 @@ func main() {
 			}
 		}
 	}
-	
+
 	// GenerateAll() chooses between flatbuffers and/or graphql internally.
-	if flags.v { fmt.Printf(" (*) Generating user Go code ...\n") }
+	if flags.v {
+		fmt.Printf(" (*) Generating user Go code ...\n")
+	}
 	err = flattables.GenerateAll(tablesTemplateInfo, flags.v, flags.d, flags.b, flags.g)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -590,8 +623,8 @@ func main() {
 		fmt.Println(" *** -d DRY-RUN *** (Didn't do anything!)")
 	} else {
 		fmt.Println(" DONE")
-		fmt.Printf("     test: cd %s; go test -bench=.\n", globalOutDirAbsolute)
-		fmt.Printf("     test: cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
+		fmt.Printf("     Test: cd %s; go test -bench=.\n", globalOutDirAbsolute)
+		fmt.Printf("     Test: cd %s; go run %s_main.go\n", globalOutDirMainAbsolute, globalNameSpace)
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
