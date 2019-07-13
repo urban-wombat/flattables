@@ -12,7 +12,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/urban-wombat/flattables"
 	"github.com/urban-wombat/gotables"
@@ -302,7 +301,7 @@ func printUsage() {
 		usageString += "additional commands in development mode:\n"
 		usageString += "             $ go run ${globalUtilDir}/${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample\n"
 		usageString += "             $ go install ${globalUtilDir}/${globalUtilName}.go\n"
-		usageString += buildTime()
+		usageString += util.BuildTime()
 	}
 
 	usageString = strings.Replace(usageString, "${globalUtilName}", globalUtilName, -1)
@@ -529,7 +528,7 @@ func main() {
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
-		fmt.Printf(" %s\n", buildTime())
+		fmt.Printf(" %s\n", util.BuildTime())
 	}
 }
 
@@ -553,20 +552,6 @@ func plural(items int) string {
 		// Plural
 		return "s"
 	}
-}
-
-func buildTime() (buildTime string) {
-	stat, err := os.Stat(os.Args[0])
-	if err == nil {
-		ago := time.Now().Sub(stat.ModTime()).Truncate(time.Second)
-		// Can also use ago := time.Now().Sub(stat.ModTime()).Truncate(time.Second)
-		executableName := os.Args[0]
-		executableName = strings.Replace(executableName, ".exe", "", 1)
-		executableName = filepath.Base(executableName)
-		buildTime = fmt.Sprintf("    %s.go built %s (%v ago) installed %s\n",
-			executableName, stat.ModTime().Format(time.UnixDate), ago, os.Args[0])
-	}
-	return
 }
 
 func inconsistentPackageAndOutDir(packageName string, outDir string) (consistent bool, err error) {
