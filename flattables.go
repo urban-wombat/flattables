@@ -380,7 +380,9 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInf
 
 	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
 	tablesTemplateInfo.SchemaFileName = outDir + "/" + tablesTemplateInfo.NameSpace + ".fbs"
+	tablesTemplateInfo.SchemaFileNameBase = filepath.Base(tablesTemplateInfo.SchemaFileName)
 	tablesTemplateInfo.GeneratedFile = generatedFile
+	tablesTemplateInfo.GeneratedFileBaseName = filepath.Base(tablesTemplateInfo.GeneratedFile)
 	tablesTemplateInfo.FuncName = generationInfo.FuncName
 	tablesTemplateInfo.Imports = generationInfo.Imports
 
@@ -556,6 +558,7 @@ type TableInfo struct {
 
 type TablesTemplateInfoType struct {
 	GeneratedDateFromFile string
+	GeneratedDateFromFileBaseName string
 	GeneratedFromFile     string
 	UsingCommand          string
 	UsingCommandMinusG    string
@@ -565,11 +568,14 @@ type TablesTemplateInfoType struct {
 	OutDirAbsolute        string
 	OutDirMainAbsolute    string
 	SchemaFileName        string
+	SchemaFileNameBase    string
 	GeneratedFile         string
+	GeneratedFileBaseName string
 	FuncName              string
 	Imports               []string
 	//	GotablesFileName string	// We want to replace this with the following TWO file names.
 	GotablesFileNameAbsolute string
+	GotablesFileNameBase     string
 	TableSetMetadata         string
 	TableSetData             string
 	Tables                   []TableInfo
@@ -782,10 +788,12 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string) (Ta
 
 	tablesTemplateInfo = TablesTemplateInfoType{
 		GeneratedDateFromFile:    generatedDateFromFile(tableSet),
+		GeneratedDateFromFileBaseName: filepath.Base(generatedDateFromFile(tableSet)),
 		GeneratedFromFile:        generatedFromFile(tableSet),
 		UsingCommand:             usingCommand(tableSet, packageName),
 		UsingCommandMinusG:       usingCommandMinusG(tableSet, packageName),
 		GotablesFileNameAbsolute: tableSet.FileName(),
+		GotablesFileNameBase:     filepath.Base(tableSet.FileName()),
 		Year:                     copyrightYear(),
 		NameSpace:                tableSet.Name(),
 		PackageName:              packageName,
