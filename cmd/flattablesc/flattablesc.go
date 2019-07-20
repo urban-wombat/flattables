@@ -43,8 +43,8 @@ var globalOutDirAbsolute string     // from (optional) flags.o or flags.O via fi
 var globalFlagOWarnOnly bool        // if flags.O (capital O) is set
 var globalOutDirMainAbsolute string // from (optional) flags.s via filepath.Abs()
 var globalMutableFlag string        // Pass to flatc. Note: mutable (non-const) FlatBuffers apparently unavailable in Go.
-var globalUtilName string           // "flattablesc"
-var globalUtilDir string            // "flattablesc"
+var globalUtilName string = "flattablesc"
+var globalUtilDir string = "../flattables/cmd/flattablesc"
 
 func init() {
 	log.SetFlags(log.Lshortfile) // For var where
@@ -312,8 +312,7 @@ func printUsage() {
 
 func main() {
 
-	if strings.Contains(os.Args[0], "flattablesc") {
-		globalUtilName = "flattablesc"
+	if strings.Contains(os.Args[0], globalUtilName) {
 	} else {
 		fmt.Fprintf(os.Stderr, `expecting to be called "flattablesc" not %q`, os.Args[0])
 		os.Exit(2)

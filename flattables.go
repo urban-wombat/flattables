@@ -662,7 +662,7 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string) (Ta
 			// Enforce FlatBuffers style guide.
 			if startsWithUpperCase(colName) {
 				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-				return emptyTemplateInfo, fmt.Errorf("the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+				return emptyTemplateInfo, fmt.Errorf("#1 the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 					table.Name(), colName, firstCharToLower(colName))
 			}
 
@@ -861,7 +861,7 @@ func InitRelationsTemplateInfo(tableSet *gotables.TableSet, packageName string) 
 			// Enforce FlatBuffers style guide.
 			if startsWithUpperCase(colName) {
 				// See: https://google.github.io/flatbuffers/flatbuffers_guide_writing_schema.html
-				return emptyTemplateInfo, fmt.Errorf("the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
+				return emptyTemplateInfo, fmt.Errorf("#2 the FlatBuffers style guide requires lowerCamelCase field names. In table [%s] rename %s to %s",
 					table.Name(), colName, firstCharToLower(colName))
 			}
 
