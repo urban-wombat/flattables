@@ -69,6 +69,9 @@ tabular, there are some table and columns names that are illegal (such as `for`)
 	If you just want to get started and not deal with creating your own `gotables` schema right now, just copy
 	and paste the tables below into `tables.got` and proceed to the next step. You can go back later
 	and whip up data that looks like your own.
+	
+	Below is an old example. Forgive me for not updating it. The current `flattables_sample` code is generated
+	from [tables.got](tables.got)
 
 ```
     [MyXyzTable]
