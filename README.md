@@ -47,7 +47,7 @@ such as fixed sizes (no int or uint), lowercase column names and uppercase table
 
 	`my_package` (or whatever you decide to call it) will be your namespace and tail-end of your package name.
 
-4. Create your `FlatTables` /data-file - this is a set of `gotables` tables, not a flatbuffers `.fbs` file
+4. Create your `FlatTables` /data-file - this is a set of `gotables` tables, not a flatbuffers `.fbs` file.
 
     It doesn't matter where you create it or what you call it. But for simplicity, let's call it `tables.got`
 	and create it in your newly-created directory `my_package`.
