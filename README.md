@@ -75,7 +75,7 @@ such as fixed sizes (no int or uint), lowercase column names and uppercase table
 	data from the Australian Stock Exchange (ASX) to give a sense of the kind of high volume data that can be
 	written to Google `FlatBuffers` binary format.
 	
-	Below is a *different* example set of tables, different from what the current `flattables_sample` code is generated
+	Below is a *different* example set of tables, different to what the current `flattables_sample` code is generated
 	from, to give a sense of the flexibility of multiple tables. As many tables as you need to express your information
 	payload.
 
