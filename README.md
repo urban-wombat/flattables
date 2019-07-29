@@ -70,8 +70,14 @@ such as fixed sizes (no int or uint), lowercase column names and uppercase table
 	and paste the tables below into `tables.got` and proceed to the next step. You can go back later
 	and whip up data that looks like your own.
 	
-	Below is a different example set of tables, different from what the current `flattables_sample` code is generated
-	from [tables.got](https://github.com/urban-wombat/flattables_sample/blob/master/tables.got), to give a sense of the flexibility of multiple tables.
+	[package flattables_sample](https://godoc.org/github.com/urban-wombat/flattables_sample) is generated from
+	[tables.got](https://github.com/urban-wombat/flattables_sample/blob/master/tables.got) which is end of week
+	data from the Australian Stock Exchange (ASX) to give a sense of the kind of high volume data that can be
+	written to Google `FlatBuffers` binary format.
+	
+	Below is a *different* example set of tables, different from what the current `flattables_sample` code is generated
+	from, to give a sense of the flexibility of multiple tables. As many tables as you need to express your information
+	payload.
 
 ```
     [MyXyzTable]
