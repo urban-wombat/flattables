@@ -71,7 +71,7 @@ such as fixed sizes (no int or uint), lowercase column names and uppercase table
 	and whip up data that looks like your own.
 	
 	Below is a different example set of tables, different from what the current `flattables_sample` code is generated
-	from [tables.got](tables.got), to give a sense of the flexibility of multiple tables.
+	from [tables.got](https://github.com/urban-wombat/flattables_sample/blob/master/tables.got), to give a sense of the flexibility of multiple tables.
 
 ```
     [MyXyzTable]
