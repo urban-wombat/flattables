@@ -17,7 +17,7 @@ I did not hand-code any of it. `flattablesc` will generate all the same kinds of
 * `flattables` is tabular only
 * there are some table and columns names that are illegal (such as `for`)
 to not break generated Go code
-* some `FlatBuffers` style guide constraints such as:-
+* some `FlatBuffers` data-type and style-guide constraints such as:-
   * fixed sizes (no int or uint)
   * lowercase column names and uppercase table names
 
