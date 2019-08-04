@@ -13,10 +13,13 @@ which is a runnable main example.
 
 `flattables_sample` is nothing special. I just called it that (the package name) and ran `flattablesc` on this
 [tables.got](https://github.com/urban-wombat/flattables_sample/blob/master/tables.got) file.
-I did not hand-code any of it. `flattablesc` will generate all the same kinds of examples and useable code for you from your own set of tables. You will then see exactly how to write your own code to use `FlatBuffers`. The only restrictions being that `flattables` is
-tabular, there are some table and columns names that are illegal (such as `for`)
-to not break generated Go code, and some `FlatBuffers` style guide constraints,
-such as fixed sizes (no int or uint), lowercase column names and uppercase table names.
+I did not hand-code any of it. `flattablesc` will generate all the same kinds of examples and useable code for you from your own set of tables. You will then see exactly how to write your own code to use `FlatBuffers`. The main restrictions are:-
+* `flattables` is tabular only
+* there are some table and columns names that are illegal (such as `for`)
+to not break generated Go code
+* some `FlatBuffers` data-type and style-guide constraints such as:-
+  * fixed sizes (no int or uint)
+  * lowercase column names and uppercase table names
 
 1. Install FlatBuffers
 
