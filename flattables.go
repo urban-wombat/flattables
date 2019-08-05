@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"go/format"
 	"go/token"
 	"io/ioutil"
 	"log"
@@ -438,13 +437,11 @@ func generateGoCodeFromTemplate(generationInfo GenerationInfo, tablesTemplateInf
 	// We don't want gofmt to mess with non-Go files (such as README.md which it crunches).
 	if strings.HasSuffix(generatedFile, ".go") {
 		goCode = RemoveExcessTabsAndNewLines(goCode) // handwritten formatter
-		//		goCode, err = util.GoFmtProgramString(goCode)	// Run the gofmt command on input string goCode
-		var goCodeBytes []byte
-		goCodeBytes, err = format.Source([]byte(goCode))
+
+		goCode, err = util.FormatSource(goCode)
 		if err != nil {
-			return err
+			return
 		}
-		goCode = string(goCodeBytes)
 	}
 
 	//where(fmt.Sprintf("WHAT? %s", tablesTemplateInfo.OutDirMainAbsolute))
