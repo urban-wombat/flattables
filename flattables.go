@@ -552,22 +552,22 @@ type TableInfo struct {
 }
 
 type TablesTemplateInfoType struct {
-	GeneratedDateFromFile string
+	GeneratedDateFromFile         string
 	GeneratedDateFromFileBaseName string
-	GeneratedFromFile     string
-	UsingCommand          string
-	UsingCommandMinusG    string
-	NameSpace             string // Included in PackageName.
-	PackageName           string // Includes NameSpace
-	Year                  string
-	OutDirAbsolute        string
-	OutDirMainAbsolute    string
-	SchemaFileName        string
-	SchemaFileNameBase    string
-	GeneratedFile         string
-	GeneratedFileBaseName string
-	FuncName              string
-	Imports               []string
+	GeneratedFromFile             string
+	UsingCommand                  string
+	UsingCommandMinusG            string
+	NameSpace                     string // Included in PackageName.
+	PackageName                   string // Includes NameSpace
+	Year                          string
+	OutDirAbsolute                string
+	OutDirMainAbsolute            string
+	SchemaFileName                string
+	SchemaFileNameBase            string
+	GeneratedFile                 string
+	GeneratedFileBaseName         string
+	FuncName                      string
+	Imports                       []string
 	//	GotablesFileName string	// We want to replace this with the following TWO file names.
 	GotablesFileNameAbsolute string
 	GotablesFileNameBase     string
@@ -782,19 +782,19 @@ func InitTablesTemplateInfo(tableSet *gotables.TableSet, packageName string) (Ta
 	//	tableSetData = indentText("\t", tableSetData)
 
 	tablesTemplateInfo = TablesTemplateInfoType{
-		GeneratedDateFromFile:    generatedDateFromFile(tableSet),
+		GeneratedDateFromFile:         generatedDateFromFile(tableSet),
 		GeneratedDateFromFileBaseName: filepath.Base(generatedDateFromFile(tableSet)),
-		GeneratedFromFile:        generatedFromFile(tableSet),
-		UsingCommand:             usingCommand(tableSet, packageName),
-		UsingCommandMinusG:       usingCommandMinusG(tableSet, packageName),
-		GotablesFileNameAbsolute: tableSet.FileName(),
-		GotablesFileNameBase:     filepath.Base(tableSet.FileName()),
-		Year:                     copyrightYear(),
-		NameSpace:                tableSet.Name(),
-		PackageName:              packageName,
-		TableSetMetadata:         tableSetMetadata,
-		TableSetData:             tableSetData,
-		Tables:                   tables,
+		GeneratedFromFile:             generatedFromFile(tableSet),
+		UsingCommand:                  usingCommand(tableSet, packageName),
+		UsingCommandMinusG:            usingCommandMinusG(tableSet, packageName),
+		GotablesFileNameAbsolute:      tableSet.FileName(),
+		GotablesFileNameBase:          filepath.Base(tableSet.FileName()),
+		Year:                          copyrightYear(),
+		NameSpace:                     tableSet.Name(),
+		PackageName:                   packageName,
+		TableSetMetadata:              tableSetMetadata,
+		TableSetData:                  tableSetData,
+		Tables:                        tables,
 	}
 
 	return tablesTemplateInfo, nil
