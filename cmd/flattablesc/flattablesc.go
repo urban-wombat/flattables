@@ -301,7 +301,7 @@ func printUsage() {
 		usageString += "additional commands in development mode:\n"
 		usageString += "             $ go run ${globalUtilDir}/${globalUtilName}.go -v -f ../flattables_sample/tables.got -n flattables_sample -p github.com/urban-wombat/flattables_sample\n"
 		usageString += "             $ go install ${globalUtilDir}/${globalUtilName}.go\n"
-		usageString += util.BuildTime()
+		usageString += util.BuildDateTime()
 	}
 
 	usageString = strings.Replace(usageString, "${globalUtilName}", globalUtilName, -1)
@@ -527,7 +527,7 @@ func main() {
 	}
 
 	if user, _ := user.Current(); user.Username == "Malcolm-PC\\Malcolm" {
-		fmt.Printf(" %s\n", util.BuildTime())
+		fmt.Printf(" %s\n", util.BuildDateTime())
 	}
 }
 
