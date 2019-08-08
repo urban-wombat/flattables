@@ -1,6 +1,6 @@
 The irony of `FlatTables` is that all the automatic code generation produces your package-specific library code
 and godoc documentation, along with tests and a main that illustrates how to use your specific `FlatTables`
-package. Which means there is absolutely no (zero, zilch) godoc for `flattables` itself. Your invocation
+package. Which means there is absolutely no (zero, zilch) godoc for `FlatTables` itself. Your invocation
 of the `flattablesc` CLI will generate your own godoc. Here's the
 [github.com/urban-wombat/flattables_sample godoc](https://godoc.org/github.com/urban-wombat/flattables_sample)
 to give you an idea of what your generated godoc will look like.
